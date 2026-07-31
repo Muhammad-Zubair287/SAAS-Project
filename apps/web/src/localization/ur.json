@@ -1,0 +1,789 @@
+{
+  "common": {
+    "loading": "لوڈ ہو رہا ہے...",
+    "error": "ایک خرابی پیش آئی",
+    "retry": "دوبارہ کوشش کریں",
+    "cancel": "منسوخ کریں",
+    "save": "محفوظ کریں",
+    "delete": "حذف کریں",
+    "edit": "ترمیم کریں",
+    "view": "دیکھیں",
+    "back": "واپس",
+    "next": "اگلا",
+    "previous": "پچھلا",
+    "search": "تلاش کریں",
+    "filter": "فلٹر",
+    "export": "برآمد کریں",
+    "import": "درآمد کریں",
+    "noData": "کوئی ڈیٹا دستیاب نہیں",
+    "confirmDelete": "کیا آپ واقعی اسے حذف کرنا چاہتے ہیں؟",
+    "yes": "ہاں",
+    "no": "نہیں",
+    "required": "ضروری",
+    "optional": "اختیاری",
+    "actions": "اقدامات"
+  },
+  "errors": {
+    "generic": "کچھ غلط ہو گیا۔ براہ کرم دوبارہ کوشش کریں۔",
+    "notFound": "درخواست کردہ وسیلہ نہیں ملا۔",
+    "unauthorized": "آپ کو یہ عمل کرنے کا اختیار نہیں ہے۔",
+    "networkError": "نیٹ ورک خرابی۔ براہ کرم اپنا کنکشن چیک کریں۔",
+    "serverError": "سرور کی خرابی۔ براہ کرم بعد میں دوبارہ کوشش کریں۔",
+    "validationFailed": "براہ کرم ذیل کی غلطیاں درست کریں۔"
+  },
+  "nav": {
+    "dashboard": "ڈیش بورڈ",
+    "settings": "ترتیبات",
+    "profile": "پروفائل",
+    "logout": "سائن آؤٹ"
+  },
+  "pagination": {
+    "showing": "{total} میں سے {from}–{to} دکھا رہا ہے",
+    "perPage": "فی صفحہ",
+    "firstPage": "پہلا صفحہ",
+    "lastPage": "آخری صفحہ",
+    "nextPage": "اگلا صفحہ",
+    "previousPage": "پچھلا صفحہ"
+  },
+  "platform": {
+    "admin": {
+      "label": "پلیٹ فارم ایڈمن",
+      "roleLabel": "سپر ایڈمن"
+    },
+    "nav": {
+      "overview": "پلیٹ فارم جائزہ",
+      "tenants": "ادارے",
+      "plans": "پلانز اور حقوق",
+      "usage": "استعمال",
+      "supportAccess": "سپورٹ رسائی",
+      "audit": "آڈٹ",
+      "config": "سسٹم کنفیگریشن"
+    },
+    "dashboard": {
+      "title": "پلیٹ فارم جائزہ",
+      "description": "اداروں، سبسکرپشنز اور پلیٹ فارم کی صحت کی نگرانی کریں۔",
+      "recentTenants": "حالیہ ادارے",
+      "stats": {
+        "total": "کل ادارے",
+        "active": "فعال",
+        "draft": "مسودہ",
+        "suspended": "معطل",
+        "closed": "بند"
+      }
+    },
+    "billing": {
+      "monthly": "ماہانہ",
+      "annual": "سالانہ"
+    },
+    "tenants": {
+      "title": "ادارے",
+      "description": "پلیٹ فارم کے تمام کسٹمر اداروں کا انتظام کریں۔",
+      "createButton": "ادارہ بنائیں",
+      "searchPlaceholder": "نام یا شناخت سے تلاش کریں…",
+      "empty": {
+        "title": "کوئی ادارہ نہیں ملا",
+        "description": "فلٹر تبدیل کریں یا پہلا ادارہ بنائیں۔"
+      },
+      "filters": {
+        "allStatuses": "تمام حالات"
+      },
+      "status": {
+        "draft": "مسودہ",
+        "trial": "آزمائشی",
+        "active": "فعال",
+        "grace": "مہلت",
+        "suspended": "معطل",
+        "closed": "بند",
+        "archived": "محفوظ شدہ"
+      },
+      "columns": {
+        "name": "ادارہ",
+        "country": "ملک",
+        "plan": "پلان",
+        "seats": "نشستوں کی حد",
+        "status": "حالت",
+        "created": "تاریخ تخلیق"
+      },
+      "actions": {
+        "activate": "فعال کریں",
+        "suspend": "معطل کریں",
+        "restore": "بحال کریں",
+        "changePlan": "پلان تبدیل کریں",
+        "supportAccess": "سپورٹ رسائی",
+        "viewAudit": "آڈٹ دیکھیں"
+      },
+      "detail": {
+        "breadcrumb": "ادارے کی تفصیل",
+        "tabs": {
+          "overview": "جائزہ",
+          "usage": "استعمال",
+          "subscription": "سبسکرپشن",
+          "support": "سپورٹ",
+          "audit": "آڈٹ"
+        },
+        "plan": "پلان",
+        "region": "علاقہ",
+        "seats": "نشستوں کی حد",
+        "created": "تاریخ تخلیق",
+        "fields": {
+          "id": "ادارہ شناخت",
+          "slug": "سلگ",
+          "country": "ملک",
+          "currency": "کرنسی",
+          "timezone": "وقت کا زون",
+          "locale": "بنیادی زبان",
+          "createdBy": "بنانے والا"
+        }
+      },
+      "usage": {
+        "seats": "نشست استعمال",
+        "activeOf": "{total} میں سے فعال"
+      },
+      "subscription": {
+        "currentPlan": "موجودہ پلان",
+        "activeSince": "فعال ہونے کی تاریخ"
+      },
+      "support": {
+        "noGrants": "اس ادارے کے لیے کوئی سپورٹ اجازت نامہ جاری نہیں کیا گیا۔",
+        "createTitle": "سپورٹ رسائی اجازت نامہ بنائیں",
+        "supportUserId": "سپورٹ انجینئر شناخت",
+        "reason": "کاروباری وجہ",
+        "scope": "رسائی کا دائرہ",
+        "startsAt": "آغاز وقت",
+        "endsAt": "اختتام وقت",
+        "durationNote": "آغاز وقت سے زیادہ سے زیادہ 24 گھنٹے۔",
+        "createButton": "رسائی دیں"
+      },
+      "suspend": {
+        "title": "ادارہ معطل کریں",
+        "description": "{name} کی تمام صارف رسائی فوری طور پر بند ہو جائے گی۔",
+        "reasonLabel": "معطلی کی وجہ",
+        "reasonPlaceholder": "اس ادارے کو معطل کرنے کی کاروباری وجہ بیان کریں…",
+        "reasonHelp": "یہ وجہ آڈٹ لاگ میں محفوظ ہوگی اور ادارے کو نظر نہیں آئے گی۔",
+        "confirmLabel": "تصدیق کے لیے ادارے کا نام ٹائپ کریں: {name}",
+        "confirmButton": "ادارہ معطل کریں"
+      },
+      "create": {
+        "title": "ادارہ بنائیں",
+        "description": "نئے کسٹمر ادارے کو فعال کریں۔ ادارہ مسودہ حالت میں بنے گا۔",
+        "breadcrumb": "نیا ادارہ",
+        "wizardProgress": "وزرڈ پیشرفت",
+        "submitButton": "بنائیں اور دعوت نامہ بھیجیں",
+        "steps": {
+          "company": "کمپنی",
+          "commercial": "تجارتی",
+          "admin": "منتظم"
+        },
+        "company": {
+          "title": "کمپنی کی تفصیلات",
+          "displayName": "ظاہری نام",
+          "legalName": "قانونی نام",
+          "country": "ملک",
+          "currency": "کرنسی",
+          "timeZone": "وقت کا زون",
+          "hostingRegion": "ہوسٹنگ علاقہ"
+        },
+        "commercial": {
+          "title": "تجارتی ترتیب",
+          "plan": "پلان",
+          "billingCycle": "بلنگ سائیکل",
+          "seatLimit": "نشستوں کی حد",
+          "trialEndsAt": "آزمائشی مدت کا اختتام",
+          "trialHelp": "پہلے دن سے ادائیگی کے لیے خالی چھوڑیں۔"
+        },
+        "admin": {
+          "title": "بنیادی منتظم",
+          "displayName": "پورا نام",
+          "email": "ای میل پتہ",
+          "emailHelp": "اس ای میل پر دعوت نامہ بھیجا جائے گا۔"
+        }
+      }
+    },
+    "audit": {
+      "comingSoon": "آڈٹ لاگ ویوئر مستقبل کے ریلیز میں دستیاب ہوگا۔"
+    }
+  },
+  "tenant": {
+    "nav": {
+      "dashboard": "ڈیش بورڈ",
+      "organisation": "تنظیم",
+      "employees": "ملازمین",
+      "documents": "دستاویزات",
+      "attendance": "حاضری",
+      "leave": "چھٹی",
+      "shifts": "شفٹیں",
+      "payroll": "تنخواہ",
+      "reports": "رپورٹیں",
+      "settings": "ترتیبات"
+    }
+  },
+  "documents": {
+    "overview": {
+      "title": "دستاویزات اور آن بورڈنگ",
+      "description": "دستاویز ٹیمپلیٹس، ملازم دستاویزات اور آن بورڈنگ سفر کا انتظام کریں۔"
+    },
+    "templates": {
+      "title": "دستاویز ٹیمپلیٹس",
+      "description": "قابل استعمال دستاویز ٹیمپلیٹس بنائیں۔",
+      "createButton": "ٹیمپلیٹ شامل کریں",
+      "searchPlaceholder": "ٹیمپلیٹس تلاش کریں...",
+      "empty": {
+        "title": "ابھی کوئی ٹیمپلیٹ نہیں",
+        "description": "اپنا پہلا دستاویز ٹیمپلیٹ بنائیں۔"
+      }
+    },
+    "onboarding": {
+      "title": "آن بورڈنگ سفر",
+      "description": "آن بورڈنگ ٹیمپلیٹس اور فعال مراحل کا انتظام کریں۔",
+      "createButton": "نیا سفر",
+      "empty": {
+        "title": "ابھی کوئی سفر نہیں",
+        "description": "اپنا پہلا آن بورڈنگ ٹیمپلیٹ بنائیں۔"
+      }
+    },
+    "status": {
+      "PENDING": "زیر التواء",
+      "ACTIVE": "فعال",
+      "EXPIRED": "میعاد ختم",
+      "REJECTED": "مسترد",
+      "IN_PROGRESS": "جاری",
+      "COMPLETED": "مکمل",
+      "CANCELLED": "منسوخ",
+      "SUBMITTED": "جمع کرایا",
+      "APPROVED": "منظور",
+      "PARTIAL": "جزوی",
+      "SIGNED": "دستخط شدہ",
+      "DECLINED": "انکار"
+    },
+    "taskType": {
+      "DOCUMENT_REQUEST": "دستاویز درخواست",
+      "FORM": "فارم",
+      "MANUAL": "دستی",
+      "SYSTEM": "سسٹم"
+    },
+    "fields": {
+      "name": "نام",
+      "title": "عنوان",
+      "description": "تفصیل",
+      "documentType": "دستاویز کی قسم",
+      "isRequired": "ضروری",
+      "expiryMonths": "میعاد (ماہ)",
+      "isActive": "فعال",
+      "dueDate": "آخری تاریخ",
+      "notes": "نوٹس",
+      "status": "حالت"
+    },
+    "columns": {
+      "name": "نام",
+      "type": "قسم",
+      "required": "ضروری",
+      "status": "حالت",
+      "expiry": "میعاد",
+      "actions": "اقدامات"
+    }
+  },
+  "organisation": {
+    "overview": {
+      "title": "تنظیمی ڈھانچہ",
+      "description": "قانونی ادارے، شاخیں، محکمے، لاگت مراکز اور عہدے منظم کریں۔"
+    },
+    "nav": {
+      "legalEntities": "قانونی ادارے",
+      "branches": "شاخیں",
+      "departments": "محکمے",
+      "costCentres": "لاگت مراکز",
+      "positions": "عہدے"
+    },
+    "filters": {
+      "allStatuses": "تمام حالات",
+      "allLegalEntities": "تمام قانونی ادارے"
+    },
+    "status": {
+      "active": "فعال",
+      "inactive": "غیر فعال"
+    },
+    "detail": {
+      "sectionMeta": "ریکارڈ کی معلومات",
+      "id": "ریکارڈ شناخت",
+      "created": "تاریخ تخلیق",
+      "updated": "آخری تازہ کاری"
+    },
+    "legalEntities": {
+      "title": "قانونی ادارے",
+      "description": "اس تنظیم کے تحت رجسٹرڈ قانونی ادارے۔",
+      "primary": "بنیادی",
+      "createButton": "قانونی ادارہ شامل کریں",
+      "searchPlaceholder": "نام سے تلاش کریں…",
+      "columns": {
+        "name": "نام",
+        "country": "ملک",
+        "currency": "کرنسی",
+        "regNumber": "رجسٹریشن نمبر",
+        "status": "حالت",
+        "created": "تاریخ تخلیق"
+      },
+      "empty": {
+        "title": "کوئی قانونی ادارہ نہیں ملا",
+        "description": "فلٹر تبدیل کریں یا پہلا قانونی ادارہ شامل کریں۔"
+      },
+      "fields": {
+        "name": "نام",
+        "namePlaceholder": "مثلاً: اکمی پاکستان (پرائیویٹ) لمیٹڈ",
+        "registrationNumber": "رجسٹریشن نمبر",
+        "registrationNumberPlaceholder": "مثلاً: 0123456",
+        "country": "ملک",
+        "currency": "کرنسی",
+        "timezone": "وقت کا زون",
+        "isPrimary": "بنیادی قانونی ادارہ نشان زد کریں",
+        "legalEntity": "قانونی ادارہ",
+        "legalEntityPlaceholder": "قانونی ادارہ منتخب کریں"
+      },
+      "create": {
+        "title": "قانونی ادارہ شامل کریں",
+        "description": "اپنی تنظیم کے لیے نیا قانونی ادارہ رجسٹر کریں۔",
+        "breadcrumb": "نیا قانونی ادارہ",
+        "sectionDetails": "قانونی ادارے کی تفصیلات",
+        "submitButton": "قانونی ادارہ بنائیں"
+      },
+      "detail": {
+        "breadcrumb": "قانونی ادارے کی تفصیل",
+        "sectionDetails": "قانونی ادارے کی تفصیلات"
+      }
+    },
+    "branches": {
+      "title": "شاخیں",
+      "description": "آپ کے قانونی اداروں کے جسمانی مقامات اور دفاتر۔",
+      "createButton": "شاخ شامل کریں",
+      "searchPlaceholder": "نام یا کوڈ سے تلاش کریں…",
+      "columns": {
+        "name": "نام",
+        "code": "کوڈ",
+        "legalEntity": "قانونی ادارہ",
+        "country": "ملک",
+        "timezone": "وقت کا زون",
+        "status": "حالت",
+        "created": "تاریخ تخلیق"
+      },
+      "empty": {
+        "title": "کوئی شاخ نہیں ملی",
+        "description": "فلٹر تبدیل کریں یا پہلی شاخ شامل کریں۔"
+      },
+      "fields": {
+        "legalEntity": "قانونی ادارہ",
+        "legalEntityPlaceholder": "قانونی ادارہ منتخب کریں",
+        "name": "شاخ کا نام",
+        "code": "کوڈ",
+        "country": "ملک",
+        "timezone": "وقت کا زون",
+        "city": "شہر",
+        "isHeadOffice": "ہیڈ آفس نشان زد کریں"
+      },
+      "create": {
+        "title": "شاخ شامل کریں",
+        "description": "نئی شاخ یا دفتر کا مقام بنائیں۔",
+        "breadcrumb": "نئی شاخ",
+        "sectionDetails": "شاخ کی تفصیلات",
+        "submitButton": "شاخ بنائیں"
+      },
+      "detail": {
+        "breadcrumb": "شاخ کی تفصیل",
+        "sectionDetails": "شاخ کی تفصیلات"
+      }
+    },
+    "departments": {
+      "title": "محکمے",
+      "description": "تنظیمی درجہ بندی میں فعال محکمے۔",
+      "createButton": "محکمہ شامل کریں",
+      "searchPlaceholder": "نام یا کوڈ سے تلاش کریں…",
+      "columns": {
+        "name": "نام",
+        "code": "کوڈ",
+        "legalEntity": "قانونی ادارہ",
+        "branch": "شاخ",
+        "parent": "اعلیٰ محکمہ",
+        "status": "حالت",
+        "created": "تاریخ تخلیق"
+      },
+      "empty": {
+        "title": "کوئی محکمہ نہیں ملا",
+        "description": "فلٹر تبدیل کریں یا پہلا محکمہ شامل کریں۔"
+      },
+      "fields": {
+        "legalEntity": "قانونی ادارہ",
+        "legalEntityPlaceholder": "قانونی ادارہ منتخب کریں",
+        "name": "محکمے کا نام",
+        "code": "کوڈ",
+        "branch": "شاخ",
+        "branchPlaceholder": "شاخ منتخب کریں (اختیاری)",
+        "parentDepartment": "اعلیٰ محکمہ",
+        "parentDepartmentPlaceholder": "اعلیٰ محکمہ منتخب کریں (اختیاری)",
+        "costCentre": "لاگت مرکز",
+        "costCentrePlaceholder": "لاگت مرکز منتخب کریں (اختیاری)"
+      },
+      "create": {
+        "title": "محکمہ شامل کریں",
+        "description": "تنظیمی درجہ بندی میں نیا محکمہ بنائیں۔",
+        "breadcrumb": "نیا محکمہ",
+        "sectionDetails": "محکمے کی تفصیلات",
+        "submitButton": "محکمہ بنائیں"
+      },
+      "detail": {
+        "breadcrumb": "محکمے کی تفصیل",
+        "sectionDetails": "محکمے کی تفصیلات"
+      }
+    },
+    "costCentres": {
+      "title": "لاگت مراکز",
+      "description": "بجٹ اور رپورٹنگ کے لیے مالیاتی لاگت مراکز۔",
+      "createButton": "لاگت مرکز شامل کریں",
+      "searchPlaceholder": "نام یا کوڈ سے تلاش کریں…",
+      "columns": {
+        "name": "نام",
+        "code": "کوڈ",
+        "legalEntity": "قانونی ادارہ",
+        "description": "تفصیل",
+        "status": "حالت",
+        "created": "تاریخ تخلیق"
+      },
+      "empty": {
+        "title": "کوئی لاگت مرکز نہیں ملا",
+        "description": "فلٹر تبدیل کریں یا پہلا لاگت مرکز شامل کریں۔"
+      },
+      "fields": {
+        "legalEntity": "قانونی ادارہ",
+        "legalEntityPlaceholder": "قانونی ادارہ منتخب کریں",
+        "name": "نام",
+        "code": "کوڈ",
+        "description": "تفصیل"
+      },
+      "create": {
+        "title": "لاگت مرکز شامل کریں",
+        "description": "مالیاتی ٹریکنگ کے لیے نیا لاگت مرکز بنائیں۔",
+        "breadcrumb": "نیا لاگت مرکز",
+        "sectionDetails": "لاگت مرکز کی تفصیلات",
+        "submitButton": "لاگت مرکز بنائیں"
+      },
+      "detail": {
+        "breadcrumb": "لاگت مرکز کی تفصیل",
+        "sectionDetails": "لاگت مرکز کی تفصیلات"
+      }
+    },
+    "positions": {
+      "title": "عہدے",
+      "description": "تنظیم میں متعین ملازمتی عہدے اور کردار۔",
+      "createButton": "عہدہ شامل کریں",
+      "searchPlaceholder": "عنوان یا کوڈ سے تلاش کریں…",
+      "columns": {
+        "title": "عنوان",
+        "code": "کوڈ",
+        "department": "محکمہ",
+        "grade": "گریڈ",
+        "isManager": "منیجر",
+        "status": "حالت",
+        "created": "تاریخ تخلیق"
+      },
+      "empty": {
+        "title": "کوئی عہدہ نہیں ملا",
+        "description": "فلٹر تبدیل کریں یا پہلا عہدہ شامل کریں۔"
+      },
+      "fields": {
+        "legalEntity": "قانونی ادارہ",
+        "legalEntityPlaceholder": "قانونی ادارہ منتخب کریں",
+        "title": "عہدے کا عنوان",
+        "code": "کوڈ",
+        "department": "محکمہ",
+        "departmentPlaceholder": "محکمہ منتخب کریں (اختیاری)",
+        "grade": "گریڈ",
+        "costCentre": "لاگت مرکز",
+        "costCentrePlaceholder": "لاگت مرکز منتخب کریں (اختیاری)",
+        "description": "تفصیل",
+        "isManager": "یہ انتظامی عہدہ ہے"
+      },
+      "create": {
+        "title": "عہدہ شامل کریں",
+        "description": "تنظیم میں نیا عہدہ متعین کریں۔",
+        "breadcrumb": "نیا عہدہ",
+        "sectionDetails": "عہدے کی تفصیلات",
+        "submitButton": "عہدہ بنائیں"
+      },
+      "detail": {
+        "breadcrumb": "عہدے کی تفصیل",
+        "sectionDetails": "عہدے کی تفصیلات"
+      }
+    }
+  },
+  "attendance": {
+    "dashboard": {
+      "title": "حاضری",
+      "description": "ملازمین کی حاضری کا ریکارڈ ٹریک اور منظم کریں۔"
+    },
+    "createButton": "حاضری درج کریں",
+    "status": {
+      "PRESENT":         "حاضر",
+      "ABSENT":          "غیر حاضر",
+      "LATE":            "دیر سے آیا",
+      "HALF_DAY":        "آدھا دن",
+      "EARLY_DEPARTURE": "جلدی گیا",
+      "MISSING_PUNCH":   "پنچ غائب",
+      "ON_LEAVE":        "چھٹی پر",
+      "HOLIDAY":         "تعطیل",
+      "WEEKEND":         "ہفتہ وار تعطیل",
+      "REMOTE_WORK":     "دور سے کام",
+      "BUSINESS_TRIP":   "کاروباری سفر"
+    },
+    "eventType": {
+      "CHECK_IN":  "حاضری",
+      "CHECK_OUT": "روانگی"
+    },
+    "source": {
+      "BIOMETRIC":    "بائیومیٹرک",
+      "MOBILE":       "موبائل",
+      "WEB":          "ویب",
+      "MANUAL":       "دستی",
+      "API":          "اے پی آئی",
+      "OFFLINE_SYNC": "آف لائن"
+    },
+    "exceptionType": {
+      "LATE":               "دیر سے آمد",
+      "EARLY_DEPARTURE":    "جلدی روانگی",
+      "MISSING_CHECK_IN":   "حاضری غائب",
+      "MISSING_CHECK_OUT":  "روانگی غائب",
+      "OVERTIME_UNAPPROVED":"غیر منظور اضافی وقت"
+    },
+    "columns": {
+      "date":     "تاریخ",
+      "checkIn":  "آمد",
+      "checkOut": "روانگی",
+      "worked":   "کام کا وقت",
+      "status":   "حیثیت",
+      "employee": "ملازم",
+      "type":     "قسم",
+      "severity": "شدت",
+      "resolved": "حل شدہ"
+    },
+    "records": {
+      "title":       "حاضری کے ریکارڈ",
+      "description": "روزانہ کی حاضری دیکھیں اور منظم کریں۔",
+      "empty": {
+        "title":       "کوئی ریکارڈ نہیں",
+        "description": "حاضری ریکارڈ یہاں ظاہر ہوں گے۔"
+      }
+    },
+    "detail": {
+      "title":            "حاضری کی تفصیل",
+      "breadcrumb":       "تفصیل",
+      "sectionRecord":    "ریکارڈ",
+      "sectionEvents":    "خام واقعات",
+      "sectionExceptions":"استثنیات"
+    },
+    "exceptions": {
+      "title":       "حاضری کی استثنیات",
+      "empty": {
+        "title":       "کوئی استثنا نہیں",
+        "description": "کوئی استثنا نہیں۔"
+      },
+      "resolveButton": "حل کریں"
+    },
+    "filters": {
+      "allStatuses": "تمام حیثیتیں",
+      "dateFrom":    "شروع تاریخ",
+      "dateTo":      "اختتام تاریخ"
+    },
+    "cards": {
+      "presentToday": "آج حاضر",
+      "absentToday":  "آج غیر حاضر",
+      "lateToday":    "آج دیر سے",
+      "totalRecords": "کل ریکارڈ"
+    },
+    "policy": {
+      "list": {
+        "title": "حاضری پالیسیاں",
+        "loading": "پالیسیاں لوڈ ہو رہی ہیں...",
+        "error": "پالیسیاں لوڈ کرنے میں ناکامی",
+        "empty": "ابھی تک کوئی حاضری پالیسی نہیں"
+      },
+      "create": { "title": "حاضری پالیسی بنائیں" },
+      "detail": {
+        "back": "پالیسیاں",
+        "loading": "پالیسی لوڈ ہو رہی ہے...",
+        "error": "پالیسی نہیں ملی",
+        "rules": "پالیسی کے اصول",
+        "versionHistory": "ورژن اور تاریخیں"
+      },
+      "scope": {
+        "branch": "برانچ",
+        "legalEntity": "قانونی ادارہ",
+        "tenant": "ٹیننٹ"
+      },
+      "status": {
+        "current": "فعال",
+        "ongoing": "جاری"
+      },
+      "fields": {
+        "name": "پالیسی کا نام",
+        "description": "تفصیل",
+        "effectiveFrom": "سے مؤثر",
+        "effectiveTo": "تک مؤثر",
+        "workStart": "کام کا آغاز",
+        "workEnd": "کام کا اختتام",
+        "workingHours": "کام کے اوقات",
+        "workingMinutes": "روزانہ کام کے منٹ",
+        "graceMinutes": "گریس پیریڈ (منٹ)",
+        "lateToleranceMinutes": "دیر کی رواداری (منٹ)",
+        "earlyDepartureToleranceMinutes": "جلدی جانے کی رواداری (منٹ)",
+        "halfDayMinutes": "نصف دن کی حد (منٹ)",
+        "minimumWorkingMinutes": "کم از کم کام کے منٹ",
+        "overtimeThresholdMinutes": "اوور ٹائم کی حد (منٹ)",
+        "timezone": "ٹائم زون",
+        "weekendDays": "چھٹی کے دن",
+        "version": "ورژن"
+      },
+      "flags": {
+        "allowManualAttendance": "دستی حاضری کی اجازت",
+        "allowEarlyCheckIn": "جلدی چیک ان کی اجازت",
+        "allowLateCheckOut": "دیر سے چیک آؤٹ کی اجازت",
+        "allowOvertime": "اوور ٹائم کی اجازت"
+      },
+      "units": { "minutes": "منٹ" },
+      "actions": {
+        "create": "پالیسی بنائیں",
+        "createFirst": "پہلی پالیسی بنائیں",
+        "edit": "ترمیم",
+        "save": "پالیسی محفوظ کریں",
+        "saving": "محفوظ ہو رہا ہے...",
+        "delete": "پالیسی آرکائیو کریں"
+      },
+      "errors": {
+        "nameRequired": "پالیسی کا نام ضروری ہے"
+      }
+    }
+  },
+  "employees": {
+    "directory": {
+      "title": "ملازمین",
+      "description": "تمام قانونی اداروں میں ملازمین کی ڈائریکٹری کا انتظام کریں۔"
+    },
+    "createButton": "ملازم شامل کریں",
+    "searchPlaceholder": "نام، ای میل یا نمبر سے تلاش کریں…",
+    "filters": {
+      "allStatuses": "تمام حالتیں",
+      "allTypes": "تمام اقسام"
+    },
+    "status": {
+      "ACTIVE": "فعال",
+      "PROBATION": "آزمائشی",
+      "ON_LEAVE": "چھٹی پر",
+      "INACTIVE": "غیر فعال",
+      "TERMINATED": "برخاست"
+    },
+    "employmentType": {
+      "FULL_TIME": "مکمل وقت",
+      "PART_TIME": "جز وقتی",
+      "CONTRACT": "معاہدہ",
+      "INTERN": "انٹرن"
+    },
+    "gender": {
+      "MALE": "مرد",
+      "FEMALE": "خاتون",
+      "OTHER": "دیگر",
+      "UNDISCLOSED": "ظاہر نہ کرنا"
+    },
+    "maritalStatus": {
+      "SINGLE": "غیر شادی شدہ",
+      "MARRIED": "شادی شدہ",
+      "DIVORCED": "طلاق یافتہ",
+      "WIDOWED": "بیوہ",
+      "SEPARATED": "علیحدہ",
+      "UNDISCLOSED": "ظاہر نہ کرنا"
+    },
+    "columns": {
+      "name": "نام",
+      "email": "دفتری ای میل",
+      "type": "قسم",
+      "hireDate": "تقرری تاریخ",
+      "status": "حالت"
+    },
+    "empty": {
+      "title": "کوئی ملازم نہیں ملا",
+      "description": "شروع کرنے کے لیے پہلا ملازم شامل کریں۔"
+    },
+    "fields": {
+      "firstName": "پہلا نام",
+      "firstNamePlaceholder": "پہلا نام درج کریں",
+      "lastName": "آخری نام",
+      "lastNamePlaceholder": "آخری نام درج کریں",
+      "gender": "جنس",
+      "genderPlaceholder": "جنس منتخب کریں (اختیاری)",
+      "dateOfBirth": "تاریخ پیدائش",
+      "nationalId": "قومی شناختی کارڈ",
+      "nationalIdPlaceholder": "مثلاً 42201-1234567-8",
+      "emailWork": "دفتری ای میل",
+      "emailWorkPlaceholder": "name@company.com",
+      "emailPersonal": "ذاتی ای میل",
+      "emailPersonalPlaceholder": "name@personal.com",
+      "phoneWork": "دفتری فون",
+      "phoneWorkPlaceholder": "+92 21 1234567",
+      "phoneMobile": "موبائل",
+      "phoneMobilePlaceholder": "+92 300 1234567",
+      "hireDate": "تقرری تاریخ",
+      "terminationDate": "برخاستگی تاریخ",
+      "employmentType": "ملازمت کی قسم",
+      "status": "حالت",
+      "legalEntityId": "قانونی ادارے کی شناخت",
+      "legalEntityIdPlaceholder": "قانونی ادارے کا UUID درج کریں",
+      "managerId": "رپورٹنگ مینیجر کی شناخت",
+      "managerIdPlaceholder": "مینیجر ملازم کا UUID درج کریں (اختیاری)",
+      "legalEntity": "قانونی ادارہ",
+      "legalEntityPlaceholder": "قانونی ادارہ منتخب کریں",
+      "branch": "برانچ",
+      "branchPlaceholder": "برانچ منتخب کریں (اختیاری)",
+      "department": "محکمہ",
+      "departmentPlaceholder": "محکمہ منتخب کریں (اختیاری)",
+      "position": "عہدہ",
+      "positionPlaceholder": "عہدہ منتخب کریں (اختیاری)",
+      "manager": "رپورٹنگ مینیجر",
+      "managerPlaceholder": "نام یا ای میل سے تلاش کریں…"
+    },
+    "create": {
+      "title": "ملازم شامل کریں",
+      "description": "نیا ملازم ریکارڈ بنائیں۔",
+      "breadcrumb": "نیا ملازم",
+      "sectionIdentity": "شناخت",
+      "sectionContact": "رابطہ",
+      "sectionEmployment": "ملازمت",
+      "sectionOrgAssignment": "تنظیمی تفویض",
+      "sectionPersonalDetail": "ذاتی تفصیل (اختیاری)",
+      "submitButton": "ملازم بنائیں"
+    },
+    "edit": {
+      "title": "ملازم میں ترمیم",
+      "breadcrumb": "ترمیم"
+    },
+    "detail": {
+      "breadcrumb": "ملازم کی تفصیل",
+      "tabProfile": "پروفائل",
+      "tabPersonal": "ذاتی تفصیلات",
+      "sectionEmployment": "ملازمت",
+      "sectionContact": "رابطہ"
+    },
+    "personalDetail": {
+      "notFound": "ابھی تک کوئی ذاتی تفصیلات درج نہیں کی گئیں۔",
+      "sectionDetails": "ذاتی تفصیلات",
+      "sectionNextOfKin": "قریبی رشتہ دار",
+      "fields": {
+        "nationality": "قومیت",
+        "countryOfBirth": "ملک پیدائش",
+        "maritalStatus": "ازدواجی حالت",
+        "addressLine1": "پتہ لائن 1",
+        "addressLine2": "پتہ لائن 2",
+        "city": "شہر",
+        "stateProvince": "صوبہ",
+        "postalCode": "پوسٹل کوڈ",
+        "countryCode": "ملک",
+        "nextOfKinName": "مکمل نام",
+        "nextOfKinRelationship": "رشتہ",
+        "nextOfKinPhone": "فون"
+      }
+    }
+  }
+}

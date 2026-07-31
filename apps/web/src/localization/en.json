@@ -1,0 +1,789 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "import": "Import",
+    "noData": "No data available",
+    "confirmDelete": "Are you sure you want to delete this?",
+    "yes": "Yes",
+    "no": "No",
+    "required": "Required",
+    "optional": "Optional",
+    "actions": "Actions"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "notFound": "The requested resource was not found.",
+    "unauthorized": "You are not authorized to perform this action.",
+    "networkError": "Network error. Please check your connection.",
+    "serverError": "Server error. Please try again later.",
+    "validationFailed": "Please correct the errors below."
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "settings": "Settings",
+    "profile": "Profile",
+    "logout": "Sign out"
+  },
+  "pagination": {
+    "showing": "Showing {from}–{to} of {total}",
+    "perPage": "Per page",
+    "firstPage": "First page",
+    "lastPage": "Last page",
+    "nextPage": "Next page",
+    "previousPage": "Previous page"
+  },
+  "platform": {
+    "admin": {
+      "label": "Platform Admin",
+      "roleLabel": "Super Admin"
+    },
+    "nav": {
+      "overview": "Platform Overview",
+      "tenants": "Tenants",
+      "plans": "Plans & Entitlements",
+      "usage": "Usage",
+      "supportAccess": "Support Access",
+      "audit": "Platform Audit",
+      "config": "System Configuration"
+    },
+    "dashboard": {
+      "title": "Platform Overview",
+      "description": "Monitor tenants, subscriptions, and platform health.",
+      "recentTenants": "Recent tenants",
+      "stats": {
+        "total": "Total tenants",
+        "active": "Active",
+        "draft": "Draft",
+        "suspended": "Suspended",
+        "closed": "Closed"
+      }
+    },
+    "billing": {
+      "monthly": "Monthly",
+      "annual": "Annual"
+    },
+    "tenants": {
+      "title": "Tenants",
+      "description": "Manage all customer organisations on this platform.",
+      "createButton": "Create tenant",
+      "searchPlaceholder": "Search by name or ID…",
+      "empty": {
+        "title": "No tenants found",
+        "description": "Adjust your filters or create the first tenant."
+      },
+      "filters": {
+        "allStatuses": "All statuses"
+      },
+      "status": {
+        "draft": "Draft",
+        "trial": "Trial",
+        "active": "Active",
+        "grace": "Grace",
+        "suspended": "Suspended",
+        "closed": "Closed",
+        "archived": "Archived"
+      },
+      "columns": {
+        "name": "Organisation",
+        "country": "Country",
+        "plan": "Plan",
+        "seats": "Seat limit",
+        "status": "Status",
+        "created": "Created"
+      },
+      "actions": {
+        "activate": "Activate",
+        "suspend": "Suspend",
+        "restore": "Restore",
+        "changePlan": "Change plan",
+        "supportAccess": "Support access",
+        "viewAudit": "View audit"
+      },
+      "detail": {
+        "breadcrumb": "Tenant detail",
+        "tabs": {
+          "overview": "Overview",
+          "usage": "Usage",
+          "subscription": "Subscription",
+          "support": "Support",
+          "audit": "Audit"
+        },
+        "plan": "Plan",
+        "region": "Region",
+        "seats": "Seat limit",
+        "created": "Created",
+        "fields": {
+          "id": "Tenant ID",
+          "slug": "Slug",
+          "country": "Country",
+          "currency": "Currency",
+          "timezone": "Time zone",
+          "locale": "Primary locale",
+          "createdBy": "Created by"
+        }
+      },
+      "usage": {
+        "seats": "Seat utilisation",
+        "activeOf": "active of {total} seats"
+      },
+      "subscription": {
+        "currentPlan": "Current plan",
+        "activeSince": "Active since"
+      },
+      "support": {
+        "noGrants": "No support grants have been issued for this tenant.",
+        "createTitle": "Create support access grant",
+        "supportUserId": "Support engineer user ID",
+        "reason": "Business reason",
+        "scope": "Access scope",
+        "startsAt": "Starts at",
+        "endsAt": "Ends at",
+        "durationNote": "Maximum duration is 24 hours from start time.",
+        "createButton": "Grant access"
+      },
+      "suspend": {
+        "title": "Suspend tenant",
+        "description": "This will immediately block all user access to {name}. Reads and exports will remain available during any grace period.",
+        "reasonLabel": "Suspension reason",
+        "reasonPlaceholder": "Describe the business reason for suspending this tenant…",
+        "reasonHelp": "This reason is stored in the audit log and is not visible to the tenant.",
+        "confirmLabel": "Type the tenant name to confirm: {name}",
+        "confirmButton": "Suspend tenant"
+      },
+      "create": {
+        "title": "Create tenant",
+        "description": "Provision a new customer organisation. The tenant will be created in DRAFT state.",
+        "breadcrumb": "New tenant",
+        "wizardProgress": "Wizard progress",
+        "submitButton": "Create and send invitation",
+        "steps": {
+          "company": "Company",
+          "commercial": "Commercial",
+          "admin": "Administrator"
+        },
+        "company": {
+          "title": "Company details",
+          "displayName": "Display name",
+          "legalName": "Legal name",
+          "country": "Country",
+          "currency": "Currency",
+          "timeZone": "Time zone",
+          "hostingRegion": "Hosting region"
+        },
+        "commercial": {
+          "title": "Commercial setup",
+          "plan": "Plan",
+          "billingCycle": "Billing cycle",
+          "seatLimit": "Seat limit",
+          "trialEndsAt": "Trial end date",
+          "trialHelp": "Leave blank for a paid subscription from day one."
+        },
+        "admin": {
+          "title": "Primary administrator",
+          "displayName": "Full name",
+          "email": "Email address",
+          "emailHelp": "An invitation will be sent to this email address."
+        }
+      }
+    },
+    "audit": {
+      "comingSoon": "Audit log viewer will be available in a future release."
+    }
+  },
+  "tenant": {
+    "nav": {
+      "dashboard": "Dashboard",
+      "organisation": "Organisation",
+      "employees": "Employees",
+      "documents": "Documents",
+      "attendance": "Attendance",
+      "leave": "Leave",
+      "shifts": "Shifts",
+      "payroll": "Payroll",
+      "reports": "Reports",
+      "settings": "Settings"
+    }
+  },
+  "documents": {
+    "overview": {
+      "title": "Documents & Onboarding",
+      "description": "Manage document templates, employee documents, and onboarding journeys."
+    },
+    "templates": {
+      "title": "Document Templates",
+      "description": "Define reusable document templates.",
+      "createButton": "Add template",
+      "searchPlaceholder": "Search templates...",
+      "empty": {
+        "title": "No templates yet",
+        "description": "Create your first document template."
+      }
+    },
+    "onboarding": {
+      "title": "Onboarding Journeys",
+      "description": "Manage onboarding templates and active instances.",
+      "createButton": "New journey",
+      "empty": {
+        "title": "No journeys yet",
+        "description": "Create your first onboarding template."
+      }
+    },
+    "status": {
+      "PENDING": "Pending",
+      "ACTIVE": "Active",
+      "EXPIRED": "Expired",
+      "REJECTED": "Rejected",
+      "IN_PROGRESS": "In Progress",
+      "COMPLETED": "Completed",
+      "CANCELLED": "Cancelled",
+      "SUBMITTED": "Submitted",
+      "APPROVED": "Approved",
+      "PARTIAL": "Partial",
+      "SIGNED": "Signed",
+      "DECLINED": "Declined"
+    },
+    "taskType": {
+      "DOCUMENT_REQUEST": "Document Request",
+      "FORM": "Form",
+      "MANUAL": "Manual",
+      "SYSTEM": "System"
+    },
+    "fields": {
+      "name": "Name",
+      "title": "Title",
+      "description": "Description",
+      "documentType": "Document Type",
+      "isRequired": "Required",
+      "expiryMonths": "Expiry (months)",
+      "isActive": "Active",
+      "dueDate": "Due Date",
+      "notes": "Notes",
+      "status": "Status"
+    },
+    "columns": {
+      "name": "Name",
+      "type": "Type",
+      "required": "Required",
+      "status": "Status",
+      "expiry": "Expiry",
+      "actions": "Actions"
+    }
+  },
+  "organisation": {
+    "overview": {
+      "title": "Organisation Structure",
+      "description": "Manage your legal entities, branches, departments, cost centres, and positions."
+    },
+    "nav": {
+      "legalEntities": "Legal Entities",
+      "branches": "Branches",
+      "departments": "Departments",
+      "costCentres": "Cost Centres",
+      "positions": "Positions"
+    },
+    "filters": {
+      "allStatuses": "All statuses",
+      "allLegalEntities": "All legal entities"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "detail": {
+      "sectionMeta": "Record information",
+      "id": "Record ID",
+      "created": "Created",
+      "updated": "Last updated"
+    },
+    "legalEntities": {
+      "title": "Legal Entities",
+      "description": "Registered legal entities operating under this organisation.",
+      "primary": "Primary",
+      "createButton": "Add legal entity",
+      "searchPlaceholder": "Search by name…",
+      "columns": {
+        "name": "Name",
+        "country": "Country",
+        "currency": "Currency",
+        "regNumber": "Reg. number",
+        "status": "Status",
+        "created": "Created"
+      },
+      "empty": {
+        "title": "No legal entities found",
+        "description": "Adjust your filters or add the first legal entity."
+      },
+      "fields": {
+        "name": "Name",
+        "namePlaceholder": "e.g. Acme Pakistan (Private) Limited",
+        "registrationNumber": "Registration number",
+        "registrationNumberPlaceholder": "e.g. 0123456",
+        "country": "Country",
+        "currency": "Currency",
+        "timezone": "Time zone",
+        "isPrimary": "Mark as primary legal entity",
+        "legalEntity": "Legal entity",
+        "legalEntityPlaceholder": "Select a legal entity"
+      },
+      "create": {
+        "title": "Add legal entity",
+        "description": "Register a new legal entity for your organisation.",
+        "breadcrumb": "New legal entity",
+        "sectionDetails": "Legal entity details",
+        "submitButton": "Create legal entity"
+      },
+      "detail": {
+        "breadcrumb": "Legal entity detail",
+        "sectionDetails": "Legal entity details"
+      }
+    },
+    "branches": {
+      "title": "Branches",
+      "description": "Physical locations and offices belonging to your legal entities.",
+      "createButton": "Add branch",
+      "searchPlaceholder": "Search by name or code…",
+      "columns": {
+        "name": "Name",
+        "code": "Code",
+        "legalEntity": "Legal entity",
+        "country": "Country",
+        "timezone": "Timezone",
+        "status": "Status",
+        "created": "Created"
+      },
+      "empty": {
+        "title": "No branches found",
+        "description": "Adjust your filters or add the first branch."
+      },
+      "fields": {
+        "legalEntity": "Legal entity",
+        "legalEntityPlaceholder": "Select a legal entity",
+        "name": "Branch name",
+        "code": "Code",
+        "country": "Country",
+        "timezone": "Time zone",
+        "city": "City",
+        "isHeadOffice": "Mark as head office"
+      },
+      "create": {
+        "title": "Add branch",
+        "description": "Create a new branch or office location.",
+        "breadcrumb": "New branch",
+        "sectionDetails": "Branch details",
+        "submitButton": "Create branch"
+      },
+      "detail": {
+        "breadcrumb": "Branch detail",
+        "sectionDetails": "Branch details"
+      }
+    },
+    "departments": {
+      "title": "Departments",
+      "description": "Functional departments within your organisation's hierarchy.",
+      "createButton": "Add department",
+      "searchPlaceholder": "Search by name or code…",
+      "columns": {
+        "name": "Name",
+        "code": "Code",
+        "legalEntity": "Legal entity",
+        "branch": "Branch",
+        "parent": "Parent dept.",
+        "status": "Status",
+        "created": "Created"
+      },
+      "empty": {
+        "title": "No departments found",
+        "description": "Adjust your filters or add the first department."
+      },
+      "fields": {
+        "legalEntity": "Legal entity",
+        "legalEntityPlaceholder": "Select a legal entity",
+        "name": "Department name",
+        "code": "Code",
+        "branch": "Branch",
+        "branchPlaceholder": "Select a branch (optional)",
+        "parentDepartment": "Parent department",
+        "parentDepartmentPlaceholder": "Select a parent department (optional)",
+        "costCentre": "Cost centre",
+        "costCentrePlaceholder": "Select a cost centre (optional)"
+      },
+      "create": {
+        "title": "Add department",
+        "description": "Create a new department in your organisational hierarchy.",
+        "breadcrumb": "New department",
+        "sectionDetails": "Department details",
+        "submitButton": "Create department"
+      },
+      "detail": {
+        "breadcrumb": "Department detail",
+        "sectionDetails": "Department details"
+      }
+    },
+    "costCentres": {
+      "title": "Cost Centres",
+      "description": "Financial cost centres used for budgeting and reporting.",
+      "createButton": "Add cost centre",
+      "searchPlaceholder": "Search by name or code…",
+      "columns": {
+        "name": "Name",
+        "code": "Code",
+        "legalEntity": "Legal entity",
+        "description": "Description",
+        "status": "Status",
+        "created": "Created"
+      },
+      "empty": {
+        "title": "No cost centres found",
+        "description": "Adjust your filters or add the first cost centre."
+      },
+      "fields": {
+        "legalEntity": "Legal entity",
+        "legalEntityPlaceholder": "Select a legal entity",
+        "name": "Name",
+        "code": "Code",
+        "description": "Description"
+      },
+      "create": {
+        "title": "Add cost centre",
+        "description": "Create a new cost centre for financial tracking.",
+        "breadcrumb": "New cost centre",
+        "sectionDetails": "Cost centre details",
+        "submitButton": "Create cost centre"
+      },
+      "detail": {
+        "breadcrumb": "Cost centre detail",
+        "sectionDetails": "Cost centre details"
+      }
+    },
+    "positions": {
+      "title": "Positions",
+      "description": "Job positions and roles defined within your organisation.",
+      "createButton": "Add position",
+      "searchPlaceholder": "Search by title or code…",
+      "columns": {
+        "title": "Title",
+        "code": "Code",
+        "department": "Department",
+        "grade": "Grade",
+        "isManager": "Manager",
+        "status": "Status",
+        "created": "Created"
+      },
+      "empty": {
+        "title": "No positions found",
+        "description": "Adjust your filters or add the first position."
+      },
+      "fields": {
+        "legalEntity": "Legal entity",
+        "legalEntityPlaceholder": "Select a legal entity",
+        "title": "Position title",
+        "code": "Code",
+        "department": "Department",
+        "departmentPlaceholder": "Select a department (optional)",
+        "grade": "Grade",
+        "costCentre": "Cost centre",
+        "costCentrePlaceholder": "Select a cost centre (optional)",
+        "description": "Description",
+        "isManager": "This is a managerial position"
+      },
+      "create": {
+        "title": "Add position",
+        "description": "Define a new position in your organisation.",
+        "breadcrumb": "New position",
+        "sectionDetails": "Position details",
+        "submitButton": "Create position"
+      },
+      "detail": {
+        "breadcrumb": "Position detail",
+        "sectionDetails": "Position details"
+      }
+    }
+  },
+  "attendance": {
+    "dashboard": {
+      "title": "Attendance",
+      "description": "Track and manage employee attendance records."
+    },
+    "createButton": "Log Attendance",
+    "status": {
+      "PRESENT":         "Present",
+      "ABSENT":          "Absent",
+      "LATE":            "Late",
+      "HALF_DAY":        "Half Day",
+      "EARLY_DEPARTURE": "Early Departure",
+      "MISSING_PUNCH":   "Missing Punch",
+      "ON_LEAVE":        "On Leave",
+      "HOLIDAY":         "Holiday",
+      "WEEKEND":         "Weekend",
+      "REMOTE_WORK":     "Remote Work",
+      "BUSINESS_TRIP":   "Business Trip"
+    },
+    "eventType": {
+      "CHECK_IN":  "Check In",
+      "CHECK_OUT": "Check Out"
+    },
+    "source": {
+      "BIOMETRIC":    "Biometric",
+      "MOBILE":       "Mobile",
+      "WEB":          "Web",
+      "MANUAL":       "Manual",
+      "API":          "API",
+      "OFFLINE_SYNC": "Offline Sync"
+    },
+    "exceptionType": {
+      "LATE":               "Late Arrival",
+      "EARLY_DEPARTURE":    "Early Departure",
+      "MISSING_CHECK_IN":   "Missing Check-In",
+      "MISSING_CHECK_OUT":  "Missing Check-Out",
+      "OVERTIME_UNAPPROVED":"Unapproved Overtime"
+    },
+    "columns": {
+      "date":     "Date",
+      "checkIn":  "Check In",
+      "checkOut": "Check Out",
+      "worked":   "Worked",
+      "status":   "Status",
+      "employee": "Employee",
+      "type":     "Type",
+      "severity": "Severity",
+      "resolved": "Resolved"
+    },
+    "records": {
+      "title":       "Attendance Records",
+      "description": "View and manage daily attendance records.",
+      "empty": {
+        "title":       "No attendance records found",
+        "description": "Attendance records will appear here once employees check in."
+      }
+    },
+    "detail": {
+      "title":            "Attendance Detail",
+      "breadcrumb":       "Record Detail",
+      "sectionRecord":    "Record",
+      "sectionEvents":    "Raw Events",
+      "sectionExceptions":"Exceptions"
+    },
+    "exceptions": {
+      "title":       "Attendance Exceptions",
+      "empty": {
+        "title":       "No exceptions",
+        "description": "No attendance exceptions have been raised."
+      },
+      "resolveButton": "Resolve"
+    },
+    "filters": {
+      "allStatuses": "All statuses",
+      "dateFrom":    "From date",
+      "dateTo":      "To date"
+    },
+    "cards": {
+      "presentToday": "Present Today",
+      "absentToday":  "Absent Today",
+      "lateToday":    "Late Today",
+      "totalRecords": "Total Records"
+    },
+    "policy": {
+      "list": {
+        "title": "Attendance Policies",
+        "loading": "Loading policies...",
+        "error": "Failed to load policies",
+        "empty": "No attendance policies yet"
+      },
+      "create": { "title": "Create Attendance Policy" },
+      "detail": {
+        "back": "Policies",
+        "loading": "Loading policy...",
+        "error": "Policy not found",
+        "rules": "Policy Rules",
+        "versionHistory": "Version & Dates"
+      },
+      "scope": {
+        "branch": "Branch",
+        "legalEntity": "Legal Entity",
+        "tenant": "Tenant"
+      },
+      "status": {
+        "current": "Active",
+        "ongoing": "Ongoing"
+      },
+      "fields": {
+        "name": "Policy Name",
+        "description": "Description",
+        "effectiveFrom": "Effective From",
+        "effectiveTo": "Effective To",
+        "workStart": "Work Start",
+        "workEnd": "Work End",
+        "workingHours": "Working Hours",
+        "workingMinutes": "Working Minutes/Day",
+        "graceMinutes": "Grace Period (min)",
+        "lateToleranceMinutes": "Late Tolerance (min)",
+        "earlyDepartureToleranceMinutes": "Early Departure Tolerance (min)",
+        "halfDayMinutes": "Half Day Threshold (min)",
+        "minimumWorkingMinutes": "Minimum Working Minutes",
+        "overtimeThresholdMinutes": "Overtime Threshold (min)",
+        "timezone": "Timezone",
+        "weekendDays": "Weekend Days",
+        "version": "Version"
+      },
+      "flags": {
+        "allowManualAttendance": "Allow Manual Attendance",
+        "allowEarlyCheckIn": "Allow Early Check-in",
+        "allowLateCheckOut": "Allow Late Check-out",
+        "allowOvertime": "Allow Overtime"
+      },
+      "units": { "minutes": "min" },
+      "actions": {
+        "create": "Create Policy",
+        "createFirst": "Create your first policy",
+        "edit": "Edit",
+        "save": "Save Policy",
+        "saving": "Saving...",
+        "delete": "Archive Policy"
+      },
+      "errors": {
+        "nameRequired": "Policy name is required"
+      }
+    }
+  },
+  "employees": {
+    "directory": {
+      "title": "Employees",
+      "description": "Manage your employee directory across all legal entities."
+    },
+    "createButton": "Add employee",
+    "searchPlaceholder": "Search by name, email or number…",
+    "filters": {
+      "allStatuses": "All statuses",
+      "allTypes": "All types"
+    },
+    "status": {
+      "ACTIVE": "Active",
+      "PROBATION": "Probation",
+      "ON_LEAVE": "On leave",
+      "INACTIVE": "Inactive",
+      "TERMINATED": "Terminated"
+    },
+    "employmentType": {
+      "FULL_TIME": "Full-time",
+      "PART_TIME": "Part-time",
+      "CONTRACT": "Contract",
+      "INTERN": "Intern"
+    },
+    "gender": {
+      "MALE": "Male",
+      "FEMALE": "Female",
+      "OTHER": "Other",
+      "UNDISCLOSED": "Prefer not to say"
+    },
+    "maritalStatus": {
+      "SINGLE": "Single",
+      "MARRIED": "Married",
+      "DIVORCED": "Divorced",
+      "WIDOWED": "Widowed",
+      "SEPARATED": "Separated",
+      "UNDISCLOSED": "Prefer not to say"
+    },
+    "columns": {
+      "name": "Name",
+      "email": "Work email",
+      "type": "Type",
+      "hireDate": "Hire date",
+      "status": "Status"
+    },
+    "empty": {
+      "title": "No employees found",
+      "description": "Add your first employee to get started."
+    },
+    "fields": {
+      "firstName": "First name",
+      "firstNamePlaceholder": "Enter first name",
+      "lastName": "Last name",
+      "lastNamePlaceholder": "Enter last name",
+      "gender": "Gender",
+      "genderPlaceholder": "Select gender (optional)",
+      "dateOfBirth": "Date of birth",
+      "nationalId": "National ID (CNIC)",
+      "nationalIdPlaceholder": "e.g. 42201-1234567-8",
+      "emailWork": "Work email",
+      "emailWorkPlaceholder": "name@company.com",
+      "emailPersonal": "Personal email",
+      "emailPersonalPlaceholder": "name@personal.com",
+      "phoneWork": "Work phone",
+      "phoneWorkPlaceholder": "+92 21 1234567",
+      "phoneMobile": "Mobile",
+      "phoneMobilePlaceholder": "+92 300 1234567",
+      "hireDate": "Hire date",
+      "terminationDate": "Termination date",
+      "employmentType": "Employment type",
+      "status": "Status",
+      "legalEntityId": "Legal entity ID",
+      "legalEntityIdPlaceholder": "Enter legal entity UUID",
+      "managerId": "Reporting manager ID",
+      "managerIdPlaceholder": "Enter manager employee UUID (optional)",
+      "legalEntity": "Legal entity",
+      "legalEntityPlaceholder": "Select legal entity",
+      "branch": "Branch",
+      "branchPlaceholder": "Select branch (optional)",
+      "department": "Department",
+      "departmentPlaceholder": "Select department (optional)",
+      "position": "Position",
+      "positionPlaceholder": "Select position (optional)",
+      "manager": "Reporting manager",
+      "managerPlaceholder": "Search by name or email…"
+    },
+    "create": {
+      "title": "Add employee",
+      "description": "Create a new employee record.",
+      "breadcrumb": "New employee",
+      "sectionIdentity": "Identity",
+      "sectionContact": "Contact",
+      "sectionEmployment": "Employment",
+      "sectionOrgAssignment": "Organisation assignment",
+      "sectionPersonalDetail": "Personal detail (optional)",
+      "submitButton": "Create employee"
+    },
+    "edit": {
+      "title": "Edit employee",
+      "breadcrumb": "Edit"
+    },
+    "detail": {
+      "breadcrumb": "Employee detail",
+      "tabProfile": "Profile",
+      "tabPersonal": "Personal details",
+      "sectionEmployment": "Employment",
+      "sectionContact": "Contact"
+    },
+    "personalDetail": {
+      "notFound": "No personal details have been recorded yet.",
+      "sectionDetails": "Personal details",
+      "sectionNextOfKin": "Next of kin",
+      "fields": {
+        "nationality": "Nationality",
+        "countryOfBirth": "Country of birth",
+        "maritalStatus": "Marital status",
+        "addressLine1": "Address line 1",
+        "addressLine2": "Address line 2",
+        "city": "City",
+        "stateProvince": "State / Province",
+        "postalCode": "Postal code",
+        "countryCode": "Country",
+        "nextOfKinName": "Full name",
+        "nextOfKinRelationship": "Relationship",
+        "nextOfKinPhone": "Phone"
+      }
+    }
+  }
+}

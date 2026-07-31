@@ -737,3 +737,93 @@ interfaces/    Service contracts / ports
 8. **No cross-module DB joins.** If module A needs data from module B, call module B's service or listen to its events.
 9. **Environment parity.** Local dev, CI, staging, and production must use the same Docker images and configuration shape.
 10. **Zero-downtime deployments.** Expand-contract migrations; no table locks; blue-green or rolling deploys on K8s.
+
+---
+
+## 16. Project Status & Phase Tracker
+
+> Last updated: Phase 2 complete. Phase 3 M01 Platform Administration complete. M02 Auth not yet started.
+
+### Current Phase
+**Phase 2 — Enterprise Foundation** ✅ Complete
+
+### Completed Phases
+
+| Phase | Name | Deliverables | Status |
+|-------|------|-------------|--------|
+| Phase 1 | Repository & Infrastructure Foundation | CLAUDE.md, all folder structures (apps/api, apps/web, packages, infrastructure, docs), all architecture docs, all ADRs | ✅ Complete |
+| Phase 2 | Enterprise Foundation | NestJS bootstrap, config module (9 namespaces + Zod env validation), global exception filter (RFC 7807), validation pipe, correlation ID middleware + interceptor, response transform interceptor, logging interceptor, Prisma service (withTenantTransaction + withTransaction), base repository, health module (3 endpoints), Swagger, Helmet, CORS, Next.js App Router, TanStack Query + next-intl providers, Tailwind design tokens, Axios client, ErrorBoundary, LoadingSpinner, Skeleton, EmptyState, usePagination, useLocaleInfo, EN + UR catalogues, shared types + constants packages, Docker Compose + init-db.sql | ✅ Complete |
+| Phase 3 (M01) | Platform Administration | 16 Prisma models (tenant, plan, entitlement, support_grant, audit_event, etc.), PlatformRoleGuard, RBAC permissions, 13 API endpoints, TenantService/PlanService/SupportGrantService/PlatformAuditService, platform dashboard + tenant directory + create wizard + tenant detail pages, EN+UR translations, responsive platform shell | ✅ Complete |
+
+### Pending Phases
+
+| Phase | Stage | Name | Modules | Depends On |
+|-------|-------|------|---------|-----------|
+| Phase 3 | Stage 1 | Platform Core | M01, M02, M16, M17 (interceptor) | Phase 2 |
+| Phase 4 | Stage 2 | Organisation & People | M03, M04, M05 | Phase 3 |
+| Phase 5 | Stage 3 | Attendance & Shifts | M06, M07 | Phase 4 |
+| Phase 6 | Stage 4 | Leave & Workflow | M08, M09 | Phase 5 |
+| Phase 7 | Stage 5 | Payroll | M10 | Phase 6 |
+| Phase 8 | Stage 6 | Self-Service & Reporting | M11, M12, M13, M14 | Phase 7 |
+| Phase 9 | Stage 7 | Integrations | M15 | Phase 8 |
+| Phase 10 | Stage 8 | Hardening & Performance | Cross-cutting | Phase 9 |
+| Phase 11 | Stage 9 | Pilot & Launch | All | Phase 10 |
+
+### Implementation Order (Critical Path)
+```
+M01 → M02 → M03 → M04 → M06 → M09 → M10
+                 ↘ M08 ↗
+```
+Full detail: `docs/architecture/MODULE_DEPENDENCIES.md`
+
+### Architecture Documentation (all in docs/architecture/)
+- `TECHNOLOGY_VERIFICATION.md` — Tech stack classification (Required / Architectural Decision / Optional)
+- `MODULE_MAPPING.md` — All 17 modules mapped to DB tables, APIs, screens, folders
+- `FOLDER_VERIFICATION.md` — Every module folder verified individually ✅
+- `TRACEABILITY_MATRIX.md` — BRD → PRD → UX → API → DB → Backend → Frontend → Phase
+- `MODULE_DEPENDENCIES.md` — Dependency table + Mermaid graph
+- `PROJECT_ROADMAP.md` — All 10 phases with deliverables and acceptance criteria
+- `SYSTEM_ARCHITECTURE.md` — 9 Mermaid architecture diagrams
+
+### ADRs (all in docs/adr/)
+| ADR | Decision | Type |
+|-----|---------|------|
+| ADR-001 | Modular Monolith | TSA-defined |
+| ADR-002 | Shared DB + RLS Tenant Isolation | TSA-defined |
+| ADR-003 | REST-First API | TSA-defined |
+| ADR-004 | Transactional Outbox | TSA-defined |
+| ADR-005 | Redis + BullMQ Queues | TSA-defined |
+| ADR-006 | S3 Object Storage | TSA-defined |
+| ADR-007 | Kubernetes Runtime | TSA-defined |
+| ADR-008 | OpenTelemetry | TSA-defined |
+| ADR-009 | AWS Reference + Multi-Cloud | TSA-defined |
+| ADR-010 | Expand-Contract Migrations | TSA-defined |
+| ADR-011 | Prisma ORM | Architectural Decision |
+| ADR-012 | Frontend Library Choices (Tailwind, Radix, Zustand, TanStack Query, RHF+Zod, next-intl) | Architectural Decision |
+| ADR-013 | GitHub Actions CI/CD | Architectural Decision |
+| ADR-014 | Turborepo Monorepo | Architectural Decision |
+
+### Open Decisions (must resolve before relevant phase)
+| Decision | Options | Required Before |
+|----------|---------|----------------|
+| K8s manifest tooling | Helm vs Kustomize | Phase 2 infrastructure |
+| Log aggregation backend | Loki vs Elastic | Phase 2 infrastructure |
+| RDS variant | RDS PostgreSQL vs Aurora | Phase 2 infrastructure |
+| Document malware scanning | Managed vs containerised | Phase 3 (M05) |
+| Chart library | Recharts vs Nivo | Phase 7 (M14) |
+| Payroll PDF engine | HTML→PDF library | Phase 6 (M10) |
+| Mobile offline cache | WatermelonDB vs MMKV | Mobile sprint (post-MVP) |
+
+### Known Constraints
+- `numeric(19,4)` — mandatory for all money columns. No exceptions.
+- PostgreSQL RLS — every new tenant-owned table requires RLS before merge.
+- Expand-contract — no destructive migrations. Ever.
+- Outbox-only events — no direct broker writes from request handlers.
+- Immutable approved payroll runs — new version required, never overwrite.
+- Append-only attendance raw events — corrections reference originals, never update.
+
+### Repository Standards
+- Source of truth for all requirements: 9 PDFs in `/Users/mzubair/Documents/Professional/DevFlx/SAAS Attendance/*.pdf`
+- Engineering reference (daily use): this file (`CLAUDE.md`)
+- Module implementation starts at: Phase 3 (M01 — Platform & Tenant Management)
+- Phase 2 complete: shared infrastructure only — no business logic implemented yet

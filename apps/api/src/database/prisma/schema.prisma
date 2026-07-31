@@ -1,0 +1,1808 @@
+// Workforce Cloud OS — Prisma Schema
+// ADR-002: Shared DB + RLS tenant isolation
+// ADR-004: Transactional outbox for all domain events
+// Global tables (plan, entitlement, deployment_region, tenant, app_user) have NO tenant_id and NO RLS.
+// Every tenant-owned table has tenant_id + RLS enforced via SET LOCAL app.tenant_id.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Infrastructure: Transactional Outbox (ADR-004) ───────────────────────────
+// At-least-once domain event delivery. Written atomically with business state.
+// NEVER write directly to the broker from a request handler.
+
+model OutboxEvent {
+  id          String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId    String?           @db.Uuid
+  eventId     String            @unique @db.Uuid
+  eventType   String
+  payload     Json
+  status      OutboxEventStatus @default(PENDING)
+  attempts    Int               @default(0)
+  lastError   String?
+  createdAt   DateTime          @default(now()) @db.Timestamptz(6)
+  publishedAt DateTime?         @db.Timestamptz(6)
+
+  @@index([status, createdAt])
+  @@index([tenantId])
+  @@map("outbox_events")
+}
+
+enum OutboxEventStatus {
+  PENDING
+  PUBLISHED
+  FAILED
+  DEAD_LETTERED
+
+  @@map("outbox_event_status")
+}
+
+// ─── Infrastructure: Idempotency Keys ─────────────────────────────────────────
+// Deduplicates POST/PUT mutations via Idempotency-Key header.
+
+model IdempotencyKey {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId     String?  @db.Uuid
+  key          String
+  requestHash  String
+  responseBody Json?
+  statusCode   Int?
+  expiresAt    DateTime @db.Timestamptz(6)
+  createdAt    DateTime @default(now()) @db.Timestamptz(6)
+
+  @@unique([key])
+  @@index([expiresAt])
+  @@map("idempotency_keys")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PLATFORM GLOBAL CATALOGUES
+// No tenant_id. No RLS. Referenced by tenant-owned tables via FK.
+// Batch 1 aligned to specification.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ─── M01: Deployment Regions ──────────────────────────────────────────────────
+// Cloud region catalogue. Tenant references this via deployment_region_id (added in Batch 2).
+// Populated by platform ops seed; tenants cannot modify.
+
+model DeploymentRegion {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code          String   @unique @db.VarChar(40)
+  name          String   @db.VarChar(100)
+  cloudProvider String   @map("cloud_provider") @db.VarChar(30)
+  cloudRegion   String   @map("cloud_region") @db.VarChar(60)
+  countryCode   String   @map("country_code") @db.Char(2)
+  status        String   @default("ACTIVE") @db.VarChar(20)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenants Tenant[]
+
+  @@index([status])
+  @@index([code])
+  @@map("deployment_region")
+}
+
+// ─── M01: Commercial Plans ────────────────────────────────────────────────────
+// Plan catalogue. Tenant references via plan code (Batch 2 will use plan_id FK).
+// billing_model values: FLAT_RATE | PER_SEAT | USAGE
+
+model Plan {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code         String   @unique @db.VarChar(40)
+  name         String   @db.VarChar(100)
+  description  String?  @db.Text
+  billingModel String   @default("PER_SEAT") @map("billing_model") @db.VarChar(30)
+  status       String   @default("ACTIVE") @db.VarChar(20)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  planEntitlements PlanEntitlement[]
+  // Batch 3: TenantSubscription now references plan via planId/id.
+  // planKey compatibility field on TenantSubscription still exists until cleanup batch.
+  subscriptions    TenantSubscription[]
+  tenants          Tenant[]
+
+  @@index([status])
+  @@map("plan")
+}
+
+// ─── M01: Entitlements ────────────────────────────────────────────────────────
+// Entitlement catalogue defining what can be controlled per plan.
+// data_type values: INTEGER | BOOLEAN | STRING | DECIMAL
+// default_value is jsonb to accommodate all data_type variants.
+
+model Entitlement {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code         String   @unique @db.VarChar(80)
+  label        String   @db.VarChar(120)
+  description  String?  @db.Text
+  dataType     String   @map("data_type") @db.VarChar(20)
+  defaultValue Json     @map("default_value")
+  unit         String?  @db.VarChar(40)
+  status       String   @default("ACTIVE") @db.VarChar(20)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  planEntitlements   PlanEntitlement[]
+  // Batch 4: FK switched from entitlement.code (via entitlementKey) to entitlement.id (via entitlementId).
+  tenantEntitlements TenantEntitlement[]
+
+  @@index([status])
+  @@map("entitlement")
+}
+
+// ─── M01: Plan Entitlements ───────────────────────────────────────────────────
+// Joins plan ↔ entitlement with a plan-specific default value.
+// tenant_entitlement references this row to store per-tenant overrides.
+
+model PlanEntitlement {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  planId        String   @map("plan_id") @db.Uuid
+  entitlementId String   @map("entitlement_id") @db.Uuid
+  defaultValue  Json     @map("default_value")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  plan        Plan        @relation(fields: [planId], references: [id], onDelete: Restrict)
+  entitlement Entitlement @relation(fields: [entitlementId], references: [id], onDelete: Restrict)
+
+  @@unique([planId, entitlementId])
+  @@index([planId])
+  @@index([entitlementId])
+  @@map("plan_entitlement")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TENANT & TENANT-SCOPED TABLES
+// Batch 2 will align Tenant and all tenant-owned tables with specification.
+// The models below are UNCHANGED from prior implementation except for the
+// minimal @relation reference fixes required for schema compilation after
+// the catalogue models above were restructured.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ─── M01: Tenants ─────────────────────────────────────────────────────────────
+// Root SaaS customer boundary. Global scope — no tenant_id on this table.
+// Batch 2: column alignment to spec. Old columns (currency, timeZone, primaryLocale,
+// hostingRegion) remain in DB under their old names until a cleanup migration removes them.
+// planKey kept as compatibility varchar (written by changePlan until Batch 3 aligns ChangePlanDto).
+
+model Tenant {
+  id                 String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  displayName        String       @db.VarChar(160)
+  legalName          String       @db.VarChar(200)
+  slug               String       @unique @db.VarChar(80)
+  countryCode        String       @db.Char(2)
+  baseCurrency       String       @map("base_currency") @db.Char(3)
+  defaultTimezone    String       @map("default_timezone") @db.VarChar(80)
+  defaultLocale      String       @map("default_locale") @db.VarChar(20)
+  deploymentRegionId String       @map("deployment_region_id") @db.Uuid
+  planId             String?      @map("plan_id") @db.Uuid
+  planKey            String?      @db.VarChar(80)
+  seatLimit          Int?
+  status             TenantStatus @default(DRAFT)
+  activatedAt        DateTime?    @db.Timestamptz(6)
+  suspendedAt        DateTime?    @db.Timestamptz(6)
+  suspendedReason    String?      @db.Text
+  suspendedBy        String?      @db.Uuid
+  archivedAt         DateTime?    @db.Timestamptz(6)
+  createdAt          DateTime     @default(now()) @db.Timestamptz(6)
+  createdBy          String?      @db.VarChar(160)
+  updatedAt          DateTime     @updatedAt @db.Timestamptz(6)
+  updatedBy          String?      @db.VarChar(160)
+  rowVersion         BigInt       @default(1)
+
+  plan   Plan?            @relation(fields: [planId], references: [id])
+  region DeploymentRegion @relation(fields: [deploymentRegionId], references: [id])
+
+  branding        TenantBranding?
+  subscriptions   TenantSubscription[]
+  entitlements    TenantEntitlement[]
+  featureFlags    TenantFeatureFlag[]
+  usageSnapshots  TenantUsageSnapshot[]
+  supportGrants   SupportGrant[]
+  // M02 Batch 1 back-relations
+  sessions        Session[]
+  userInvitations UserInvitation[]
+
+  // M02 Batch 2 back-relations
+  mfaCredentials  MfaCredential[]
+  identityLinks   IdentityLink[]
+  roles           Role[]
+  roleAssignments RoleAssignment[]
+  apiClients      ApiClient[]
+
+  // M03 Batch 1 back-relations
+  legalEntities LegalEntity[]
+  branches      Branch[]
+  costCentres   CostCentre[]
+  departments   Department[]
+  positions     Position[]
+
+  // M04 Batch 1 back-relations
+  employees               Employee[]
+  employeePersonalDetails EmployeePersonalDetail[]
+
+  // M05 Batch 1 back-relations
+  documentTemplates       DocumentTemplate[]
+  employeeDocuments       EmployeeDocument[]
+  onboardingTemplates     OnboardingTemplate[]
+  onboardingTemplateTasks OnboardingTemplateTask[]
+  onboardingInstances     OnboardingInstance[]
+  onboardingInstanceTasks OnboardingInstanceTask[]
+  documentRequests        DocumentRequest[]
+  documentRequestItems    DocumentRequestItem[]
+  documentExpiryAlerts    DocumentExpiryAlert[]
+  esignSessions           EsignSession[]
+
+  // M06 Batch 1 back-relations
+  attendanceRawEvents  AttendanceRawEvent[]
+  attendanceRecords    AttendanceRecord[]
+  attendanceExceptions AttendanceException[]
+
+  // M06 Batch 2 back-relations
+  attendancePolicies AttendancePolicy[]
+
+  @@index([status])
+  @@index([deploymentRegionId])
+  @@index([planId])
+  @@index([planKey])
+  @@index([countryCode])
+  @@index([createdAt])
+  @@map("tenant")
+}
+
+enum TenantStatus {
+  DRAFT
+  TRIAL
+  ACTIVE
+  GRACE
+  SUSPENDED
+  CLOSED
+  // TODO(compatibility): ARCHIVED exists only for backward compatibility with existing data.
+  // Remove after: all services migrated, frontend updated to CLOSED, DB rows rewritten,
+  // all dependent modules verified, cleanup batch executed, and tests passing.
+  // Do NOT use ARCHIVED for any new functionality.
+  ARCHIVED
+
+  @@map("tenant_status")
+}
+
+// ─── M01: Tenant Branding ─────────────────────────────────────────────────────
+
+model TenantBranding {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId     String   @unique @db.Uuid
+  logoUrl      String?  @db.VarChar(500)
+  primaryColor String?  @db.VarChar(7)
+  faviconUrl   String?  @db.VarChar(500)
+  createdAt    DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@map("tenant_branding")
+}
+
+// ─── M01: Tenant Subscriptions ────────────────────────────────────────────────
+// Batch 3: spec-aligned fields added. Old columns retained as compatibility
+// because tenant.service.ts (outside Batch 3 scope) writes planKey, trialEndsAt,
+// currentPeriodStart, and currentPeriodEnd. Remove in the dedicated cleanup batch
+// after that service and all downstream consumers are updated.
+
+model TenantSubscription {
+  id       String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId String @db.Uuid
+
+  // Spec field — plan FK via UUID.
+  // Nullable for compatibility: tenant.service.ts does not yet write planId.
+  // TODO(compatibility): make NOT NULL after tenant.service.ts writes planId
+  // and all subscription create paths are updated.
+  planId String? @map("plan_id") @db.Uuid
+
+  // Spec field — renamed from billingCycle; @map switches DB column to billing_cycle.
+  // Migration adds billing_cycle and populates from billingCycle.
+  billingCycle String @map("billing_cycle") @db.VarChar(20)
+
+  // Spec field — subscription effective start date (DATE, not timestamptz).
+  // Nullable for compatibility: tenant.service.ts writes currentPeriodStart instead.
+  // TODO(compatibility): make NOT NULL after tenant.service.ts writes startsOn.
+  startsOn DateTime? @map("starts_on") @db.Date
+
+  // Spec field — exclusive end date; null means currently active.
+  endsOn DateTime? @map("ends_on") @db.Date
+
+  // Spec field — renamed from seatLimit; @map switches DB column to seat_limit.
+  // Migration adds seat_limit and populates from seatLimit.
+  seatLimit Int @map("seat_limit")
+
+  // Spec DEFAULT is ACTIVE (not TRIALING).
+  status SubscriptionStatus @default(ACTIVE)
+
+  // Spec field — external billing system reference; nullable.
+  externalBillingRef String? @map("external_billing_ref") @db.VarChar(160)
+
+  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+  // Spec: nullable FK app_user.id.
+  createdBy  String?  @db.Uuid
+  updatedAt  DateTime @updatedAt @db.Timestamptz(6)
+  // Spec field — nullable FK app_user.id.
+  updatedBy  String?  @map("updated_by") @db.Uuid
+  rowVersion BigInt   @default(1)
+
+  // ── Compatibility fields ────────────────────────────────────────────────────
+  // TODO(compatibility): planKey is the pre-Batch3 plan code reference.
+  // Retained because tenant.service.ts writes planKey when creating subscriptions.
+  // Remove after tenant.service.ts is updated to write planId, planId is made NOT NULL,
+  // and all reads are switched to planId.
+  planKey String? @db.VarChar(80)
+
+  // TODO(compatibility): trialEndsAt is not in the spec.
+  // Retained because tenant.service.ts writes it. Remove after that service is aligned.
+  trialEndsAt DateTime? @db.Timestamptz(6)
+
+  // TODO(compatibility): currentPeriodStart/End are not in the spec (replaced by
+  // starts_on / ends_on). Retained because tenant.service.ts writes them.
+  // Remove after tenant.service.ts is updated to write startsOn/endsOn.
+  currentPeriodStart DateTime? @db.Timestamptz(6)
+  currentPeriodEnd   DateTime? @db.Timestamptz(6)
+
+  // TODO(compatibility): cancelledAt is not in the spec. Retained for existing data.
+  // Remove in cleanup batch after all rows are confirmed migrated.
+  cancelledAt DateTime? @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  plan   Plan?  @relation(fields: [planId], references: [id])
+
+  @@index([tenantId, status])
+  @@index([trialEndsAt])
+  @@index([planId])
+  @@map("tenant_subscription")
+}
+
+enum SubscriptionStatus {
+  // Spec-aligned values (source: database ERD data dictionary, July 2026)
+  TRIAL
+  ACTIVE
+  GRACE
+  SUSPENDED
+  ENDED
+
+  // TODO(compatibility): TRIALING is not in the spec (spec uses TRIAL).
+  // Retained because tenant.service.ts writes SubscriptionStatus.TRIALING for trial
+  // subscriptions. Remove after tenant.service.ts is updated to use TRIAL and all
+  // existing TRIALING rows are migrated to TRIAL.
+  TRIALING
+
+  // TODO(compatibility): PAST_DUE, CANCELLED, EXPIRED are not in the spec.
+  // PAST_DUE → GRACE; CANCELLED / EXPIRED → ENDED.
+  // Retained for backward compatibility with existing data. Remove after all rows
+  // are migrated to spec values and all dependent services are updated.
+  PAST_DUE
+  CANCELLED
+  EXPIRED
+
+  @@map("subscription_status")
+}
+
+// ─── M01: Tenant Entitlements ─────────────────────────────────────────────────
+// Batch 4: spec-aligned fields added. Compatibility columns retained because
+// tenant.service.ts writes entitlementKey, value, and overriddenBy via upsert
+// and uses the tenantId_entitlementKey unique constraint as the upsert where key.
+// Remove compatibility fields in the cleanup batch after tenant.service.ts is updated.
+
+model TenantEntitlement {
+  id       String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId String @db.Uuid
+
+  // Spec field — FK to entitlement.id.
+  // Nullable for compatibility: tenant.service.ts does not write entitlementId.
+  // TODO(compatibility): make NOT NULL after tenant.service.ts writes entitlementId.
+  entitlementId String? @map("entitlement_id") @db.Uuid
+
+  // Spec field — JSONB override value.
+  // Named value_json in DB to avoid column name collision with the compat varchar 'value' column.
+  // TODO(compatibility): rename DB column to 'value' and drop compat varchar in cleanup batch.
+  valueJson Json? @map("value_json")
+
+  // Spec field — activation timestamp; DB DEFAULT now() so existing inserts need not provide it.
+  effectiveFrom DateTime @default(now()) @map("effective_from") @db.Timestamptz(6)
+
+  // Spec field — exclusive end; null means currently active.
+  effectiveTo DateTime? @map("effective_to") @db.Timestamptz(6)
+
+  // Spec field — PLAN, CONTRACT, TRIAL or SUPPORT_OVERRIDE.
+  // Nullable for compatibility: tenant.service.ts does not write source.
+  // TODO(compatibility): make NOT NULL after tenant.service.ts is updated.
+  source String? @map("source") @db.VarChar(30)
+
+  // Spec field — business justification; nullable per spec.
+  reason String? @db.Text
+
+  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+  createdBy  String?  @map("created_by") @db.Uuid
+  updatedAt  DateTime @updatedAt @db.Timestamptz(6)
+  updatedBy  String?  @map("updated_by") @db.Uuid
+  rowVersion BigInt   @default(1) @map("row_version")
+
+  // ── Compatibility fields ────────────────────────────────────────────────────
+  // TODO(compatibility): entitlementKey is the pre-Batch4 code-based entitlement reference.
+  // Used by tenant.service.ts updateEntitlements() as the upsert where key.
+  // Remove after tenant.service.ts writes entitlementId, entitlementId is NOT NULL,
+  // and the tenantId_entitlementKey unique constraint is dropped.
+  entitlementKey String @db.VarChar(80)
+
+  // TODO(compatibility): value is the pre-Batch4 string-encoded override value.
+  // Used by tenant.service.ts updateEntitlements() upsert create/update data.
+  // Remove after tenant.service.ts writes valueJson and all reads switch to valueJson.
+  value String @db.VarChar(200)
+
+  // TODO(compatibility): overriddenBy is not in the spec (spec uses updatedBy).
+  // Used by tenant.service.ts updateEntitlements() upsert create/update data.
+  // Remove after tenant.service.ts is updated to use updatedBy instead.
+  overriddenBy String? @db.Uuid
+
+  tenant      Tenant       @relation(fields: [tenantId], references: [id])
+  entitlement Entitlement? @relation(fields: [entitlementId], references: [id])
+
+  // Compat: upsert where key used by tenant.service.ts updateEntitlements().
+  // map: pins the DB constraint name to prevent Prisma from recreating it.
+  @@unique([tenantId, entitlementKey], map: "tenant_entitlement_tenantId_entitlementKey_key")
+  // Spec index: (tenant_id, entitlement_id, effective_from).
+  @@index([tenantId, entitlementId, effectiveFrom])
+  @@map("tenant_entitlement")
+}
+
+// ─── M01: Tenant Feature Flags ────────────────────────────────────────────────
+// Batch 4: spec-aligned fields added. Compatibility columns retained for existing data.
+// No active service writes TenantFeatureFlag rows; compat retained for data continuity.
+// Remove compatibility fields in the cleanup batch.
+
+model TenantFeatureFlag {
+  id       String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId String @db.Uuid
+
+  // Spec field — feature flag code; varchar(100), snake_case DB column name.
+  // Prisma field reuses camelCase 'flagKey'; @map points to new 'flag_key' DB column.
+  // See flagKeyLegacy for the old camelCase DB column.
+  flagKey String @map("flag_key") @db.VarChar(100)
+
+  // Spec field — tenant activation value; NOT NULL default false.
+  enabled Boolean @default(false) @map("enabled")
+
+  // Spec field — validated feature-specific configuration; NOT NULL default {}.
+  configuration Json @default("{}") @map("configuration")
+
+  // Spec field — activation timestamp; DB DEFAULT now().
+  effectiveFrom DateTime @default(now()) @map("effective_from") @db.Timestamptz(6)
+
+  // Spec field — optional expiry; null means no scheduled expiry.
+  effectiveTo DateTime? @map("effective_to") @db.Timestamptz(6)
+
+  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+  createdBy  String?  @map("created_by") @db.Uuid
+  updatedAt  DateTime @updatedAt @db.Timestamptz(6)
+  updatedBy  String?  @map("updated_by") @db.Uuid
+  rowVersion BigInt   @default(1) @map("row_version")
+
+  // ── Compatibility fields ────────────────────────────────────────────────────
+  // TODO(compatibility): flagKeyLegacy maps to the pre-Batch4 camelCase DB column 'flagKey'.
+  // No active service writes TenantFeatureFlag; retained only for existing data.
+  // Remove in cleanup batch after all reads switch to flagKey (flag_key column).
+  flagKeyLegacy String? @map("flagKey") @db.VarChar(80)
+
+  // TODO(compatibility): isEnabled was the pre-Batch4 activation boolean.
+  // Remove in cleanup batch after all consumers switch to 'enabled'.
+  isEnabled Boolean @default(false)
+
+  // TODO(compatibility): enabledBy and enabledAt are not in the spec (spec uses createdBy/updatedBy).
+  // Remove in cleanup batch.
+  enabledBy String?   @db.Uuid
+  enabledAt DateTime? @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  // Compat unique constraint retained for existing data.
+  // map: pins the DB constraint name (column 'flagKey') to match the pre-Batch4 constraint.
+  @@unique([tenantId, flagKeyLegacy], map: "tenant_feature_flag_tenantId_flagKey_key")
+  // Spec unique constraint: (tenant_id, flag_key, effective_from).
+  @@unique([tenantId, flagKey, effectiveFrom])
+  @@index([tenantId])
+  @@map("tenant_feature_flag")
+}
+
+// ─── M01: Tenant Usage Snapshots ──────────────────────────────────────────────
+
+model TenantUsageSnapshot {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId         String   @db.Uuid
+  snapshotDate     DateTime @db.Date
+  activeEmployees  Int      @default(0)
+  totalEmployees   Int      @default(0)
+  storageUsedBytes BigInt   @default(0)
+  apiCallsMonth    Int      @default(0)
+  createdAt        DateTime @default(now()) @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, snapshotDate])
+  @@index([tenantId, snapshotDate])
+  @@map("tenant_usage_snapshot")
+}
+
+// ─── M01: App User (Identity) ─────────────────────────────────────────────────
+// Global platform reference — NOT tenant-owned; no tenant_id; no RLS.
+// Ownership: "Account life plus security retention" (spec ERD page 21).
+// Batch 6: spec-aligned snake_case DB columns added via @map.
+// Compat fields (email, displayNameLegacy, platformRole, isActive) retained
+// because PlatformRoleGuard, auth code, and Phase-3 migrations depend on them.
+// Prisma-level relations to SupportGrant and AuditEvent deferred to cleanup batch
+// (SupportGrant is in Do-Not-Modify list; AuditEvent alignment is a later batch).
+
+model AppUser {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  // Spec: varchar(320) NOT NULL. Partial UNIQUE WHERE user_type='HUMAN' enforced
+  // in migration SQL only (Prisma cannot express partial unique indexes).
+  // Declared nullable here; populated from email in migration; NOT NULL enforced in migration.
+  emailNormalised String? @map("email_normalised") @db.VarChar(320)
+
+  // Spec: varchar(160) NOT NULL. Old camelCase DB col 'displayName' retained as compat below.
+  // Prisma field name kept as displayName so TypeScript callers are unchanged.
+  displayName String @map("display_name") @db.VarChar(160)
+
+  // Spec: varchar(20) NOT NULL. Values: HUMAN, SERVICE, SUPPORT.
+  // Existing rows populated with 'HUMAN' (all Phase-3 platform staff are human) in migration.
+  userType String @map("user_type") @db.VarChar(20)
+
+  // Spec: varchar(20) NOT NULL DEFAULT 'INVITED'. Values: INVITED, ACTIVE, LOCKED, DEACTIVATED.
+  // Existing rows: isActive=true → 'ACTIVE'; isActive=false → 'DEACTIVATED'.
+  status String @default("INVITED") @db.VarChar(20)
+
+  // Spec: varchar(200) nullable. Opaque IdP subject; no password hash stored.
+  passwordSubject String? @map("password_subject") @db.VarChar(200)
+
+  // Spec: timestamptz nullable. Last successful authentication.
+  lastLoginAt DateTime? @map("last_login_at") @db.Timestamptz(6)
+
+  // Spec: timestamptz nullable. Account deactivation time.
+  deactivatedAt DateTime? @map("deactivated_at") @db.Timestamptz(6)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // ── Compatibility fields ──────────────────────────────────────────────────────
+  // TODO(compatibility): email is not in spec (spec uses email_normalised varchar(320)).
+  // Retained: auth code and sign-in lookups use email column directly.
+  // Cleanup prerequisite: M02 auth service migrated to email_normalised; cleanup batch drops col.
+  email String @unique @db.VarChar(255)
+
+  // TODO(compatibility): displayNameLegacy maps to old camelCase DB column 'displayName'.
+  // Retained: DB column populated for all existing rows; no active service writes it post-Batch-6.
+  // Cleanup prerequisite: drop DB column 'displayName' in cleanup batch (display_name adopted).
+  displayNameLegacy String @map("displayName") @db.VarChar(160)
+
+  // TODO(compatibility): platformRole is NOT in spec ERD (gap D-19).
+  // Retained: PlatformRoleGuard reads this column for platform-level authorization.
+  // Cleanup prerequisite: M02 introduces platform_role_assignment table; guard migrated.
+  platformRole String? @db.VarChar(80)
+
+  // TODO(compatibility): isActive is NOT in spec (spec uses status varchar(20)).
+  // Retained: guards and services check isActive for activation state.
+  // Cleanup prerequisite: all guards migrated to check status != 'DEACTIVATED'; M02 cleanup batch.
+  isActive Boolean @default(true)
+
+  // M02 Batch 1 back-relations — no column changes; Prisma relation metadata only.
+  sessions                Session[]                @relation("UserSessions")
+  impersonatedSessions    Session[]                @relation("ImpersonatedBySessions")
+  passwordCredential      PasswordCredential?
+  invitationsSent         UserInvitation[]         @relation("InvitedBy")
+  platformRoleAssignments PlatformRoleAssignment[] @relation("UserPlatformRoles")
+  grantedPlatformRoles    PlatformRoleAssignment[] @relation("GrantedByUser")
+
+  // M02 Batch 2 back-relations — no column changes; Prisma relation metadata only.
+  mfaCredentials         MfaCredential[]
+  identityLinks          IdentityLink[]
+  rolesCreated           Role[]           @relation("RoleCreatedBy")
+  roleAssignments        RoleAssignment[] @relation("RoleAssignmentUser")
+  roleAssignmentsGranted RoleAssignment[] @relation("RoleAssignmentGrantedBy")
+  apiClientsCreated      ApiClient[]      @relation("ApiClientCreatedBy")
+
+  // M02 Batch 5 back-relations — no column changes; Prisma relation metadata only.
+  passwordResetTokens PasswordResetToken[]
+
+  @@index([emailNormalised], map: "app_user_email_normalised_idx")
+  @@index([status], map: "app_user_status_idx")
+  @@index([platformRole], map: "app_user_platform_role_idx")
+  @@map("app_user")
+}
+
+// ─── M01: Support Grants ──────────────────────────────────────────────────────
+// Time-limited platform support access. MFA required to create or revoke.
+// Batch 5: spec-aligned snake_case DB columns added via @map. Old camelCase DB
+// columns retained as compatibility. revokedBy and revokedReason are not in the
+// spec ERD but are actively used by SupportGrantRepository/SupportGrantService;
+// they are retained as compatibility until those consumers are updated.
+
+model SupportGrant {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  // Spec fields — @map switches DB column to snake_case; Prisma field names unchanged
+  // so all service and repository code requires no modification.
+  tenantId          String             @map("tenant_id") @db.Uuid
+  supportUserId     String             @map("support_user_id") @db.Uuid
+  requestedByUserId String             @map("requested_by_user_id") @db.Uuid
+  approvedByUserId  String?            @map("approved_by_user_id") @db.Uuid
+  scope             Json
+  reason            String             @db.Text
+  startsAt          DateTime           @map("starts_at") @db.Timestamptz(6)
+  endsAt            DateTime           @map("ends_at") @db.Timestamptz(6)
+  revokedAt         DateTime?          @map("revoked_at") @db.Timestamptz(6)
+  status            SupportGrantStatus @default(PENDING)
+  createdAt         DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Spec field — nullable FK app_user.id; no FK constraint until AppUser is aligned (M02).
+  createdBy String? @map("created_by") @db.Uuid
+
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Spec field — nullable FK app_user.id; no FK constraint until AppUser is aligned (M02).
+  updatedBy String? @map("updated_by") @db.Uuid
+
+  rowVersion BigInt @default(1) @map("row_version")
+
+  // ── Compatibility fields ────────────────────────────────────────────────────
+  // TODO(compatibility): revokedBy is not in the spec ERD.
+  // Used by SupportGrantRepository.revoke() which writes revokedBy: actor.actorId.
+  // Remove after SupportGrantRepository.revoke() is updated to write updatedBy instead,
+  // and all consumers (service, DTO, audit) are aligned.
+  revokedBy String? @db.Uuid
+
+  // TODO(compatibility): revokedReason is not in the spec ERD.
+  // Used by SupportGrantRepository.revoke() and referenced in SupportGrantService audit log.
+  // Remove after SupportGrantRepository and SupportGrantService are updated.
+  revokedReason String? @db.Text
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  // Indexes on new snake_case columns; map: names prevent collision with legacy
+  // camelCase-column indexes that remain as orphan artifacts in the DB.
+  @@index([tenantId, status], map: "support_grant_tenant_id_status_idx")
+  @@index([supportUserId, status], map: "support_grant_support_user_id_status_idx")
+  @@index([endsAt, status], map: "support_grant_ends_at_status_idx")
+  // Spec composite index.
+  @@index([tenantId, supportUserId, startsAt, endsAt], map: "support_grant_tid_suid_sat_eat_idx")
+  @@map("support_grant")
+}
+
+enum SupportGrantStatus {
+  PENDING
+  ACTIVE
+  EXPIRED
+  REVOKED
+  REJECTED
+
+  @@map("support_grant_status")
+}
+
+// ─── M01: Audit Events (append-only) ─────────────────────────────────────────
+// Immutable audit trail. Retention: 2–10 years per data classification.
+
+model AuditEvent {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId      String?  @db.Uuid
+  actorId       String   @db.Uuid
+  actorType     String   @db.VarChar(40)
+  actorEmail    String?  @db.VarChar(255)
+  module        String   @db.VarChar(80)
+  action        String   @db.VarChar(120)
+  resourceType  String   @db.VarChar(80)
+  resourceId    String?  @db.VarChar(200)
+  before        Json?
+  after         Json?
+  metadata      Json?
+  ipAddress     String?  @db.VarChar(45)
+  userAgent     String?  @db.VarChar(500)
+  correlationId String   @db.Uuid
+  severity      String   @db.VarChar(20)
+  occurredAt    DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([tenantId, occurredAt])
+  @@index([actorId])
+  @@index([module, action])
+  @@index([resourceType, resourceId])
+  @@index([occurredAt])
+  @@map("audit_event")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// M02: AUTHENTICATION, IDENTITY & ACCESS — DATABASE FOUNDATION (Batch 1)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ─── M02: Sessions ────────────────────────────────────────────────────────────
+// Tracks active user sessions (browser, API, and impersonation contexts).
+// tenantId is nullable: platform-staff sessions have no tenant context.
+// impersonatedByUserId is set only for break-glass impersonation sessions.
+
+model Session {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId             String?   @map("tenant_id") @db.Uuid
+  userId               String    @map("user_id") @db.Uuid
+  refreshTokenHash     String    @map("refresh_token_hash") @db.VarChar(255)
+  refreshTokenFamily   String    @map("refresh_token_family") @db.Uuid
+  userAgent            String?   @map("user_agent") @db.VarChar(500)
+  ipAddress            String?   @map("ip_address") @db.VarChar(45)
+  expiresAt            DateTime  @map("expires_at") @db.Timestamptz(6)
+  idleExpiresAt        DateTime  @map("idle_expires_at") @db.Timestamptz(6)
+  revokedAt            DateTime? @map("revoked_at") @db.Timestamptz(6)
+  impersonatedByUserId String?   @map("impersonated_by_user_id") @db.Uuid
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  rowVersion           BigInt    @default(1) @map("row_version")
+
+  // Relations
+  // tenant: nullable; SET NULL on delete (platform sessions have no tenant;
+  //         tenant deletion must not cascade-delete session audit history).
+  tenant         Tenant?  @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  // user: CASCADE on delete (deleting an account deletes its sessions).
+  user           AppUser  @relation("UserSessions", fields: [userId], references: [id], onDelete: Cascade)
+  // impersonatedBy: SET NULL on delete (keep session record for audit; clear actor ref).
+  impersonatedBy AppUser? @relation("ImpersonatedBySessions", fields: [impersonatedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([userId], map: "session_user_id_idx")
+  @@index([tenantId], map: "session_tenant_id_idx")
+  @@index([refreshTokenFamily], map: "session_refresh_token_family_idx")
+  @@index([expiresAt], map: "session_expires_at_idx")
+  @@map("session")
+}
+
+// ─── M02: Password Credentials ────────────────────────────────────────────────
+// Stores the bcrypt password hash for email+password authentication.
+// Kept separate from AppUser so the credential can be rotated and its lifecycle
+// managed independently (expiresAt enforces password expiry policy).
+// Business rule: one active credential per user — enforced by @@unique([userId]).
+// Credential rotation: service deletes existing row and inserts replacement
+// atomically within a withTransaction boundary.
+
+model PasswordCredential {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  passwordHash String    @map("password_hash") @db.VarChar(255)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  expiresAt    DateTime? @map("expires_at") @db.Timestamptz(6)
+  rowVersion   BigInt    @default(1) @map("row_version")
+
+  // user: CASCADE on delete (deleting an account deletes its credentials).
+  user AppUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Enforces the "one active credential per user" business rule at the DB level.
+  @@unique([userId], map: "password_credential_user_id_uq")
+  @@map("password_credential")
+}
+
+// ─── M02: User Invitations ────────────────────────────────────────────────────
+// Tracks pending invitations (API-IAM-002). A token hash is stored (never raw)
+// and validated when the invitee accepts via POST /auth/invitation/accept.
+// roleIds is JSONB: an array of role UUIDs pre-selected by the inviting admin.
+// acceptedAt is set when the invitation is consumed; null means still pending.
+
+model UserInvitation {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  email      String    @db.VarChar(320)
+  roleIds    Json      @map("role_ids")
+  tokenHash  String    @map("token_hash") @db.VarChar(255)
+  invitedBy  String?   @map("invited_by") @db.Uuid
+  expiresAt  DateTime  @map("expires_at") @db.Timestamptz(6)
+  acceptedAt DateTime? @map("accepted_at") @db.Timestamptz(6)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  rowVersion BigInt    @default(1) @map("row_version")
+
+  // tenant: RESTRICT on delete (cannot delete a tenant with pending invitations).
+  tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  // inviter: SET NULL on delete (keep invitation active if inviting user is removed).
+  inviter AppUser? @relation("InvitedBy", fields: [invitedBy], references: [id], onDelete: SetNull)
+
+  @@index([tenantId], map: "user_invitation_tenant_id_idx")
+  @@index([email], map: "user_invitation_email_idx")
+  @@index([tokenHash], map: "user_invitation_token_hash_idx")
+  @@index([expiresAt], map: "user_invitation_expires_at_idx")
+  @@map("user_invitation")
+}
+
+// ─── M02: Password Reset Tokens (Batch 5) ────────────────────────────────────
+// One-time tokens for password reset flows.
+// tokenHash stores SHA-256(token) — deterministic, enabling index lookup.
+// usedAt is set on consumption; token is invalid after use or expiry.
+
+model PasswordResetToken {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @map("token_hash") @db.VarChar(64)
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(6)
+  usedAt    DateTime? @map("used_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user AppUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash], map: "password_reset_token_hash_idx")
+  @@index([userId], map: "password_reset_token_user_id_idx")
+  @@map("password_reset_token")
+}
+
+// ─── M02: Platform Role Assignments ──────────────────────────────────────────
+// Maps platform staff to their platform-level role (SUPER_ADMIN, SUPPORT_ENGINEER,
+// AUDITOR, OPERATIONS). Replaces the compat app_user.platformRole varchar column
+// once PlatformRoleGuard is migrated (M02 Batch 10).
+// revokedAt: null = currently active; populated = grant has ended.
+// grantedBy: nullable to support system-seeded assignments (no human actor).
+
+model PlatformRoleAssignment {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  platformRole String    @map("platform_role") @db.VarChar(80)
+  grantedBy    String?   @map("granted_by") @db.Uuid
+  grantedAt    DateTime  @default(now()) @map("granted_at") @db.Timestamptz(6)
+  revokedAt    DateTime? @map("revoked_at") @db.Timestamptz(6)
+  rowVersion   BigInt    @default(1) @map("row_version")
+
+  // user: CASCADE on delete (deleting a user removes their platform role assignments).
+  user    AppUser  @relation("UserPlatformRoles", fields: [userId], references: [id], onDelete: Cascade)
+  // grantor: SET NULL on delete (keep the assignment if the granting admin is removed).
+  grantor AppUser? @relation("GrantedByUser", fields: [grantedBy], references: [id], onDelete: SetNull)
+
+  @@index([userId], map: "platform_role_assignment_user_id_idx")
+  @@index([platformRole], map: "platform_role_assignment_platform_role_idx")
+  @@map("platform_role_assignment")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// M02: AUTHENTICATION, IDENTITY & ACCESS — RBAC & MFA SCHEMA (Batch 2)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ─── M02: MFA Credentials ─────────────────────────────────────────────────────
+// Stores per-user MFA credentials (TOTP seeds, SMS/email OTP references).
+// secretEncrypted: AES-256 envelope-encrypted at rest; never stored in plaintext.
+// backupCodesEncrypted: each backup code stored individually (consumed on use).
+// status values: PENDING (enrolled, not yet verified) | ACTIVE | REVOKED.
+// credentialType values: TOTP | SMS | EMAIL.
+
+model MfaCredential {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId             String    @map("tenant_id") @db.Uuid
+  userId               String    @map("user_id") @db.Uuid
+  credentialType       String    @map("credential_type") @db.VarChar(20)
+  secretEncrypted      String    @map("secret_encrypted") @db.Text
+  status               String    @default("PENDING") @db.VarChar(20)
+  verifiedAt           DateTime? @map("verified_at") @db.Timestamptz(6)
+  backupCodesEncrypted String[]  @map("backup_codes_encrypted")
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  rowVersion           BigInt    @default(1) @map("row_version")
+
+  // tenant: RESTRICT on delete (MFA records are security data; protect from accidental cascade).
+  tenant Tenant  @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  // user: CASCADE on delete (deleting an account removes its MFA credentials).
+  user   AppUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId], map: "mfa_credential_tenant_id_idx")
+  @@index([userId], map: "mfa_credential_user_id_idx")
+  @@index([credentialType], map: "mfa_credential_credential_type_idx")
+  @@index([status], map: "mfa_credential_status_idx")
+  @@map("mfa_credential")
+}
+
+// ─── M02: Identity Links ──────────────────────────────────────────────────────
+// Maps external SSO identity provider accounts to app users.
+// provider: ENTRA_ID | GOOGLE (expandable without schema change).
+// subject: the IdP's opaque 'sub' claim — globally unique per provider.
+// UNIQUE(provider, subject): one IdP account maps to exactly one app user.
+// tenantId: the tenant whose SSO configuration brokered this link.
+// No rowVersion: this record is append-only (created once, deleted if unlinked).
+
+model IdentityLink {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  provider  String   @db.VarChar(40)
+  subject   String   @db.VarChar(200)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // tenant: RESTRICT on delete (SSO link data protects from accidental cascade).
+  tenant Tenant  @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  // user: CASCADE on delete (deleting a user removes their SSO links).
+  user   AppUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Globally unique: one IdP identity maps to one app user across all tenants.
+  @@unique([provider, subject], map: "identity_link_provider_subject_uq")
+  @@index([provider], map: "identity_link_provider_idx")
+  @@index([userId], map: "identity_link_user_id_idx")
+  @@map("identity_link")
+}
+
+// ─── M02: Tenant Roles ────────────────────────────────────────────────────────
+// Defines tenant-scoped roles (HR Manager, Payroll Officer, etc.).
+// isSystem: true for platform-seeded roles that cannot be deleted by tenant admins.
+// UNIQUE(tenantId, name): role names are unique within a tenant.
+// createdBy: nullable to support system-seeded roles (no human actor at seed time).
+
+model Role {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId    String   @map("tenant_id") @db.Uuid
+  name        String   @db.VarChar(80)
+  description String?  @db.Text
+  isSystem    Boolean  @default(false) @map("is_system")
+  createdBy   String?  @map("created_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  rowVersion  BigInt   @default(1) @map("row_version")
+
+  // tenant: RESTRICT on delete (roles are security data; cannot delete tenant with roles).
+  tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  // creator: SET NULL on delete (keep role definition if creator account is removed).
+  creator AppUser? @relation("RoleCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+
+  permissions RolePermission[]
+  assignments RoleAssignment[]
+
+  @@unique([tenantId, name], map: "role_tenant_id_name_uq")
+  @@index([tenantId], map: "role_tenant_id_idx")
+  @@map("role")
+}
+
+// ─── M02: Permissions ─────────────────────────────────────────────────────────
+// Global permission catalogue — not tenant-scoped.
+// Permission = action + resource + scope (e.g., read:employee:department).
+// UNIQUE(action, resource, scope): no duplicate permission definitions.
+// Seeded by platform at startup; tenant admins assign permissions to roles,
+// they do not create new permissions.
+// No rowVersion: effectively immutable catalogue (insert-only in practice).
+
+model Permission {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  action      String   @db.VarChar(80)
+  resource    String   @db.VarChar(80)
+  scope       String   @db.VarChar(40)
+  description String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  roles RolePermission[]
+
+  @@unique([action, resource, scope], map: "permission_action_resource_scope_uq")
+  @@map("permission")
+}
+
+// ─── M02: Role–Permission Bridge ─────────────────────────────────────────────
+// Many-to-many join between Role and Permission.
+// Composite PK (roleId, permissionId) — no surrogate id needed.
+// No rowVersion or timestamps: this is a pure join table.
+
+model RolePermission {
+  roleId       String @map("role_id") @db.Uuid
+  permissionId String @map("permission_id") @db.Uuid
+
+  // role: CASCADE on delete (deleting a role removes its permission mappings).
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  // permission: RESTRICT on delete (cannot delete a permission that is in use by a role).
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Restrict)
+
+  @@id([roleId, permissionId])
+  @@map("role_permission")
+}
+
+// ─── M02: Role Assignments ────────────────────────────────────────────────────
+// Assigns a tenant-scoped role to a user within a tenant.
+// expiresAt: null = permanent grant; set = time-bounded delegation (per spec).
+// UNIQUE(userId, roleId, tenantId): a user holds each role at most once per tenant.
+// grantedBy: nullable to support seeded/system assignments.
+// No revokedAt: early termination is handled by deletion of the record.
+
+model RoleAssignment {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  roleId     String    @map("role_id") @db.Uuid
+  grantedBy  String?   @map("granted_by") @db.Uuid
+  grantedAt  DateTime  @default(now()) @map("granted_at") @db.Timestamptz(6)
+  expiresAt  DateTime? @map("expires_at") @db.Timestamptz(6)
+  rowVersion BigInt    @default(1) @map("row_version")
+
+  // tenant: RESTRICT on delete (role assignment data must not silently disappear).
+  tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  // user: CASCADE on delete (deleting a user removes their role assignments).
+  user    AppUser  @relation("RoleAssignmentUser", fields: [userId], references: [id], onDelete: Cascade)
+  // role: CASCADE on delete (deleting a role removes all its assignments).
+  role    Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  // grantor: SET NULL on delete (keep assignment if granting admin is removed).
+  grantor AppUser? @relation("RoleAssignmentGrantedBy", fields: [grantedBy], references: [id], onDelete: SetNull)
+
+  @@unique([userId, roleId, tenantId], map: "role_assignment_user_role_tenant_uq")
+  @@index([tenantId], map: "role_assignment_tenant_id_idx")
+  @@index([userId], map: "role_assignment_user_id_idx")
+  @@index([roleId], map: "role_assignment_role_id_idx")
+  @@map("role_assignment")
+}
+
+// ─── M02: API Clients ─────────────────────────────────────────────────────────
+// API tokens for machine-to-machine authentication (Integrator/Developer role).
+// tokenHash: hashed token — raw token shown to user only at creation, never stored.
+// scopes: JSONB array of permitted scope strings.
+// revokedAt: null = active; set = token has been revoked.
+// expiresAt: null = non-expiring; set = token auto-expires.
+
+model ApiClient {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  name       String    @db.VarChar(160)
+  tokenHash  String    @map("token_hash") @db.VarChar(255)
+  scopes     Json
+  createdBy  String?   @map("created_by") @db.Uuid
+  expiresAt  DateTime? @map("expires_at") @db.Timestamptz(6)
+  lastUsedAt DateTime? @map("last_used_at") @db.Timestamptz(6)
+  revokedAt  DateTime? @map("revoked_at") @db.Timestamptz(6)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  rowVersion BigInt    @default(1) @map("row_version")
+
+  // tenant: RESTRICT on delete (API client data must not silently disappear).
+  tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  // creator: SET NULL on delete (keep API client record if creator account is removed).
+  creator AppUser? @relation("ApiClientCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+
+  @@index([tenantId], map: "api_client_tenant_id_idx")
+  @@index([tokenHash], map: "api_client_token_hash_idx")
+  @@index([expiresAt], map: "api_client_expires_at_idx")
+  @@map("api_client")
+}
+
+// ─── M03: Legal Entity ────────────────────────────────────────────────────────
+// Top-level org unit. Each tenant has ≥1 legal entity.
+// Multiple legal entities support group structures (holding + subsidiaries).
+model LegalEntity {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId           String   @map("tenant_id") @db.Uuid
+  name               String   @db.VarChar(200)
+  registrationNumber String?  @map("registration_number") @db.VarChar(100)
+  countryCode        String   @map("country_code") @db.Char(2)
+  currencyCode       String   @map("currency_code") @db.Char(3)
+  timezone           String   @db.VarChar(80)
+  addressLine1       String?  @map("address_line1") @db.VarChar(200)
+  addressLine2       String?  @map("address_line2") @db.VarChar(200)
+  city               String?  @db.VarChar(100)
+  stateProvince      String?  @map("state_province") @db.VarChar(100)
+  postalCode         String?  @map("postal_code") @db.VarChar(20)
+  isPrimary          Boolean  @default(false) @map("is_primary")
+  status             String   @default("ACTIVE") @db.VarChar(20)
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy          String?  @map("created_by") @db.Uuid
+  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy          String?  @map("updated_by") @db.Uuid
+  rowVersion         BigInt   @default(1) @map("row_version")
+
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  branches    Branch[]
+  departments Department[]
+  costCentres CostCentre[]
+  positions   Position[]
+  employees   Employee[]
+
+  // M05 back-relations
+  onboardingTemplates OnboardingTemplate[]
+
+  // M06 Batch 2 back-relations
+  attendancePolicies AttendancePolicy[]
+
+  @@unique([tenantId, name], map: "legal_entity_tenant_name_uq")
+  @@index([tenantId], map: "legal_entity_tenant_id_idx")
+  @@index([tenantId, status], map: "legal_entity_tenant_status_idx")
+  @@map("legal_entity")
+}
+
+// ─── M03: Branch ─────────────────────────────────────────────────────────────
+// Physical or virtual location within a legal entity.
+model Branch {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId      String   @map("tenant_id") @db.Uuid
+  legalEntityId String   @map("legal_entity_id") @db.Uuid
+  name          String   @db.VarChar(200)
+  code          String   @db.VarChar(40)
+  addressLine1  String?  @map("address_line1") @db.VarChar(200)
+  addressLine2  String?  @map("address_line2") @db.VarChar(200)
+  city          String?  @db.VarChar(100)
+  stateProvince String?  @map("state_province") @db.VarChar(100)
+  postalCode    String?  @map("postal_code") @db.VarChar(20)
+  countryCode   String   @map("country_code") @db.Char(2)
+  timezone      String   @db.VarChar(80)
+  isHeadOffice  Boolean  @default(false) @map("is_head_office")
+  status        String   @default("ACTIVE") @db.VarChar(20)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?  @map("created_by") @db.Uuid
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?  @map("updated_by") @db.Uuid
+  rowVersion    BigInt   @default(1) @map("row_version")
+
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  legalEntity LegalEntity  @relation(fields: [legalEntityId], references: [id], onDelete: Restrict)
+  departments Department[]
+  employees   Employee[]
+
+  // M06 Batch 2 back-relations
+  attendancePolicies AttendancePolicy[]
+
+  @@unique([tenantId, legalEntityId, name], map: "branch_tenant_legal_entity_name_uq")
+  @@unique([tenantId, code], map: "branch_tenant_code_uq")
+  @@index([tenantId], map: "branch_tenant_id_idx")
+  @@index([tenantId, legalEntityId], map: "branch_tenant_legal_entity_idx")
+  @@index([tenantId, status], map: "branch_tenant_status_idx")
+  @@map("branch")
+}
+
+// ─── M03: Cost Centre ────────────────────────────────────────────────────────
+// Financial cost tracking unit. Departments and positions reference cost centres.
+model CostCentre {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId      String   @map("tenant_id") @db.Uuid
+  legalEntityId String   @map("legal_entity_id") @db.Uuid
+  code          String   @db.VarChar(40)
+  name          String   @db.VarChar(200)
+  description   String?  @db.Text
+  status        String   @default("ACTIVE") @db.VarChar(20)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?  @map("created_by") @db.Uuid
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?  @map("updated_by") @db.Uuid
+  rowVersion    BigInt   @default(1) @map("row_version")
+
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  legalEntity LegalEntity  @relation(fields: [legalEntityId], references: [id], onDelete: Restrict)
+  departments Department[]
+  positions   Position[]
+
+  @@unique([tenantId, code], map: "cost_centre_tenant_code_uq")
+  @@unique([tenantId, legalEntityId, name], map: "cost_centre_tenant_legal_entity_name_uq")
+  @@index([tenantId], map: "cost_centre_tenant_id_idx")
+  @@index([tenantId, legalEntityId], map: "cost_centre_tenant_legal_entity_idx")
+  @@index([tenantId, status], map: "cost_centre_tenant_status_idx")
+  @@map("cost_centre")
+}
+
+// ─── M03: Department ─────────────────────────────────────────────────────────
+// Organisational unit within a legal entity. Supports tree hierarchy via parentId.
+// Cycle detection enforced at service layer.
+model Department {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId      String   @map("tenant_id") @db.Uuid
+  legalEntityId String   @map("legal_entity_id") @db.Uuid
+  branchId      String?  @map("branch_id") @db.Uuid
+  parentId      String?  @map("parent_id") @db.Uuid
+  costCentreId  String?  @map("cost_centre_id") @db.Uuid
+  name          String   @db.VarChar(200)
+  code          String   @db.VarChar(40)
+  status        String   @default("ACTIVE") @db.VarChar(20)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?  @map("created_by") @db.Uuid
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?  @map("updated_by") @db.Uuid
+  rowVersion    BigInt   @default(1) @map("row_version")
+
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  legalEntity LegalEntity  @relation(fields: [legalEntityId], references: [id], onDelete: Restrict)
+  branch      Branch?      @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  costCentre  CostCentre?  @relation(fields: [costCentreId], references: [id], onDelete: SetNull)
+  parent      Department?  @relation("DepartmentHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children    Department[] @relation("DepartmentHierarchy")
+  positions   Position[]
+  employees   Employee[]
+
+  @@unique([tenantId, legalEntityId, name], map: "department_tenant_legal_entity_name_uq")
+  @@unique([tenantId, code], map: "department_tenant_code_uq")
+  @@index([tenantId], map: "department_tenant_id_idx")
+  @@index([tenantId, legalEntityId], map: "department_tenant_legal_entity_idx")
+  @@index([tenantId, parentId], map: "department_tenant_parent_idx")
+  @@index([tenantId, status], map: "department_tenant_status_idx")
+  @@map("department")
+}
+
+// ─── M03: Position ───────────────────────────────────────────────────────────
+// Job definition / role within a department. Employees are assigned to positions in M04.
+model Position {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId      String   @map("tenant_id") @db.Uuid
+  legalEntityId String   @map("legal_entity_id") @db.Uuid
+  departmentId  String?  @map("department_id") @db.Uuid
+  costCentreId  String?  @map("cost_centre_id") @db.Uuid
+  title         String   @db.VarChar(200)
+  code          String   @db.VarChar(40)
+  grade         String?  @db.VarChar(40)
+  description   String?  @db.Text
+  isManager     Boolean  @default(false) @map("is_manager")
+  status        String   @default("ACTIVE") @db.VarChar(20)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?  @map("created_by") @db.Uuid
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?  @map("updated_by") @db.Uuid
+  rowVersion    BigInt   @default(1) @map("row_version")
+
+  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  legalEntity LegalEntity @relation(fields: [legalEntityId], references: [id], onDelete: Restrict)
+  department  Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  costCentre  CostCentre? @relation(fields: [costCentreId], references: [id], onDelete: SetNull)
+  employees   Employee[]
+
+  @@unique([tenantId, code], map: "position_tenant_code_uq")
+  @@unique([tenantId, legalEntityId, title], map: "position_tenant_legal_entity_title_uq")
+  @@index([tenantId], map: "position_tenant_id_idx")
+  @@index([tenantId, legalEntityId], map: "position_tenant_legal_entity_idx")
+  @@index([tenantId, departmentId], map: "position_tenant_department_idx")
+  @@index([tenantId, status], map: "position_tenant_status_idx")
+  @@map("position")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// M04: EMPLOYEE CORE HR — Batch 1 (Employee Master)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ─── M04: Employee ────────────────────────────────────────────────────────────
+// Aggregate root for an individual's employment record within a tenant.
+// employeeNumber: unique per (tenant_id, legal_entity_id); auto-generated by service.
+// managerId: self-referential FK — walking up reporting hierarchy for line manager checks.
+// status values: ACTIVE | PROBATION | ON_LEAVE | INACTIVE | TERMINATED
+// employmentType: FULL_TIME | PART_TIME | CONTRACT | INTERN
+// gender: MALE | FEMALE | OTHER | UNDISCLOSED
+// Data classification: Confidential (names, contact); emailWork = Confidential.
+// RLS enforced via SET LOCAL app.tenant_id at transaction start.
+
+model Employee {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId        String    @map("tenant_id") @db.Uuid
+  legalEntityId   String    @map("legal_entity_id") @db.Uuid
+  branchId        String?   @map("branch_id") @db.Uuid
+  departmentId    String?   @map("department_id") @db.Uuid
+  positionId      String?   @map("position_id") @db.Uuid
+  managerId       String?   @map("manager_id") @db.Uuid
+  employeeNumber  String    @map("employee_number") @db.VarChar(40)
+  firstName       String    @map("first_name") @db.VarChar(100)
+  lastName        String    @map("last_name") @db.VarChar(100)
+  displayName     String    @map("display_name") @db.VarChar(200)
+  gender          String?   @db.VarChar(20)
+  dateOfBirth     DateTime? @map("date_of_birth") @db.Date
+  nationalId      String?   @map("national_id") @db.VarChar(20)
+  emailWork       String    @map("email_work") @db.VarChar(254)
+  emailPersonal   String?   @map("email_personal") @db.VarChar(254)
+  phoneWork       String?   @map("phone_work") @db.VarChar(30)
+  phoneMobile     String?   @map("phone_mobile") @db.VarChar(30)
+  hireDate        DateTime  @map("hire_date") @db.Date
+  terminationDate DateTime? @map("termination_date") @db.Date
+  status          String    @default("ACTIVE") @db.VarChar(20)
+  employmentType  String    @map("employment_type") @db.VarChar(20)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy       String?   @map("created_by") @db.Uuid
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy       String?   @map("updated_by") @db.Uuid
+  rowVersion      BigInt    @default(1) @map("row_version")
+
+  tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  legalEntity   LegalEntity @relation(fields: [legalEntityId], references: [id], onDelete: Restrict)
+  branch        Branch?     @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  department    Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  position      Position?   @relation(fields: [positionId], references: [id], onDelete: SetNull)
+  manager       Employee?   @relation("EmployeeManager", fields: [managerId], references: [id], onDelete: SetNull)
+  directReports Employee[]  @relation("EmployeeManager")
+
+  personalDetail EmployeePersonalDetail?
+
+  // M05 back-relations
+  employeeDocuments   EmployeeDocument[]
+  onboardingInstances OnboardingInstance[]
+  documentRequests    DocumentRequest[]
+
+  // M06 back-relations
+  attendanceRawEvents  AttendanceRawEvent[]
+  attendanceRecords    AttendanceRecord[]
+  attendanceExceptions AttendanceException[]
+
+  @@unique([tenantId, legalEntityId, employeeNumber], map: "employee_tenant_legal_entity_number_uq")
+  @@unique([tenantId, emailWork], map: "employee_tenant_email_work_uq")
+  @@index([tenantId], map: "employee_tenant_id_idx")
+  @@index([tenantId, legalEntityId], map: "employee_tenant_legal_entity_idx")
+  @@index([tenantId, departmentId], map: "employee_tenant_department_idx")
+  @@index([tenantId, branchId], map: "employee_tenant_branch_idx")
+  @@index([tenantId, managerId], map: "employee_tenant_manager_idx")
+  @@index([tenantId, status], map: "employee_tenant_status_idx")
+  @@index([tenantId, employmentType], map: "employee_tenant_employment_type_idx")
+  @@map("employee")
+}
+
+// ─── M04: Employee Personal Detail ───────────────────────────────────────────
+// One-to-one PII extension off the employee record.
+// Data classification: Confidential (address, NOK data, marital status).
+// Created on first PUT; updated in place thereafter (upsert pattern).
+// maritalStatus: SINGLE | MARRIED | DIVORCED | WIDOWED | SEPARATED | UNDISCLOSED
+
+model EmployeePersonalDetail {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId              String   @map("tenant_id") @db.Uuid
+  employeeId            String   @unique @map("employee_id") @db.Uuid
+  nationality           String?  @db.Char(2)
+  countryOfBirth        String?  @map("country_of_birth") @db.Char(2)
+  maritalStatus         String?  @map("marital_status") @db.VarChar(20)
+  addressLine1          String?  @map("address_line1") @db.VarChar(200)
+  addressLine2          String?  @map("address_line2") @db.VarChar(200)
+  city                  String?  @db.VarChar(100)
+  stateProvince         String?  @map("state_province") @db.VarChar(100)
+  postalCode            String?  @map("postal_code") @db.VarChar(20)
+  countryCode           String?  @map("country_code") @db.Char(2)
+  nextOfKinName         String?  @map("next_of_kin_name") @db.VarChar(200)
+  nextOfKinRelationship String?  @map("next_of_kin_relationship") @db.VarChar(40)
+  nextOfKinPhone        String?  @map("next_of_kin_phone") @db.VarChar(30)
+  createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  rowVersion            BigInt   @default(1) @map("row_version")
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId], map: "employee_personal_detail_tenant_id_idx")
+  @@index([tenantId, employeeId], map: "employee_personal_detail_tenant_employee_idx")
+  @@map("employee_personal_detail")
+}
+
+// ─── M05: Document Template ───────────────────────────────────────────────────
+// Reusable template for document types expected from employees.
+// type: free-text category (e.g. "PASSPORT", "CONTRACT", "NDA").
+// expiryMonths: null means no expiry tracking.
+
+model DocumentTemplate {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId     String   @map("tenant_id") @db.Uuid
+  type         String   @db.VarChar(50)
+  name         String   @db.VarChar(200)
+  description  String?  @db.Text
+  isRequired   Boolean  @default(false) @map("is_required")
+  expiryMonths Int?     @map("expiry_months")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy    String?  @map("created_by") @db.Uuid
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy    String?  @map("updated_by") @db.Uuid
+  rowVersion   BigInt   @default(1) @map("row_version")
+
+  tenant               Tenant                @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  employeeDocuments    EmployeeDocument[]
+  documentRequestItems DocumentRequestItem[]
+  expiryAlerts         DocumentExpiryAlert[]
+
+  @@index([tenantId], map: "document_template_tenant_id_idx")
+  @@index([tenantId, type], map: "document_template_tenant_type_idx")
+  @@index([tenantId, isActive], map: "document_template_tenant_active_idx")
+  @@map("document_template")
+}
+
+// ─── M05: Employee Document ───────────────────────────────────────────────────
+// Actual document record attached to an employee.
+// fileKey: S3-compatible object key (tenant-prefixed).
+// status: PENDING | ACTIVE | EXPIRED | REJECTED
+
+model EmployeeDocument {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId     String    @map("tenant_id") @db.Uuid
+  employeeId   String    @map("employee_id") @db.Uuid
+  templateId   String?   @map("template_id") @db.Uuid
+  documentType String    @map("document_type") @db.VarChar(50)
+  title        String    @db.VarChar(200)
+  fileKey      String?   @map("file_key") @db.VarChar(500)
+  fileSize     Int?      @map("file_size")
+  mimeType     String?   @map("mime_type") @db.VarChar(100)
+  expiryDate   DateTime? @map("expiry_date") @db.Date
+  issuedDate   DateTime? @map("issued_date") @db.Date
+  issuedBy     String?   @map("issued_by") @db.VarChar(200)
+  status       String    @default("PENDING") @db.VarChar(20)
+  notes        String?   @db.Text
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy    String?   @map("created_by") @db.Uuid
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy    String?   @map("updated_by") @db.Uuid
+  rowVersion   BigInt    @default(1) @map("row_version")
+
+  tenant        Tenant                @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  employee      Employee              @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  template      DocumentTemplate?     @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  esignSessions EsignSession[]
+  requestItems  DocumentRequestItem[]
+
+  @@index([tenantId], map: "employee_document_tenant_id_idx")
+  @@index([tenantId, employeeId], map: "employee_document_tenant_employee_idx")
+  @@index([tenantId, status], map: "employee_document_tenant_status_idx")
+  @@index([tenantId, documentType], map: "employee_document_tenant_type_idx")
+  @@index([tenantId, expiryDate], map: "employee_document_tenant_expiry_idx")
+  @@map("employee_document")
+}
+
+// ─── M05: Onboarding Template ─────────────────────────────────────────────────
+// Reusable onboarding journey definition.
+// legalEntityId: optional — can be scoped to a legal entity or global.
+
+model OnboardingTemplate {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId      String   @map("tenant_id") @db.Uuid
+  legalEntityId String?  @map("legal_entity_id") @db.Uuid
+  name          String   @db.VarChar(200)
+  description   String?  @db.Text
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?  @map("created_by") @db.Uuid
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?  @map("updated_by") @db.Uuid
+  rowVersion    BigInt   @default(1) @map("row_version")
+
+  tenant      Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  legalEntity LegalEntity?             @relation(fields: [legalEntityId], references: [id], onDelete: SetNull)
+  tasks       OnboardingTemplateTask[]
+  instances   OnboardingInstance[]
+
+  @@index([tenantId], map: "onboarding_template_tenant_id_idx")
+  @@index([tenantId, legalEntityId], map: "onboarding_template_tenant_legal_entity_idx")
+  @@index([tenantId, isActive], map: "onboarding_template_tenant_active_idx")
+  @@map("onboarding_template")
+}
+
+// ─── M05: Onboarding Template Task ────────────────────────────────────────────
+// Task definition within an onboarding template.
+// taskType: DOCUMENT_REQUEST | FORM | MANUAL | SYSTEM
+// dueDays: days from onboarding start when task is due.
+
+model OnboardingTemplateTask {
+  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId             String   @map("tenant_id") @db.Uuid
+  onboardingTemplateId String   @map("onboarding_template_id") @db.Uuid
+  title                String   @db.VarChar(200)
+  description          String?  @db.Text
+  taskType             String   @map("task_type") @db.VarChar(30)
+  sortOrder            Int      @default(0) @map("sort_order")
+  isRequired           Boolean  @default(true) @map("is_required")
+  dueDays              Int?     @map("due_days")
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant             Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  onboardingTemplate OnboardingTemplate       @relation(fields: [onboardingTemplateId], references: [id], onDelete: Cascade)
+  instanceTasks      OnboardingInstanceTask[]
+
+  @@index([tenantId], map: "onboarding_template_task_tenant_id_idx")
+  @@index([tenantId, onboardingTemplateId], map: "onboarding_template_task_tenant_template_idx")
+  @@map("onboarding_template_task")
+}
+
+// ─── M05: Onboarding Instance ─────────────────────────────────────────────────
+// Active onboarding journey for a specific employee.
+// status: PENDING | IN_PROGRESS | COMPLETED | CANCELLED
+
+model OnboardingInstance {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId             String    @map("tenant_id") @db.Uuid
+  employeeId           String    @map("employee_id") @db.Uuid
+  onboardingTemplateId String?   @map("onboarding_template_id") @db.Uuid
+  title                String    @db.VarChar(200)
+  status               String    @default("PENDING") @db.VarChar(20)
+  startedAt            DateTime? @map("started_at") @db.Timestamptz(6)
+  completedAt          DateTime? @map("completed_at") @db.Timestamptz(6)
+  dueDate              DateTime? @map("due_date") @db.Date
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy            String?   @map("created_by") @db.Uuid
+  updatedAt            DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy            String?   @map("updated_by") @db.Uuid
+  rowVersion           BigInt    @default(1) @map("row_version")
+
+  tenant             Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  employee           Employee                 @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  onboardingTemplate OnboardingTemplate?      @relation(fields: [onboardingTemplateId], references: [id], onDelete: SetNull)
+  tasks              OnboardingInstanceTask[]
+
+  @@index([tenantId], map: "onboarding_instance_tenant_id_idx")
+  @@index([tenantId, employeeId], map: "onboarding_instance_tenant_employee_idx")
+  @@index([tenantId, status], map: "onboarding_instance_tenant_status_idx")
+  @@map("onboarding_instance")
+}
+
+// ─── M05: Onboarding Instance Task ────────────────────────────────────────────
+// A task within an active onboarding instance.
+// status: PENDING | IN_PROGRESS | COMPLETED | SKIPPED
+
+model OnboardingInstanceTask {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId             String    @map("tenant_id") @db.Uuid
+  onboardingInstanceId String    @map("onboarding_instance_id") @db.Uuid
+  templateTaskId       String?   @map("template_task_id") @db.Uuid
+  title                String    @db.VarChar(200)
+  taskType             String    @map("task_type") @db.VarChar(30)
+  isRequired           Boolean   @default(true) @map("is_required")
+  status               String    @default("PENDING") @db.VarChar(20)
+  dueDate              DateTime? @map("due_date") @db.Date
+  completedAt          DateTime? @map("completed_at") @db.Timestamptz(6)
+  completedBy          String?   @map("completed_by") @db.Uuid
+  notes                String?   @db.Text
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  rowVersion           BigInt    @default(1) @map("row_version")
+
+  tenant             Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  onboardingInstance OnboardingInstance      @relation(fields: [onboardingInstanceId], references: [id], onDelete: Cascade)
+  templateTask       OnboardingTemplateTask? @relation(fields: [templateTaskId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId], map: "onboarding_instance_task_tenant_id_idx")
+  @@index([tenantId, onboardingInstanceId], map: "onboarding_instance_task_tenant_instance_idx")
+  @@index([tenantId, status], map: "onboarding_instance_task_tenant_status_idx")
+  @@map("onboarding_instance_task")
+}
+
+// ─── M05: Document Request ────────────────────────────────────────────────────
+// A request sent to an employee to submit one or more documents.
+// status: PENDING | PARTIAL | COMPLETED | CANCELLED
+
+model DocumentRequest {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId    String    @map("tenant_id") @db.Uuid
+  employeeId  String    @map("employee_id") @db.Uuid
+  requestedBy String    @map("requested_by") @db.Uuid
+  title       String    @db.VarChar(200)
+  message     String?   @db.Text
+  dueDate     DateTime? @map("due_date") @db.Date
+  status      String    @default("PENDING") @db.VarChar(20)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  rowVersion  BigInt    @default(1) @map("row_version")
+
+  tenant   Tenant                @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  employee Employee              @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  items    DocumentRequestItem[]
+
+  @@index([tenantId], map: "document_request_tenant_id_idx")
+  @@index([tenantId, employeeId], map: "document_request_tenant_employee_idx")
+  @@index([tenantId, status], map: "document_request_tenant_status_idx")
+  @@map("document_request")
+}
+
+// ─── M05: Document Request Item ───────────────────────────────────────────────
+// A single document line item within a document request.
+// status: PENDING | SUBMITTED | APPROVED | REJECTED
+
+model DocumentRequestItem {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId           String   @map("tenant_id") @db.Uuid
+  documentRequestId  String   @map("document_request_id") @db.Uuid
+  documentTemplateId String?  @map("document_template_id") @db.Uuid
+  title              String   @db.VarChar(200)
+  isRequired         Boolean  @default(true) @map("is_required")
+  employeeDocumentId String?  @map("employee_document_id") @db.Uuid
+  status             String   @default("PENDING") @db.VarChar(20)
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant           Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  documentRequest  DocumentRequest   @relation(fields: [documentRequestId], references: [id], onDelete: Cascade)
+  documentTemplate DocumentTemplate? @relation(fields: [documentTemplateId], references: [id], onDelete: SetNull)
+  employeeDocument EmployeeDocument? @relation(fields: [employeeDocumentId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId], map: "document_request_item_tenant_id_idx")
+  @@index([tenantId, documentRequestId], map: "document_request_item_tenant_request_idx")
+  @@index([tenantId, status], map: "document_request_item_tenant_status_idx")
+  @@map("document_request_item")
+}
+
+// ─── M05: Document Expiry Alert ───────────────────────────────────────────────
+// Configuration for proactive expiry alerts on document types.
+// alertDaysBefore: array of day thresholds (e.g. [90, 30, 7]) before expiry.
+
+model DocumentExpiryAlert {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId           String   @map("tenant_id") @db.Uuid
+  documentTemplateId String?  @map("document_template_id") @db.Uuid
+  documentType       String?  @map("document_type") @db.VarChar(50)
+  alertDaysBefore    Int[]    @map("alert_days_before")
+  isActive           Boolean  @default(true) @map("is_active")
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant           Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  documentTemplate DocumentTemplate? @relation(fields: [documentTemplateId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId], map: "document_expiry_alert_tenant_id_idx")
+  @@index([tenantId, documentTemplateId], map: "document_expiry_alert_tenant_template_idx")
+  @@map("document_expiry_alert")
+}
+
+// ─── M05: E-Sign Session ──────────────────────────────────────────────────────
+// Tracks an e-signature session for a specific employee document.
+// status: PENDING | SIGNED | DECLINED | EXPIRED
+
+model EsignSession {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId           String    @map("tenant_id") @db.Uuid
+  employeeDocumentId String    @map("employee_document_id") @db.Uuid
+  provider           String    @db.VarChar(50)
+  providerSessionId  String?   @map("provider_session_id") @db.VarChar(200)
+  signerEmail        String    @map("signer_email") @db.VarChar(254)
+  status             String    @default("PENDING") @db.VarChar(20)
+  initiatedAt        DateTime  @default(now()) @map("initiated_at") @db.Timestamptz(6)
+  completedAt        DateTime? @map("completed_at") @db.Timestamptz(6)
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant           Tenant           @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  employeeDocument EmployeeDocument @relation(fields: [employeeDocumentId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId], map: "esign_session_tenant_id_idx")
+  @@index([tenantId, employeeDocumentId], map: "esign_session_tenant_document_idx")
+  @@index([tenantId, status], map: "esign_session_tenant_status_idx")
+  @@map("esign_session")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// M06: ATTENDANCE — Core (Batch 1)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ─── M06: Attendance Raw Event (append-only) ─────────────────────────────────
+// Every device/mobile/web/manual check-in or check-out punch is written here.
+// Corrections reference originals; originals are never modified.
+// No updatedAt, no rowVersion — this table is append-only by design.
+
+model AttendanceRawEvent {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId        String    @map("tenant_id") @db.Uuid
+  employeeId      String    @map("employee_id") @db.Uuid
+  eventType       String    @map("event_type") @db.VarChar(20)
+  source          String    @db.VarChar(20)
+  eventTime       DateTime  @map("event_time") @db.Timestamptz(6)
+  recordedAt      DateTime  @default(now()) @map("recorded_at") @db.Timestamptz(6)
+  deviceId        String?   @map("device_id") @db.Uuid
+  idempotencyKey  String    @unique @map("idempotency_key") @db.VarChar(128)
+  latitude        Decimal?  @db.Decimal(10, 7)
+  longitude       Decimal?  @db.Decimal(10, 7)
+  ipAddress       String?   @map("ip_address") @db.VarChar(45)
+  metadata        Json      @default("{}") @db.JsonB
+  isCorrection    Boolean   @default(false) @map("is_correction")
+  correctsEventId String?   @map("corrects_event_id") @db.Uuid
+  status          String    @default("PENDING") @db.VarChar(20)
+  processedAt     DateTime? @map("processed_at") @db.Timestamptz(6)
+  errorDetail     String?   @map("error_detail") @db.VarChar(500)
+  createdBy       String?   @map("created_by") @db.Uuid
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tenant           Tenant               @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  employee         Employee             @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  correctsEvent    AttendanceRawEvent?  @relation("RawEventCorrection", fields: [correctsEventId], references: [id])
+  correctionEvents AttendanceRawEvent[] @relation("RawEventCorrection")
+
+  @@index([tenantId])
+  @@index([tenantId, employeeId])
+  @@index([tenantId, eventTime])
+  @@index([tenantId, status])
+  @@map("attendance_raw_event")
+}
+
+// ─── M06: Attendance Record ───────────────────────────────────────────────────
+// One record per (tenant, employee, date). Upserted on each calculation run.
+// Acts as the canonical daily summary for payroll and reporting.
+
+model AttendanceRecord {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId              String    @map("tenant_id") @db.Uuid
+  employeeId            String    @map("employee_id") @db.Uuid
+  attendanceDate        DateTime  @map("attendance_date") @db.Date
+  firstCheckIn          DateTime? @map("first_check_in") @db.Timestamptz(6)
+  lastCheckOut          DateTime? @map("last_check_out") @db.Timestamptz(6)
+  totalWorkedMinutes    Int       @default(0) @map("total_worked_minutes")
+  regularMinutes        Int       @default(0) @map("regular_minutes")
+  overtimeMinutes       Int       @default(0) @map("overtime_minutes")
+  lateMinutes           Int       @default(0) @map("late_minutes")
+  earlyDepartureMinutes Int       @default(0) @map("early_departure_minutes")
+  status                String    @default("ABSENT") @db.VarChar(30)
+  isManual              Boolean   @default(false) @map("is_manual")
+  isLeave               Boolean   @default(false) @map("is_leave")
+  isHoliday             Boolean   @default(false) @map("is_holiday")
+  isWeekend             Boolean   @default(false) @map("is_weekend")
+  manualNote            String?   @map("manual_note") @db.VarChar(500)
+  periodLocked          Boolean   @default(false) @map("period_locked")
+  calculationVersion    Int       @default(1) @map("calculation_version")
+  calculatedAt          DateTime? @map("calculated_at") @db.Timestamptz(6)
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy             String?   @map("created_by") @db.Uuid
+  updatedAt             DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy             String?   @map("updated_by") @db.Uuid
+  rowVersion            BigInt    @default(1) @map("row_version")
+
+  tenant     Tenant                @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  employee   Employee              @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  exceptions AttendanceException[]
+
+  @@unique([tenantId, employeeId, attendanceDate], map: "attendance_record_tenant_emp_date_uq")
+  @@index([tenantId])
+  @@index([tenantId, employeeId])
+  @@index([tenantId, attendanceDate])
+  @@index([tenantId, status])
+  @@map("attendance_record")
+}
+
+// ─── M06: Attendance Exception ────────────────────────────────────────────────
+// Exceptions raised during attendance calculation (late, missing punch, etc.).
+// Linked to the attendance_record for that day.
+
+model AttendanceException {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId           String    @map("tenant_id") @db.Uuid
+  attendanceRecordId String    @map("attendance_record_id") @db.Uuid
+  employeeId         String    @map("employee_id") @db.Uuid
+  exceptionType      String    @map("exception_type") @db.VarChar(40)
+  exceptionDate      DateTime  @map("exception_date") @db.Date
+  description        String?   @db.VarChar(500)
+  severity           String    @default("WARNING") @db.VarChar(10)
+  isResolved         Boolean   @default(false) @map("is_resolved")
+  resolvedAt         DateTime? @map("resolved_at") @db.Timestamptz(6)
+  resolvedBy         String?   @map("resolved_by") @db.Uuid
+  resolutionNote     String?   @map("resolution_note") @db.VarChar(500)
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant           Tenant           @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  attendanceRecord AttendanceRecord @relation(fields: [attendanceRecordId], references: [id], onDelete: Cascade)
+  employee         Employee         @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId])
+  @@index([tenantId, attendanceRecordId])
+  @@index([tenantId, employeeId])
+  @@index([tenantId, exceptionDate])
+  @@index([tenantId, isResolved])
+  @@map("attendance_exception")
+}
+
+// ─── M06 Batch 2: Attendance Policy ──────────────────────────────────────────
+// Configurable attendance rules. Resolves by scope: branch > legalEntity > tenant.
+// Policies are versioned and historical — never overwrite, create new version.
+
+model AttendancePolicy {
+  id                             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId                       String    @map("tenant_id") @db.Uuid
+  legalEntityId                  String?   @map("legal_entity_id") @db.Uuid
+  branchId                       String?   @map("branch_id") @db.Uuid
+  name                           String    @db.VarChar(160)
+  description                    String?   @db.Text
+  effectiveFrom                  DateTime  @map("effective_from") @db.Date
+  effectiveTo                    DateTime? @map("effective_to") @db.Date
+  version                        Int       @default(1)
+  isCurrent                      Boolean   @default(true) @map("is_current")
+  workingMinutesPerDay           Int       @map("working_minutes_per_day")
+  workStartTime                  String    @map("work_start_time") @db.VarChar(5)
+  workEndTime                    String    @map("work_end_time") @db.VarChar(5)
+  graceMinutes                   Int       @default(0) @map("grace_minutes")
+  lateToleranceMinutes           Int       @default(0) @map("late_tolerance_minutes")
+  earlyDepartureToleranceMinutes Int       @default(0) @map("early_departure_tolerance_minutes")
+  halfDayMinutes                 Int       @map("half_day_minutes")
+  minimumWorkingMinutes          Int       @map("minimum_working_minutes")
+  overtimeThresholdMinutes       Int       @default(0) @map("overtime_threshold_minutes")
+  roundingStrategy               String    @default("NONE") @map("rounding_strategy") @db.VarChar(20)
+  weekendDefinition              Json      @map("weekend_definition")
+  timezone                       String    @default("UTC") @db.VarChar(80)
+  allowManualAttendance          Boolean   @default(true) @map("allow_manual_attendance")
+  allowEarlyCheckIn              Boolean   @default(true) @map("allow_early_check_in")
+  allowLateCheckOut              Boolean   @default(true) @map("allow_late_check_out")
+  allowOvertime                  Boolean   @default(false) @map("allow_overtime")
+  allowedIpRanges                Json?     @map("allowed_ip_ranges")
+  createdBy                      String    @map("created_by") @db.Uuid
+  updatedBy                      String?   @map("updated_by") @db.Uuid
+  createdAt                      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt                      DateTime? @map("deleted_at") @db.Timestamptz(6)
+  rowVersion                     BigInt    @default(1) @map("row_version")
+
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  legalEntity LegalEntity? @relation(fields: [legalEntityId], references: [id], onDelete: Restrict)
+  branch      Branch?      @relation(fields: [branchId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, isCurrent])
+  @@index([tenantId, legalEntityId, isCurrent])
+  @@index([tenantId, branchId, isCurrent])
+  @@index([effectiveFrom])
+  @@map("attendance_policy")
+}

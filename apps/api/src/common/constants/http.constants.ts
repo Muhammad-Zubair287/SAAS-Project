@@ -1,0 +1,15 @@
+export const HTTP_MESSAGES = {
+  OK: 'Success',
+  CREATED: 'Created successfully',
+  ACCEPTED: 'Accepted',
+  NO_CONTENT: 'No content',
+  BAD_REQUEST: 'Bad request',
+  UNAUTHORIZED: 'Unauthorized',
+  FORBIDDEN: 'Forbidden',
+  NOT_FOUND: 'Not found',
+  CONFLICT: 'Conflict',
+  UNPROCESSABLE_ENTITY: 'Unprocessable entity',
+  TOO_MANY_REQUESTS: 'Too many requests',
+  INTERNAL_SERVER_ERROR: 'Internal server error',
+  SERVICE_UNAVAILABLE: 'Service unavailable',
+} as const;
