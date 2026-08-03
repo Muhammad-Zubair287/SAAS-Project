@@ -39,7 +39,7 @@ export function AttendancePolicyCard({ policy }: Props) {
         </div>
       </div>
 
-      <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-600">
+      <dl className="mt-3 grid grid-cols-1 gap-x-4 gap-y-1 text-xs text-gray-600 sm:grid-cols-2">
         <div>
           <dt className="text-gray-400">{t('fields.workingHours')}</dt>
           <dd className="font-medium">{policy.workStartTime} &ndash; {policy.workEndTime}</dd>

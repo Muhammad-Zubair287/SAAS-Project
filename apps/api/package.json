@@ -2,6 +2,9 @@
   "name": "@workforce-cloud-os/api",
   "version": "0.1.0",
   "private": true,
+  "prisma": {
+    "schema": "src/database/prisma/schema.prisma"
+  },
   "scripts": {
     "build": "nest build",
     "dev": "nest start --watch",

@@ -46,7 +46,10 @@ export function EmployeeDocumentsTable({
 
   return (
     <div className="overflow-hidden rounded-xl border border-border-default bg-surface-primary">
-      <table className="w-full border-collapse text-body-sm">
+      {/* Inner scroller — the parent's overflow-hidden otherwise clips the
+          trailing columns with no way to reach them on a phone. */}
+      <div className="overflow-x-auto">
+      <table className="min-w-[640px] w-full border-collapse text-body-sm">
         <thead>
           <tr className="border-b border-border-default bg-surface-canvas">
             <th className="px-4 py-3 text-left font-semibold text-text-secondary">
@@ -78,6 +81,7 @@ export function EmployeeDocumentsTable({
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

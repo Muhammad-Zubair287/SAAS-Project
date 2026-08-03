@@ -34,7 +34,7 @@ export function AttendanceRecordsTable({ records, onViewDetail }: Props) {
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-body-sm">
+      <table className="min-w-[620px] w-full text-body-sm">
         <thead>
           <tr className="border-b border-border-default text-text-secondary text-left">
             <th className="py-3 px-4 font-medium">{t('attendance.columns.date')}</th>

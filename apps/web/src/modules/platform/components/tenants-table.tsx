@@ -10,9 +10,11 @@ import { ROUTES } from '../../../constants/routes.constants';
 interface TenantsTableProps {
   data: TenantSummary[];
   isLoading?: boolean;
+  isError?: boolean;
+  onRetry?: () => void;
 }
 
-export function TenantsTable({ data, isLoading }: TenantsTableProps) {
+export function TenantsTable({ data, isLoading, isError, onRetry }: TenantsTableProps) {
   const t = useTranslations();
   const router = useRouter();
 
@@ -69,7 +71,12 @@ export function TenantsTable({ data, isLoading }: TenantsTableProps) {
       columns={columns}
       data={data}
       isLoading={isLoading}
+      isError={isError}
+      onRetry={onRetry}
+      errorTitle={t('common.error')}
+      retryLabel={t('common.retry')}
       keyExtractor={(row) => row.id}
+      caption={t('platform.tenants.title')}
       emptyTitle={t('platform.tenants.empty.title')}
       emptyDescription={t('platform.tenants.empty.description')}
       onRowClick={(row) => router.push(ROUTES.PLATFORM.TENANT_DETAIL(row.id))}

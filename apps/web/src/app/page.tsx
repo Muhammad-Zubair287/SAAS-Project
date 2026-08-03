@@ -1,14 +1,12 @@
+import { redirect } from 'next/navigation';
+import { ROUTES } from '../constants/routes.constants';
+
+/**
+ * Root entry point. There is no authentication yet ((auth) is empty), so this
+ * redirects unconditionally to the tenant workspace. Once sessions exist this
+ * becomes a role branch: platform admins -> ROUTES.PLATFORM.DASHBOARD,
+ * employees -> ROUTES.EMPLOYEE.DASHBOARD, everyone else -> tenant dashboard.
+ */
 export default function RootPage() {
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-surface-canvas">
-      <div className="text-center">
-        <h1 className="text-display-md text-brand-navy-950">
-          Workforce Cloud OS
-        </h1>
-        <p className="mt-4 text-body-lg text-gray-500">
-          Platform foundation is ready. Business modules load here.
-        </p>
-      </div>
-    </main>
-  );
+  redirect(ROUTES.TENANT.DASHBOARD);
 }

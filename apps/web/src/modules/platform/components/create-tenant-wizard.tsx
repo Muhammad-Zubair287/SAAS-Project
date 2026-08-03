@@ -141,7 +141,7 @@ export function CreateTenantWizard() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className="block text-label-md font-semibold text-text-primary mb-1">
                   {t('platform.tenants.create.company.country')}
@@ -217,7 +217,7 @@ export function CreateTenantWizard() {
               {t('platform.tenants.create.commercial.title')}
             </legend>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className="block text-label-md font-semibold text-text-primary mb-1">
                   {t('platform.tenants.create.commercial.plan')}

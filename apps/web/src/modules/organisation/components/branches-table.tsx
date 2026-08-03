@@ -10,9 +10,11 @@ import { ROUTES } from '../../../constants/routes.constants';
 interface BranchesTableProps {
   data: Branch[];
   isLoading?: boolean;
+  isError?: boolean;
+  onRetry?: () => void;
 }
 
-export function BranchesTable({ data, isLoading }: BranchesTableProps) {
+export function BranchesTable({ data, isLoading, isError, onRetry }: BranchesTableProps) {
   const t = useTranslations();
   const router = useRouter();
 
@@ -62,7 +64,12 @@ export function BranchesTable({ data, isLoading }: BranchesTableProps) {
       columns={columns}
       data={data}
       isLoading={isLoading}
+      isError={isError}
+      onRetry={onRetry}
+      errorTitle={t('common.error')}
+      retryLabel={t('common.retry')}
       keyExtractor={(row) => row.id}
+      caption={t('organisation.branches.title')}
       emptyTitle={t('organisation.branches.empty.title')}
       emptyDescription={t('organisation.branches.empty.description')}
       onRowClick={(row) => router.push(ROUTES.TENANT.ORGANISATION.BRANCH_DETAIL(row.id))}

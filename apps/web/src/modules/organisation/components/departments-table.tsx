@@ -10,9 +10,11 @@ import { ROUTES } from '../../../constants/routes.constants';
 interface DepartmentsTableProps {
   data: Department[];
   isLoading?: boolean;
+  isError?: boolean;
+  onRetry?: () => void;
 }
 
-export function DepartmentsTable({ data, isLoading }: DepartmentsTableProps) {
+export function DepartmentsTable({ data, isLoading, isError, onRetry }: DepartmentsTableProps) {
   const t = useTranslations();
   const router = useRouter();
 
@@ -48,7 +50,12 @@ export function DepartmentsTable({ data, isLoading }: DepartmentsTableProps) {
       columns={columns}
       data={data}
       isLoading={isLoading}
+      isError={isError}
+      onRetry={onRetry}
+      errorTitle={t('common.error')}
+      retryLabel={t('common.retry')}
       keyExtractor={(row) => row.id}
+      caption={t('organisation.departments.title')}
       emptyTitle={t('organisation.departments.empty.title')}
       emptyDescription={t('organisation.departments.empty.description')}
       onRowClick={(row) => router.push(ROUTES.TENANT.ORGANISATION.DEPARTMENT_DETAIL(row.id))}
