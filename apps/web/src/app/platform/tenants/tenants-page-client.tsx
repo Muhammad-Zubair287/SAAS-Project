@@ -7,6 +7,7 @@ import { PageHeader } from '../../../components/common/page-header';
 import { TenantsTable } from '../../../modules/platform/components/tenants-table';
 import { useTenants } from '../../../modules/platform/hooks/use-tenants';
 import { usePagination } from '../../../hooks/use-pagination';
+import { useDebounce } from '../../../hooks/use-debounce';
 import type { TenantStatus } from '../../../modules/platform/types/platform.types';
 import { ROUTES } from '../../../constants/routes.constants';
 
@@ -18,13 +19,15 @@ interface TenantsPageClientProps {
 export function TenantsPageClient({ title, description }: TenantsPageClientProps) {
   const t = useTranslations();
   const [search, setSearch] = useState('');
+  // Debounced so typing does not fire one request per keystroke.
+  const debouncedSearch = useDebounce(search);
   const [statusFilter, setStatusFilter] = useState<TenantStatus | ''>('');
   const { page, pageSize, goToPage: setPage } = usePagination();
 
-  const { data, isLoading } = useTenants({
+  const { data, isLoading, isError, refetch } = useTenants({
     page,
     pageSize,
-    search: search || undefined,
+    search: debouncedSearch || undefined,
     status: statusFilter || undefined,
     sortBy: 'createdAt',
     sortOrder: 'desc',
@@ -50,7 +53,7 @@ export function TenantsPageClient({ title, description }: TenantsPageClientProps
       />
 
       {/* Search + Filter Bar */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <div className="relative flex-1">
           <input
             type="search"
@@ -83,7 +86,7 @@ export function TenantsPageClient({ title, description }: TenantsPageClientProps
       </div>
 
       {/* Results count */}
-      {!isLoading && (
+      {!isLoading && !isError && (
         <p className="text-body-sm text-text-secondary">
           {t('pagination.showing', {
             from: Math.min((page - 1) * pageSize + 1, total),
@@ -93,16 +96,21 @@ export function TenantsPageClient({ title, description }: TenantsPageClientProps
         </p>
       )}
 
-      <TenantsTable data={data?.data ?? []} isLoading={isLoading} />
+      <TenantsTable
+        data={data?.data ?? []}
+        isLoading={isLoading}
+        isError={isError}
+        onRetry={() => { void refetch(); }}
+      />
 
       {/* Pagination */}
-      {totalPages > 1 && (
+      {!isError && totalPages > 1 && (
         <div className="flex items-center justify-center gap-2">
           <button
             type="button"
             onClick={() => setPage(Math.max(1, page - 1))}
             disabled={page <= 1}
-            className="rounded-md border border-border-default px-3 py-1.5 text-body-sm disabled:opacity-40"
+            className="flex h-11 min-w-11 items-center justify-center rounded-md border border-border-default px-3 text-body-sm disabled:opacity-40"
             aria-label={t('pagination.previousPage')}
           >
             ←
@@ -114,7 +122,7 @@ export function TenantsPageClient({ title, description }: TenantsPageClientProps
             type="button"
             onClick={() => setPage(Math.min(totalPages, page + 1))}
             disabled={page >= totalPages}
-            className="rounded-md border border-border-default px-3 py-1.5 text-body-sm disabled:opacity-40"
+            className="flex h-11 min-w-11 items-center justify-center rounded-md border border-border-default px-3 text-body-sm disabled:opacity-40"
             aria-label={t('pagination.nextPage')}
           >
             →
