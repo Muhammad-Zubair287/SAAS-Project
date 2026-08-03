@@ -21,7 +21,10 @@
     "no": "نہیں",
     "required": "ضروری",
     "optional": "اختیاری",
-    "actions": "اقدامات"
+    "actions": "اقدامات",
+    "skipToContent": "مرکزی مواد پر جائیں",
+    "comingSoonHint": "یہ ماڈیول ابھی دستیاب نہیں ہے",
+    "closeSidebar": "سائیڈبار بند کریں"
   },
   "errors": {
     "generic": "کچھ غلط ہو گیا۔ براہ کرم دوبارہ کوشش کریں۔",
@@ -35,7 +38,11 @@
     "dashboard": "ڈیش بورڈ",
     "settings": "ترتیبات",
     "profile": "پروفائل",
-    "logout": "سائن آؤٹ"
+    "logout": "سائن آؤٹ",
+    "comingSoon": "جلد",
+    "primaryLabel": "مرکزی نیویگیشن",
+    "breadcrumbLabel": "بریڈکرمب",
+    "openMenu": "نیویگیشن مینو کھولیں"
   },
   "pagination": {
     "showing": "{total} میں سے {from}–{to} دکھا رہا ہے",
@@ -208,13 +215,38 @@
       "dashboard": "ڈیش بورڈ",
       "organisation": "تنظیم",
       "employees": "ملازمین",
-      "documents": "دستاویزات",
+      "documents": "آن بورڈنگ اور دستاویزات",
       "attendance": "حاضری",
-      "leave": "چھٹی",
-      "shifts": "شفٹیں",
+      "leave": "چھٹی اور پی ٹی او",
+      "shifts": "شفٹ شیڈولنگ",
       "payroll": "تنخواہ",
       "reports": "رپورٹیں",
-      "settings": "ترتیبات"
+      "settings": "ترتیبات",
+      "people": "عملہ",
+      "employeeRecords": "ملازمین کے ریکارڈ",
+      "orgStructure": "تنظیمی ڈھانچہ",
+      "timeAttendance": "وقت و حاضری",
+      "attendanceOverview": "جائزہ",
+      "timeTracking": "وقت کی نگرانی",
+      "attendancePolicies": "حاضری کی پالیسیاں"
+    },
+    "admin": {
+      "label": "ٹینینٹ ایڈمن",
+      "roleLabel": "ایچ آر ایڈمنسٹریٹر"
+    },
+    "dashboard": {
+      "title": "ڈیش بورڈ",
+      "description": "آپ کی افرادی قوت کا جائزہ۔",
+      "workforceHeading": "آج کی افرادی قوت",
+      "organisationHeading": "تنظیم",
+      "activeEmployees": "فعال ملازمین",
+      "presentToday": "آج حاضر",
+      "absentToday": "آج غیر حاضر",
+      "openExceptions": "زیر التوا استثنیٰ",
+      "attendanceRate": "فعال عملے کا {rate}%",
+      "needsReview": "جائزے کے منتظر",
+      "ofHeadcount": "{total} ملازمین میں سے",
+      "viewAll": "سب دیکھیں"
     }
   },
   "documents": {
@@ -519,80 +551,80 @@
     },
     "createButton": "حاضری درج کریں",
     "status": {
-      "PRESENT":         "حاضر",
-      "ABSENT":          "غیر حاضر",
-      "LATE":            "دیر سے آیا",
-      "HALF_DAY":        "آدھا دن",
+      "PRESENT": "حاضر",
+      "ABSENT": "غیر حاضر",
+      "LATE": "دیر سے آیا",
+      "HALF_DAY": "آدھا دن",
       "EARLY_DEPARTURE": "جلدی گیا",
-      "MISSING_PUNCH":   "پنچ غائب",
-      "ON_LEAVE":        "چھٹی پر",
-      "HOLIDAY":         "تعطیل",
-      "WEEKEND":         "ہفتہ وار تعطیل",
-      "REMOTE_WORK":     "دور سے کام",
-      "BUSINESS_TRIP":   "کاروباری سفر"
+      "MISSING_PUNCH": "پنچ غائب",
+      "ON_LEAVE": "چھٹی پر",
+      "HOLIDAY": "تعطیل",
+      "WEEKEND": "ہفتہ وار تعطیل",
+      "REMOTE_WORK": "دور سے کام",
+      "BUSINESS_TRIP": "کاروباری سفر"
     },
     "eventType": {
-      "CHECK_IN":  "حاضری",
+      "CHECK_IN": "حاضری",
       "CHECK_OUT": "روانگی"
     },
     "source": {
-      "BIOMETRIC":    "بائیومیٹرک",
-      "MOBILE":       "موبائل",
-      "WEB":          "ویب",
-      "MANUAL":       "دستی",
-      "API":          "اے پی آئی",
+      "BIOMETRIC": "بائیومیٹرک",
+      "MOBILE": "موبائل",
+      "WEB": "ویب",
+      "MANUAL": "دستی",
+      "API": "اے پی آئی",
       "OFFLINE_SYNC": "آف لائن"
     },
     "exceptionType": {
-      "LATE":               "دیر سے آمد",
-      "EARLY_DEPARTURE":    "جلدی روانگی",
-      "MISSING_CHECK_IN":   "حاضری غائب",
-      "MISSING_CHECK_OUT":  "روانگی غائب",
-      "OVERTIME_UNAPPROVED":"غیر منظور اضافی وقت"
+      "LATE": "دیر سے آمد",
+      "EARLY_DEPARTURE": "جلدی روانگی",
+      "MISSING_CHECK_IN": "حاضری غائب",
+      "MISSING_CHECK_OUT": "روانگی غائب",
+      "OVERTIME_UNAPPROVED": "غیر منظور اضافی وقت"
     },
     "columns": {
-      "date":     "تاریخ",
-      "checkIn":  "آمد",
+      "date": "تاریخ",
+      "checkIn": "آمد",
       "checkOut": "روانگی",
-      "worked":   "کام کا وقت",
-      "status":   "حیثیت",
+      "worked": "کام کا وقت",
+      "status": "حیثیت",
       "employee": "ملازم",
-      "type":     "قسم",
+      "type": "قسم",
       "severity": "شدت",
       "resolved": "حل شدہ"
     },
     "records": {
-      "title":       "حاضری کے ریکارڈ",
+      "title": "حاضری کے ریکارڈ",
       "description": "روزانہ کی حاضری دیکھیں اور منظم کریں۔",
       "empty": {
-        "title":       "کوئی ریکارڈ نہیں",
+        "title": "کوئی ریکارڈ نہیں",
         "description": "حاضری ریکارڈ یہاں ظاہر ہوں گے۔"
       }
     },
     "detail": {
-      "title":            "حاضری کی تفصیل",
-      "breadcrumb":       "تفصیل",
-      "sectionRecord":    "ریکارڈ",
-      "sectionEvents":    "خام واقعات",
-      "sectionExceptions":"استثنیات"
+      "title": "حاضری کی تفصیل",
+      "breadcrumb": "تفصیل",
+      "sectionRecord": "ریکارڈ",
+      "sectionEvents": "خام واقعات",
+      "sectionExceptions": "استثنیات"
     },
     "exceptions": {
-      "title":       "حاضری کی استثنیات",
+      "title": "حاضری کی استثنیات",
       "empty": {
-        "title":       "کوئی استثنا نہیں",
+        "title": "کوئی استثنا نہیں",
         "description": "کوئی استثنا نہیں۔"
       },
       "resolveButton": "حل کریں"
     },
     "filters": {
       "allStatuses": "تمام حیثیتیں",
-      "dateFrom":    "شروع تاریخ",
-      "dateTo":      "اختتام تاریخ"
+      "dateFrom": "شروع تاریخ",
+      "dateTo": "اختتام تاریخ"
     },
     "cards": {
       "presentToday": "آج حاضر",
-      "absentToday":  "آج غیر حاضر",
-      "lateToday":    "آج دیر سے",
+      "absentToday": "آج غیر حاضر",
+      "lateToday": "آج دیر سے",
       "totalRecords": "کل ریکارڈ"
     },
     "policy": {
@@ -602,7 +634,9 @@
         "error": "پالیسیاں لوڈ کرنے میں ناکامی",
         "empty": "ابھی تک کوئی حاضری پالیسی نہیں"
       },
-      "create": { "title": "حاضری پالیسی بنائیں" },
+      "create": {
+        "title": "حاضری پالیسی بنائیں"
+      },
       "detail": {
         "back": "پالیسیاں",
         "loading": "پالیسی لوڈ ہو رہی ہے...",
@@ -644,7 +678,9 @@
         "allowLateCheckOut": "دیر سے چیک آؤٹ کی اجازت",
         "allowOvertime": "اوور ٹائم کی اجازت"
       },
-      "units": { "minutes": "منٹ" },
+      "units": {
+        "minutes": "منٹ"
+      },
       "actions": {
         "create": "پالیسی بنائیں",
         "createFirst": "پہلی پالیسی بنائیں",

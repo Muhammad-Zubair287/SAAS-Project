@@ -21,7 +21,10 @@
     "no": "No",
     "required": "Required",
     "optional": "Optional",
-    "actions": "Actions"
+    "actions": "Actions",
+    "skipToContent": "Skip to main content",
+    "comingSoonHint": "This module is not available yet",
+    "closeSidebar": "Close sidebar"
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
@@ -35,7 +38,11 @@
     "dashboard": "Dashboard",
     "settings": "Settings",
     "profile": "Profile",
-    "logout": "Sign out"
+    "logout": "Sign out",
+    "comingSoon": "Soon",
+    "primaryLabel": "Main navigation",
+    "breadcrumbLabel": "Breadcrumb",
+    "openMenu": "Open navigation menu"
   },
   "pagination": {
     "showing": "Showing {from}–{to} of {total}",
@@ -208,13 +215,38 @@
       "dashboard": "Dashboard",
       "organisation": "Organisation",
       "employees": "Employees",
-      "documents": "Documents",
+      "documents": "Onboarding & Documents",
       "attendance": "Attendance",
-      "leave": "Leave",
-      "shifts": "Shifts",
+      "leave": "Leave & PTO",
+      "shifts": "Shift Scheduling",
       "payroll": "Payroll",
       "reports": "Reports",
-      "settings": "Settings"
+      "settings": "Settings",
+      "people": "People",
+      "employeeRecords": "Employee Records",
+      "orgStructure": "Org Structure",
+      "timeAttendance": "Time & Attendance",
+      "attendanceOverview": "Overview",
+      "timeTracking": "Time Tracking",
+      "attendancePolicies": "Attendance Policies"
+    },
+    "admin": {
+      "label": "Tenant Admin",
+      "roleLabel": "HR Administrator"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "description": "Overview of your workforce.",
+      "workforceHeading": "Workforce today",
+      "organisationHeading": "Organisation",
+      "activeEmployees": "Active employees",
+      "presentToday": "Present today",
+      "absentToday": "Absent today",
+      "openExceptions": "Open exceptions",
+      "attendanceRate": "{rate}% of active staff",
+      "needsReview": "Awaiting review",
+      "ofHeadcount": "of {total} employees",
+      "viewAll": "View all"
     }
   },
   "documents": {
@@ -519,80 +551,80 @@
     },
     "createButton": "Log Attendance",
     "status": {
-      "PRESENT":         "Present",
-      "ABSENT":          "Absent",
-      "LATE":            "Late",
-      "HALF_DAY":        "Half Day",
+      "PRESENT": "Present",
+      "ABSENT": "Absent",
+      "LATE": "Late",
+      "HALF_DAY": "Half Day",
       "EARLY_DEPARTURE": "Early Departure",
-      "MISSING_PUNCH":   "Missing Punch",
-      "ON_LEAVE":        "On Leave",
-      "HOLIDAY":         "Holiday",
-      "WEEKEND":         "Weekend",
-      "REMOTE_WORK":     "Remote Work",
-      "BUSINESS_TRIP":   "Business Trip"
+      "MISSING_PUNCH": "Missing Punch",
+      "ON_LEAVE": "On Leave",
+      "HOLIDAY": "Holiday",
+      "WEEKEND": "Weekend",
+      "REMOTE_WORK": "Remote Work",
+      "BUSINESS_TRIP": "Business Trip"
     },
     "eventType": {
-      "CHECK_IN":  "Check In",
+      "CHECK_IN": "Check In",
       "CHECK_OUT": "Check Out"
     },
     "source": {
-      "BIOMETRIC":    "Biometric",
-      "MOBILE":       "Mobile",
-      "WEB":          "Web",
-      "MANUAL":       "Manual",
-      "API":          "API",
+      "BIOMETRIC": "Biometric",
+      "MOBILE": "Mobile",
+      "WEB": "Web",
+      "MANUAL": "Manual",
+      "API": "API",
       "OFFLINE_SYNC": "Offline Sync"
     },
     "exceptionType": {
-      "LATE":               "Late Arrival",
-      "EARLY_DEPARTURE":    "Early Departure",
-      "MISSING_CHECK_IN":   "Missing Check-In",
-      "MISSING_CHECK_OUT":  "Missing Check-Out",
-      "OVERTIME_UNAPPROVED":"Unapproved Overtime"
+      "LATE": "Late Arrival",
+      "EARLY_DEPARTURE": "Early Departure",
+      "MISSING_CHECK_IN": "Missing Check-In",
+      "MISSING_CHECK_OUT": "Missing Check-Out",
+      "OVERTIME_UNAPPROVED": "Unapproved Overtime"
     },
     "columns": {
-      "date":     "Date",
-      "checkIn":  "Check In",
+      "date": "Date",
+      "checkIn": "Check In",
       "checkOut": "Check Out",
-      "worked":   "Worked",
-      "status":   "Status",
+      "worked": "Worked",
+      "status": "Status",
       "employee": "Employee",
-      "type":     "Type",
+      "type": "Type",
       "severity": "Severity",
       "resolved": "Resolved"
     },
     "records": {
-      "title":       "Attendance Records",
+      "title": "Attendance Records",
       "description": "View and manage daily attendance records.",
       "empty": {
-        "title":       "No attendance records found",
+        "title": "No attendance records found",
         "description": "Attendance records will appear here once employees check in."
       }
     },
     "detail": {
-      "title":            "Attendance Detail",
-      "breadcrumb":       "Record Detail",
-      "sectionRecord":    "Record",
-      "sectionEvents":    "Raw Events",
-      "sectionExceptions":"Exceptions"
+      "title": "Attendance Detail",
+      "breadcrumb": "Record Detail",
+      "sectionRecord": "Record",
+      "sectionEvents": "Raw Events",
+      "sectionExceptions": "Exceptions"
     },
     "exceptions": {
-      "title":       "Attendance Exceptions",
+      "title": "Attendance Exceptions",
       "empty": {
-        "title":       "No exceptions",
+        "title": "No exceptions",
         "description": "No attendance exceptions have been raised."
       },
       "resolveButton": "Resolve"
     },
     "filters": {
       "allStatuses": "All statuses",
-      "dateFrom":    "From date",
-      "dateTo":      "To date"
+      "dateFrom": "From date",
+      "dateTo": "To date"
     },
     "cards": {
       "presentToday": "Present Today",
-      "absentToday":  "Absent Today",
-      "lateToday":    "Late Today",
+      "absentToday": "Absent Today",
+      "lateToday": "Late Today",
       "totalRecords": "Total Records"
     },
     "policy": {
@@ -602,7 +634,9 @@
         "error": "Failed to load policies",
         "empty": "No attendance policies yet"
       },
-      "create": { "title": "Create Attendance Policy" },
+      "create": {
+        "title": "Create Attendance Policy"
+      },
       "detail": {
         "back": "Policies",
         "loading": "Loading policy...",
@@ -644,7 +678,9 @@
         "allowLateCheckOut": "Allow Late Check-out",
         "allowOvertime": "Allow Overtime"
       },
-      "units": { "minutes": "min" },
+      "units": {
+        "minutes": "min"
+      },
       "actions": {
         "create": "Create Policy",
         "createFirst": "Create your first policy",

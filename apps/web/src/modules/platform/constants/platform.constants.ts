@@ -28,14 +28,19 @@ export const BILLING_CYCLE_LABELS: Record<string, string> = {
   annual: 'Annual',
 };
 
+/**
+ * `status` reflects whether the module has a route under src/app/platform.
+ * Items marked 'coming-soon' render as disabled placeholders rather than
+ * links that 404. Flip to 'available' when the route lands.
+ */
 export const PLATFORM_NAV_ITEMS = [
-  { key: 'dashboard', labelKey: 'platform.nav.overview', href: '/platform/dashboard', icon: 'LayoutDashboard' },
-  { key: 'tenants', labelKey: 'platform.nav.tenants', href: '/platform/tenants', icon: 'Building2' },
-  { key: 'plans', labelKey: 'platform.nav.plans', href: '/platform/plans', icon: 'CreditCard' },
-  { key: 'usage', labelKey: 'platform.nav.usage', href: '/platform/usage', icon: 'BarChart3' },
-  { key: 'support', labelKey: 'platform.nav.supportAccess', href: '/platform/support', icon: 'ShieldCheck' },
-  { key: 'audit', labelKey: 'platform.nav.audit', href: '/platform/audit', icon: 'FileText' },
-  { key: 'config', labelKey: 'platform.nav.config', href: '/platform/config', icon: 'Settings' },
+  { key: 'dashboard', labelKey: 'platform.nav.overview', href: '/platform/dashboard', icon: 'LayoutDashboard', status: 'available' },
+  { key: 'tenants', labelKey: 'platform.nav.tenants', href: '/platform/tenants', icon: 'Building2', status: 'available' },
+  { key: 'plans', labelKey: 'platform.nav.plans', href: '/platform/plans', icon: 'CreditCard', status: 'coming-soon' },
+  { key: 'usage', labelKey: 'platform.nav.usage', href: '/platform/usage', icon: 'BarChart3', status: 'coming-soon' },
+  { key: 'support', labelKey: 'platform.nav.supportAccess', href: '/platform/support', icon: 'ShieldCheck', status: 'coming-soon' },
+  { key: 'audit', labelKey: 'platform.nav.audit', href: '/platform/audit', icon: 'FileText', status: 'coming-soon' },
+  { key: 'config', labelKey: 'platform.nav.config', href: '/platform/config', icon: 'Settings', status: 'coming-soon' },
 ] as const;
 
 export const SUPPORTED_COUNTRIES = [
