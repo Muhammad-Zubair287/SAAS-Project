@@ -7,6 +7,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { type ReactNode, useState } from 'react';
 import { APP_CONSTANTS } from '../constants/app.constants';
 import { ApiError } from '../lib/api/types';
+import { Toaster } from '../components/ui/toaster';
 
 interface ProvidersProps {
   children: ReactNode;
@@ -21,8 +22,16 @@ function makeQueryClient(): QueryClient {
         staleTime: APP_CONSTANTS.QUERY_STALE_TIME_MS,
         gcTime: APP_CONSTANTS.QUERY_GC_TIME_MS,
         retry: (failureCount, error) => {
-          if (error instanceof ApiError && error.statusCode !== undefined) {
-            if (error.statusCode >= 400 && error.statusCode < 500) return false;
+          if (error instanceof ApiError) {
+            // Client errors and cancellations will not succeed on retry.
+            if (error.code === 'CANCELLED') return false;
+            if (
+              error.statusCode !== undefined &&
+              error.statusCode >= 400 &&
+              error.statusCode < 500
+            ) {
+              return false;
+            }
           }
           return failureCount < 2;
         },
@@ -42,6 +51,7 @@ export function Providers({ children, locale, messages }: ProvidersProps) {
     <NextIntlClientProvider locale={locale} messages={messages}>
       <QueryClientProvider client={queryClient}>
         {children}
+        <Toaster />
         {process.env['NODE_ENV'] === 'development' && (
           <ReactQueryDevtools initialIsOpen={false} />
         )}

@@ -10,9 +10,11 @@ import { ROUTES } from '../../../constants/routes.constants';
 interface PositionsTableProps {
   data: Position[];
   isLoading?: boolean;
+  isError?: boolean;
+  onRetry?: () => void;
 }
 
-export function PositionsTable({ data, isLoading }: PositionsTableProps) {
+export function PositionsTable({ data, isLoading, isError, onRetry }: PositionsTableProps) {
   const t = useTranslations();
   const router = useRouter();
 
@@ -54,7 +56,12 @@ export function PositionsTable({ data, isLoading }: PositionsTableProps) {
       columns={columns}
       data={data}
       isLoading={isLoading}
+      isError={isError}
+      onRetry={onRetry}
+      errorTitle={t('common.error')}
+      retryLabel={t('common.retry')}
       keyExtractor={(row) => row.id}
+      caption={t('organisation.positions.title')}
       emptyTitle={t('organisation.positions.empty.title')}
       emptyDescription={t('organisation.positions.empty.description')}
       onRowClick={(row) => router.push(ROUTES.TENANT.ORGANISATION.POSITION_DETAIL(row.id))}

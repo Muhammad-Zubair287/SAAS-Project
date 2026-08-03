@@ -7,6 +7,7 @@ import { PageHeader } from '../../../../components/common/page-header';
 import { LegalEntitiesTable } from '../../../../modules/organisation/components/legal-entities-table';
 import { useLegalEntities } from '../../../../modules/organisation/hooks/use-legal-entities';
 import { usePagination } from '../../../../hooks/use-pagination';
+import { useDebounce } from '../../../../hooks/use-debounce';
 import type { OrgEntityStatus } from '../../../../modules/organisation/types/organisation.types';
 import { ROUTES } from '../../../../constants/routes.constants';
 
@@ -18,13 +19,15 @@ interface LegalEntitiesPageClientProps {
 export function LegalEntitiesPageClient({ title, description }: LegalEntitiesPageClientProps) {
   const t = useTranslations();
   const [search, setSearch] = useState('');
+  // Debounced so typing does not fire one request per keystroke.
+  const debouncedSearch = useDebounce(search);
   const [statusFilter, setStatusFilter] = useState<OrgEntityStatus | ''>('');
   const { page, pageSize, goToPage: setPage } = usePagination();
 
-  const { data, isLoading } = useLegalEntities({
+  const { data, isLoading, isError, refetch } = useLegalEntities({
     page,
     pageSize,
-    search: search || undefined,
+    search: debouncedSearch || undefined,
     status: statusFilter || undefined,
     sortBy: 'name',
     sortOrder: 'asc',
@@ -53,7 +56,7 @@ export function LegalEntitiesPageClient({ title, description }: LegalEntitiesPag
         }
       />
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <div className="relative flex-1">
           <input
             type="search"
@@ -77,7 +80,7 @@ export function LegalEntitiesPageClient({ title, description }: LegalEntitiesPag
         </select>
       </div>
 
-      {!isLoading && (
+      {!isLoading && !isError && (
         <p className="text-body-sm text-text-secondary">
           {t('pagination.showing', {
             from: Math.min((page - 1) * pageSize + 1, total),
@@ -87,16 +90,21 @@ export function LegalEntitiesPageClient({ title, description }: LegalEntitiesPag
         </p>
       )}
 
-      <LegalEntitiesTable data={data?.data ?? []} isLoading={isLoading} />
+      <LegalEntitiesTable
+        data={data?.data ?? []}
+        isLoading={isLoading}
+        isError={isError}
+        onRetry={() => { void refetch(); }}
+      />
 
-      {totalPages > 1 && (
+      {!isError && totalPages > 1 && (
         <div className="flex items-center justify-center gap-2">
           <button type="button" onClick={() => setPage(Math.max(1, page - 1))} disabled={page <= 1}
-            className="rounded-md border border-border-default px-3 py-1.5 text-body-sm disabled:opacity-40"
+            className="flex h-11 min-w-11 items-center justify-center rounded-md border border-border-default px-3 text-body-sm disabled:opacity-40"
             aria-label={t('pagination.previousPage')}>←</button>
           <span className="text-body-sm text-text-secondary">{page} / {totalPages}</span>
           <button type="button" onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page >= totalPages}
-            className="rounded-md border border-border-default px-3 py-1.5 text-body-sm disabled:opacity-40"
+            className="flex h-11 min-w-11 items-center justify-center rounded-md border border-border-default px-3 text-body-sm disabled:opacity-40"
             aria-label={t('pagination.nextPage')}>→</button>
         </div>
       )}

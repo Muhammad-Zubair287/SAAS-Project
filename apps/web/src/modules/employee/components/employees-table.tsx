@@ -11,9 +11,11 @@ import { ROUTES } from '../../../constants/routes.constants';
 interface EmployeesTableProps {
   data: Employee[];
   isLoading?: boolean;
+  isError?: boolean;
+  onRetry?: () => void;
 }
 
-export function EmployeesTable({ data, isLoading }: EmployeesTableProps) {
+export function EmployeesTable({ data, isLoading, isError, onRetry }: EmployeesTableProps) {
   const t = useTranslations();
   const router = useRouter();
 
@@ -69,7 +71,12 @@ export function EmployeesTable({ data, isLoading }: EmployeesTableProps) {
       columns={columns}
       data={data}
       isLoading={isLoading}
+      isError={isError}
+      onRetry={onRetry}
+      errorTitle={t('common.error')}
+      retryLabel={t('common.retry')}
       keyExtractor={(row) => row.id}
+      caption={t('employees.directory.title')}
       emptyTitle={t('employees.empty.title')}
       emptyDescription={t('employees.empty.description')}
       onRowClick={(row) => router.push(ROUTES.TENANT.EMPLOYEES.DETAIL(row.id))}
