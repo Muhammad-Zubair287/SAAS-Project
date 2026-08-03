@@ -59,7 +59,7 @@ export function SupportGrantDialog({ tenantId, open, onClose }: SupportGrantDial
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
       <div
-        className="relative w-full max-w-lg rounded-xl bg-surface-primary p-6 shadow-3"
+        className="relative max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-xl bg-surface-primary p-6 shadow-3"
         role="dialog"
         aria-modal="true"
         aria-labelledby="grant-dialog-title"
@@ -122,7 +122,7 @@ export function SupportGrantDialog({ tenantId, open, onClose }: SupportGrantDial
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="block text-label-md font-semibold text-text-primary mb-1">
                 {t('platform.tenants.support.startsAt')}

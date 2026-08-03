@@ -99,7 +99,10 @@ export function OnboardingPageClient({ title, description }: OnboardingPageClien
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl border border-border-default bg-surface-primary">
-          <table className="w-full border-collapse text-body-sm">
+          {/* Inner scroller — see templates-page-client: the parent's
+              overflow-hidden otherwise clips the trailing columns. */}
+          <div className="overflow-x-auto">
+          <table className="min-w-[560px] w-full border-collapse text-body-sm">
             <thead>
               <tr className="border-b border-border-default bg-surface-canvas">
                 <th className="px-4 py-3 text-left font-semibold text-text-secondary">
@@ -136,7 +139,7 @@ export function OnboardingPageClient({ title, description }: OnboardingPageClien
                   <td className="px-4 py-3">
                     <Link
                       href={ROUTES.TENANT.DOCUMENTS.ONBOARDING_DETAIL(tmpl.id)}
-                      className="text-brand-blue-600 hover:underline"
+                      className="inline-flex h-11 items-center px-2 text-brand-blue-600 hover:underline"
                     >
                       {t('common.view')}
                     </Link>
@@ -145,6 +148,7 @@ export function OnboardingPageClient({ title, description }: OnboardingPageClien
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
@@ -154,7 +158,7 @@ export function OnboardingPageClient({ title, description }: OnboardingPageClien
             type="button"
             onClick={() => setPage(Math.max(1, page - 1))}
             disabled={page <= 1}
-            className="rounded-md border border-border-default px-3 py-1.5 text-body-sm disabled:opacity-40"
+            className="flex h-11 min-w-11 items-center justify-center rounded-md border border-border-default px-3 text-body-sm disabled:opacity-40"
             aria-label={t('pagination.previousPage')}
           >←</button>
           <span className="text-body-sm text-text-secondary">{page} / {totalPages}</span>
@@ -162,7 +166,7 @@ export function OnboardingPageClient({ title, description }: OnboardingPageClien
             type="button"
             onClick={() => setPage(Math.min(totalPages, page + 1))}
             disabled={page >= totalPages}
-            className="rounded-md border border-border-default px-3 py-1.5 text-body-sm disabled:opacity-40"
+            className="flex h-11 min-w-11 items-center justify-center rounded-md border border-border-default px-3 text-body-sm disabled:opacity-40"
             aria-label={t('pagination.nextPage')}
           >→</button>
         </div>

@@ -46,7 +46,7 @@ export function SuspendTenantDialog({
         aria-hidden="true"
       />
       <div
-        className="relative w-full max-w-md rounded-xl bg-surface-primary p-6 shadow-3"
+        className="relative max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-xl bg-surface-primary p-6 shadow-3"
         role="dialog"
         aria-modal="true"
         aria-labelledby="suspend-dialog-title"
