@@ -1,0 +1,882 @@
+
+===== PAGE 2 =====
+1. Document Purpose and Handoff Scope
+A build-ready visual specification for Figma, design review and frontend implementation.
+This document defines the complete visual language and high-fidelity web experience for the Workforce Cloud OS 
+MVP. It translates the approved BRD, PRD, user-flow specification and low-fidelity wireframe pack into an 
+enterprise UI system that can be recreated directly in Figma.
+Figma handoff outcome
+The design team should be able to create variables, components, high-fidelity frames and clickable prototype 
+journeys without making new product decisions. Any decision not explicitly covered must be raised as a product 
+question rather than silently invented.
+Included deliverables
+ Brand and product visual direction for enterprise workforce software.
+ Figma-ready colour, typography, spacing, grid, radius, border, shadow and motion tokens.
+ Reusable component specifications for administrative, manager and employee experiences.
+ High-fidelity reference designs for thirteen critical MVP screens.
+ Complete module-by-module screen inventory using the approved screen IDs.
+ Responsive, accessibility, privacy, localisation and right-to-left requirements.
+ Figma file architecture, naming conventions, prototype journeys and handoff checklist.
+Design boundaries
+ The document defines UI and interaction design; it does not replace the business rules in the BRD or functional 
+behaviour in the PRD.
+ Sample employee, payroll and attendance data is illustrative and must not be treated as production data.
+ The initial product uses a responsive web application. Native mobile design can reuse employee self-service 
+patterns in a later phase.
+ TaskOps, advanced assets, benefits, gamification and predictive AI remain later-phase modules, but token and 
+component choices must not block them.
+2. Experience Strategy
+The product should feel like an enterprise operating system, not a collection of disconnected HR 
+tools.
+Experience promise
+Every workforce event should be understandable, traceable and connected to the next business action. The 
+interface must answer: What is happening? What action is required? Who is responsible? What is the current 
+status? What happens next?
+Design principles
+Principle Design implication
+Connected by default Employee, attendance, leave, payroll and approval information should share context and 
+avoid duplicate user entry.
+Confidence before speed Payroll, access and employment-status decisions require impact summaries, validation and 
+explicit confirmation.
+
+===== PAGE 3 =====
+Principle Design implication
+Status is always visible Every request, import, sync and calculation displays its state, owner, due date and next 
+action.
+Employee simplicity, 
+administrator depth
+Employee flows are concise and mobile-first; administrative workspaces support dense data 
+and exception handling.
+Configuration before 
+customisation
+Tenant differences are handled through policies, workflows, fields and entitlements rather 
+than customer-specific UI forks.
+Privacy by interface Sensitive information is hidden, masked or permission-gated before the user reaches the 
+screen.
+Global foundation, local 
+expression
+The system supports Urdu, Arabic, localisation, multiple currencies, time zones and region-
+specific policies.
+Accessible without 
+compromise
+Keyboard use, visible focus, semantic labels and non-colour status cues are part of every 
+component.
+Visual personality
+ Enterprise trustworthy: deep navy, structured layouts and clear audit cues.
+ Cloud connected: blue-to-teal accents, lightweight surfaces and cross-module relationship cues.
+ Operationally calm: neutral canvas, controlled semantic colour and limited decorative effects.
+ Human: employee identity, plain language, helpful empty states and transparent process timelines.
+ Data confident: tabular numerals, compact tables, clear variance indicators and auditable versions.
+3. Brand Identity and Product Language
+Name treatment
+ Primary product name: Workforce Cloud OS.
+ Short navigation label: Workforce OS only when space is restricted.
+ Do not abbreviate the external product name to WCOS in customer-facing interfaces.
+ Use the operating-system idea through connected workflow language, not computer-themed decoration.
+Logo direction
+ Create a compact square product mark using a connected W or layered workforce nodes.
+ Primary mark uses a blue-to-teal gradient on deep navy or white.
+ The mark must remain recognisable at 24 px for sidebar and favicon use.
+ Prepare full-colour, navy, white and monochrome variants.
+ Minimum clear space equals one-quarter of the mark width.
+Tone of voice
+Use Avoid
+Create employee Add resource
+Approve payroll Execute payroll action
+2 blocking issues require attention Invalid operation
+Your request is waiting for your manager Request pending in workflow engine
+
+===== PAGE 4 =====
+Use Avoid
+Check-out time must be later than check-in time Invalid value
+Payroll is locked for 428 employees Process completed
+4. Colour System
+A calm enterprise palette with distinct action, automation and semantic roles.
+Token Swatch Hex Usage
+brand.navy.950 #0B1F3A Primary navigation, enterprise header, strong contrast
+brand.navy.800 #16365F Secondary navigation and elevated brand surfaces
+brand.blue.600 #2563EB Primary actions, links, active navigation and focus
+brand.blue.500 #3B82F6 Charts, secondary highlights and interactive hover
+brand.teal.500 #14B8A6 Automation, connected-state and positive secondary accent
+surface.canvas #F4F7FB Application canvas and dashboard background
+surface.primary #FFFFFF Cards, forms, tables, modals and drawers
+text.primary #0F172A Headings, body text and critical data
+text.secondary #64748B Descriptions, labels and supporting metadata
+border.default #E2E8F0 Card, table and input borders
+semantic.success #16A34A Approved, active, completed and healthy
+semantic.warning #D97706 Due soon, incomplete, review and policy warning
+semantic.danger #DC2626 Rejected, failed, blocked and destructive
+semantic.info #0284C7 Informational guidance and neutral process state
+semantic.ai #7C3AED Future AI insights and assisted intelligence only
+Colour rule: blue communicates action; teal communicates connection and automation; semantic colours communicate status. Do not 
+use semantic colours as decorative brand accents.
+Colour application rules
+ Primary buttons, active navigation, links and focus use brand.blue.600.
+ Teal is a secondary accent for automation, connection, completion progress and selected charts.
+ Navy is used for brand surfaces and primary text, not for every large background.
+ Success, warning and danger colours require text labels or icons; colour alone is not sufficient.
+ Use tinted semantic backgrounds with dark semantic text for badges and alerts.
+ Charts must use brand blue and teal first, then accessible secondary colours. Do not use red and green as the 
+only comparison.
+
+===== PAGE 5 =====
+Dark-mode readiness
+The MVP may launch in light mode, but all semantic tokens must use role-based names rather than hard-coded 
+values. Figma variables must include a Light mode and a reserved Dark mode collection so future dark-mode work 
+does not require component restructuring.
+5. Typography System
+Font families
+Usage Preferred family Fallback Notes
+English UI Inter Segoe UI, Arial, sans-serif Neutral, compact and clear for dense 
+enterprise interfaces.
+Urdu and Arabic UI Noto Sans Arabic Tahoma, sans-serif Use for product UI. Avoid decorative 
+Nastaliq for form labels and tables.
+Optional Urdu 
+editorial headings Noto Nastaliq Urdu Noto Sans Arabic Only for marketing or ceremonial 
+content, not operational UI.
+Numerical data Inter with tabular 
+numerals Segoe UI Payroll, attendance time and financial 
+columns must align.
+Type scale
+Token Size / line height Weight Usage
+display.lg 40 / 48 px 700 Marketing-style product introduction and setup 
+welcome.
+heading.h1 32 / 40 px 700 Primary page titles on desktop.
+heading.h2 24 / 32 px 700 Major dashboard and section headings.
+heading.h3 20 / 28 px 650 Card groups and high-value subsections.
+title.md 16 / 24 px 650 Card titles, modal titles and employee names.
+body.md 14 / 22 px 400 Default application body copy.
+body.sm 12 / 18 px 400 Supporting metadata and helper text.
+label.md 12 / 16 px 600 Form labels, table headings and compact actions.
+caption 11 / 16 px 400 Timestamps and secondary labels.
+metric.lg 28 / 34 px 700 Dashboard KPI values.
+money.md 16 / 24 px 650 tabular Payroll amounts and financial summaries.
+Typography rules
+ Use sentence case for buttons, tabs, column headings and status labels.
+ Use tabular numerals for time, attendance hours, percentages and monetary data.
+ Keep paragraphs short in operational interfaces. Use helper text for policy explanation.
+ Do not use all caps for normal navigation. Small uppercase can be used only for table labels and navigation 
+section headings.
+
+===== PAGE 6 =====
+ Allow 30 percent text expansion for localisation and avoid fixed-width labels.
+6. Layout, Grid and Spatial System
+Responsive frames
+Breakpoint Reference frame Grid Margins Navigation
+Desktop XL 1440 x 900 12 columns, 24 px gutters 32 px content margin 244 px expanded sidebar
+Desktop 1280 x 800 12 columns, 20 px gutters 24 px content margin 224 px sidebar
+Tablet landscape 1024 x 768 8 columns, 20 px gutters 24 px 80 px icon rail or drawer
+Tablet portrait 768 x 1024 8 columns, 16 px gutters 20 px Drawer navigation
+Mobile 390 x 844 4 columns, 16 px gutters 16 px Five-item bottom navigation
+Application shell dimensions
+ Desktop sidebar: 244 px expanded, 80 px collapsed.
+ Desktop top bar: 64-66 px.
+ Page content padding: 24-32 px depending on viewport.
+ Maximum readable content width: approximately 1360 px inside the application shell.
+ Dashboard card gap: 16-20 px. Form section gap: 24 px.
+ Sticky page actions are permitted for long forms and payroll workspaces.
+Spacing tokens
+Token Value Typical use
+space.1 4 px Icon and micro alignment
+space.2 8 px Compact component internal gap
+space.3 12 px Badge, small card and form helper gap
+space.4 16 px Default component and card spacing
+space.5 20 px Dense page sections
+space.6 24 px Page groups and form sections
+space.8 32 px Desktop content margins
+space.10 40 px Large page separation
+space.12 48 px Marketing or setup sections
+
+===== PAGE 7 =====
+7. Shape, Border, Elevation and Motion
+Shape and border tokens
+Token Value Usage
+radius.sm 6 px Small badges and compact controls
+radius.md 9 px Inputs, buttons and filter chips
+radius.lg 12 px Cards, drawers and mobile components
+radius.xl 16 px Prominent employee cards and mobile panels
+border.default 1 px #E2E8F0 Inputs, cards and tables
+border.focus 2 px #2563EB Keyboard and active field focus
+border.danger 1 px #DC2626 Validation failure and destructive state
+Elevation
+Level Visual treatment Usage
+0 No shadow; border only Most dashboard cards and tables
+1 0 1px 2px rgba(15,23,42,0.05) Hover cards and compact popovers
+2 0 8px 28px rgba(15,23,42,0.08) Drawers, menus and mobile employee card
+3 0 18px 48px rgba(15,23,42,0.14) Modal and critical confirmation
+Motion
+ Fast feedback: 120-160 ms for hover, focus and selection.
+ Standard transition: 200-240 ms for drawers, tabs and expanding details.
+ Complex process: use progress indication rather than decorative animation.
+ Respect reduced-motion preferences. Do not animate payroll amounts or employee status in a distracting way.
+ Success animation may be used briefly for employee check-in, request submission and onboarding completion.
+8. Iconography, Illustration and Data Visualisation
+Icon system
+ Use one consistent outline icon family such as Lucide with 1.75-2 px stroke.
+ Standard sizes: 16 px compact, 20 px default, 24 px navigation and 32 px empty-state illustration.
+ Pair unfamiliar icons with text labels. Icon-only actions require accessible names and tooltips.
+ Directional icons must mirror in right-to-left layouts. Universal symbols such as check, warning and search do 
+not mirror.
+Illustration direction
+ Use minimal geometric cloud, people and workflow illustrations only in empty, onboarding and marketing 
+states.
+ Do not use cartoon people in payroll, audit, security or compliance screens.
+
+===== PAGE 8 =====
+ Operational dashboards should prioritise real data and simple information graphics.
+Data visualisation rules
+Pattern Use Rules
+KPI card Single critical metric Label, value, time period, comparison and action context.
+Bar chart Department, day or period 
+comparison Start at zero, use concise labels and provide accessible table.
+Line chart Trend over time Use clear periods, avoid more than three series by default.
+Donut chart Simple part-to-whole summary Maximum four categories; always show values in text.
+Variance indicator Payroll and performance 
+comparison Use sign, percentage, text and colour together.
+Progress bar Setup and completion state Display percentage and remaining blocker count.
+Heatmap Future scheduling or attendance 
+density Use accessible labels and alternate table view.
+9. Accessibility, Localisation and Privacy
+Accessibility requirements
+ Target WCAG AA for colour contrast, keyboard navigation, focus visibility, labels and error association.
+ Touch targets should be at least 44 x 44 px for mobile high-frequency actions.
+ All status badges include readable text and do not depend on colour alone.
+ Tables include programmatic headers; charts include text summaries or data-table alternatives.
+ Modals trap focus, drawers restore focus, and dynamic success or error messages are announced.
+ Every critical workflow must be operable without a mouse.
+Urdu and right-to-left readiness
+ Create Figma variables for direction-aware spacing and start/end alignment.
+ Mirror sidebars, breadcrumbs, chevrons, timelines and directional icons in RTL mode.
+ Keep payroll numbers, dates, employee IDs and currency values readable in mixed-direction content.
+ Allow longer Urdu labels and place form labels above controls on smaller screens.
+ Maintain an approved product terminology glossary for HR, payroll, attendance and policy terms.
+
+===== PAGE 9 =====
+Privacy UX
+Data type Default presentation Reveal requirement
+Salary and net pay Hidden from unauthorised roles; optional masked 
+preview
+Payroll permission and explicit record 
+open
+Bank account Show only final four digits Authorised payroll/HR role
+National ID or tax ID Partially masked Sensitive-data permission
+Medical or leave 
+attachments Document title only Need-to-know permission and explicit 
+open
+Location attendance Verification status, not continuous tracking map Attendance role and policy
+Audit source details Approximate information where permitted Security role
+
+===== PAGE 10 =====
+10. Figma Component System
+Reusable components must cover default, hover, focus, active, disabled, loading, error, read-
+only and RTL states.
+Component Variants Base size Required properties
+Button Primary, secondary, tertiary, ghost, 
+destructive S 32, M 40, L 48 px Icon left/right, loading, full width
+Icon button Neutral, brand, destructive 32, 36, 40, 44 px Tooltip required
+Text input Default, success, error, read-only 40 and 48 px Prefix, suffix, help, counter
+Select / combobox Single, multi, searchable 40 and 48 px Async loading and empty state
+Date and time Date, range, time, month 40 px Timezone and invalid range
+Checkbox / radio Default, selected, indeterminate 20 px Label and helper content
+Toggle Off, on, disabled 36 x 20 / 44 x 24 Policy impact note where required
+Search Compact and global 36 and 40 px Clear, recent searches, no results
+Filter chip Default, active, removable 28-32 px Count and reset
+Status badge Neutral, info, success, warning, danger, 
+locked 24-28 px Icon optional, text mandatory
+Avatar Photo, initials, system 24, 32, 40, 56 px Presence optional
+Employee identity row Compact, standard, selectable 40-56 px Name, ID, role, department
+Card Standard, interactive, selected, critical Variable Header, body, footer and action slot
+KPI card Default, comparison, warning Minimum 152 px Metric, period, delta, trend
+Table Comfortable and compact 44 / 52 px rows Sort, select, sticky header, column 
+control
+Tabs Page and card tabs 40-48 px Overflow menu on narrow widths
+Sidebar item Default, active, expanded 40 px Badge, nested children
+Bottom navigation Employee and manager variants 68 px Maximum five items
+Breadcrumb Standard and collapsed 32 px RTL mirroring
+Modal Small, medium, large, destructive 480-800 px Focus trap and explicit action
+Drawer Detail, approval, filter 420-560 px Full screen on mobile
+Toast Success, info, warning, error Auto width Persistent for critical error
+Alert Inline and page-level Variable Title, message and action
+Empty state First use, no result, permission Variable Reason and next action
+Skeleton Card, table, page, employee row Variable Avoid layout shift
+Stepper Horizontal and vertical Variable Done, active, blocked, future
+Timeline Audit and approval Variable Actor, event, time, comment
+File upload Single, multiple, drag-and-drop Variable Progress, scan, failure
+Calendar Leave, shift, attendance Month/week/day Accessible list alternative
+Progress Linear, circular, checklist Variable Text value always present
+
+===== PAGE 11 =====
+Component Variants Base size Required properties
+Administrative table pattern
+ Table toolbar includes search, active filter count, saved view and primary action.
+ Header remains sticky for long tables. Primary employee identity remains the first visible data column.
+ Bulk selection reveals a contextual bulk-action bar and selected record count.
+ Row actions use an overflow menu unless there is one dominant action.
+ Mobile converts rows into cards with two to four primary fields and an open-details action.
+Form pattern
+ Use single-column forms for critical or mobile actions; two-column groups are allowed on desktop for related 
+fields.
+ Labels remain visible above fields. Placeholder text never replaces a label.
+ Validate on blur for field errors and on submit for cross-field or policy errors.
+ Long forms support section navigation, save draft and unsaved-change protection.
+ High-impact forms add a review or impact-summary step before confirmation.
+11. Specialised Workforce Components
+Component Specification
+Attendance state card Employee check-in status, trusted time, shift, location and check-in/check-out action.
+Attendance event row Time, source, location status, device and exception state.
+Shift cell Shift code, start/end time, location, publication state and conflict marker.
+Leave balance card Leave type, available balance, pending amount and expiry.
+Leave impact summary Requested days, balance after approval, payroll impact and coverage warning.
+Approval context panel Original/requested values, policy result, SLA, approval path and action footer.
+Payroll readiness checklist Data source, status, blocker count and deep link to resolution.
+Payroll amount block Gross, deductions, net, variance and visibility permission.
+Payroll exception row Severity, employee, source module, impact, owner and resolution action.
+Payslip section Earnings, deductions, totals, employer note and confidential handling.
+Employee profile header Identity, employee number, position, department, status and actions.
+Onboarding task card Owner, due date, status, evidence and activation-blocking indicator.
+Policy version badge Policy name, version, effective date and acknowledgement state.
+Integration health tile Connection, last sync, error count, retry and logs.
+Audit event item Actor, action, module, record, risk, before/after and source.
+
+===== PAGE 12 =====
+12. Role-Based Information Architecture
+Role Navigation model
+Platform administrator Platform overview; Tenants; Plans and entitlements; Usage; Support access; Platform audit; 
+System configuration; Integration health.
+Tenant administrator Home; Organisation; People; Attendance; Leave; Payroll; Approvals; Reports; Integrations; 
+Settings; Subscription; Audit.
+HR administrator HR dashboard; Employees; Onboarding; Attendance; Shifts and rosters; Leave; Approvals; 
+Documents; Reports; HR settings.
+Payroll administrator Payroll dashboard; Payroll periods; Salary structures; Adjustments; Validation; Payslips; 
+Payroll reports; Payroll settings.
+Manager Manager dashboard; My team; Attendance; Team leave; Roster; Approvals; Reports.
+Employee Home; Attendance; Leave; Requests; Payslips; Documents; Profile; Notifications.
+Auditor Audit dashboard; Employees; Attendance records; Leave records; Payroll history; Approval 
+history; System audit; Reports.
+Navigation behaviour
+ Permissions remove unavailable destinations rather than showing disabled navigation.
+ Module entitlements and role permissions are both required before a screen is visible.
+ Users with multiple roles receive one combined navigation structure without duplicate items.
+ Deep links display a safe access-denied state if the user no longer has permission.
+ The employee mobile shell uses a maximum of five bottom navigation items; secondary destinations move to 
+More.
+
+===== PAGE 13 =====
+13. High-Fidelity Critical Screen Specifications
+These P0 references define the visual quality and interaction language for all remaining MVP 
+screens.
+SCR-AUTH-01 - Sign-in
+Specification Decision
+Priority P0
+Primary purpose Provide a secure and branded entry point for password and SSO authentication.
+Primary frame Desktop 1440 x 900 unless stated otherwise
+High-fidelity reference: Sign-in
+Layout composition
+ Two-panel desktop composition: product value and trust message on the left; focused authentication card on 
+the right.
+ Tenant-specific login may replace the generic product message with customer branding while retaining 
+Workforce Cloud OS identification.
+ Form width approximately 420-440 px with clear field labels and one primary action.
+Required components and content
+ Work email, password, show password, remember device, forgot password, primary sign-in action.
+ Microsoft and Google SSO actions when configured.
+ Language selector, privacy, terms and support links.
+ Security, locked account, tenant suspension and maintenance messages.
+Primary interactions
+ Submit with keyboard Enter; preserve safe redirect after successful authentication.
+
+===== PAGE 14 =====
+ Do not disclose whether email or password was incorrect.
+ Move to MFA screen when the role or tenant policy requires it.
+Required states
+ Default, loading, invalid credentials, account locked, tenant suspended, SSO-only, session expired and 
+maintenance.
+Responsive behaviour
+On tablet, reduce the product panel. On mobile, show a single authentication card with product mark and optional 
+compact tenant branding.
+SCR-TEN-01 - Tenant setup checklist
+Specification Decision
+Priority P0
+Primary purpose Guide customer administrators from account activation to go-live readiness.
+Primary frame Desktop 1440 x 900 unless stated otherwise
+High-fidelity reference: Tenant setup checklist
+Layout composition
+ Page-level progress and four summary cards at the top.
+ Primary checklist in the main column; implementation support and next action in the side column.
+ Each row states owner, completion status, blocker and direct action.
+Required components and content
+ Setup progress, seat usage, policy count, readiness count.
+ Checklist rows for company, organisation, attendance, leave, payroll, import, integrations and parallel payroll.
+
+===== PAGE 16 =====
+Required components and content
+ Active employee count, present today, on leave, pending approvals.
+ Attendance trend, workforce composition, critical blockers and recent employee activity.
+ Time period, last updated time and drill-down links.
+Primary interactions
+ Open a KPI to a filtered operational screen.
+ Open action-centre items directly to the associated resolution queue.
+ Preserve personal dashboard widget preferences where permitted.
+Required states
+ Normal, no data, partial integration failure, stale data, limited permission and loading skeleton.
+Responsive behaviour
+At tablet width, KPI cards become two per row. On mobile, the dashboard shows attendance status, pending actions 
+and a condensed people summary.
+SCR-EMP-01 - Employee directory
+Specification Decision
+Priority P0
+Primary purpose Search, filter and manage the authoritative workforce record.
+Primary frame Desktop 1440 x 900 unless stated otherwise
+High-fidelity reference: Employee directory
+Layout composition
+ Page header with Import, Export and Add employee actions.
+
+===== PAGE 17 =====
+ Search and filters above a high-density employee table.
+ Employee identity remains the first content column; status and row actions remain visible.
+Required components and content
+ Employee avatar/initials, name, email, ID, department, position, manager and status.
+ Search, department, status and location filters; saved views in later iteration.
+ Pagination, bulk selection and role-safe export.
+Primary interactions
+ Open employee profile, add employee, import, export, bulk assign and bulk update.
+ Filter state should survive returning from an employee profile.
+ Bulk actions show affected record count and impact warning.
+Required states
+ Populated, empty organisation, no search results, import in progress, permission-limited and table loading.
+Responsive behaviour
+Tablet hides low-priority columns. Mobile converts employees to cards showing name, ID, department, status and 
+one open action.
+SCR-EMP-03 - Employee profile
+Specification Decision
+Priority P0
+Primary purpose Present one connected employee record across HR, attendance, leave and payroll.
+Primary frame Desktop 1440 x 900 unless stated otherwise
+High-fidelity reference: Employee profile
+
+===== PAGE 18 =====
+Layout composition
+ Identity header with employee status and contextual actions.
+ Permission-aware tabs for Overview, Employment, Personal, Attendance, Leave, Payroll, Documents, 
+Onboarding and Activity.
+ Overview uses summary cards and recent activity rather than a long form.
+Required components and content
+ Employee identity, employee number, department, position, manager and location.
+ Today attendance, current shift, leave balances, profile completion and recent events.
+ Sensitive payroll or identity tabs appear only for authorised roles.
+Primary interactions
+ Edit profile, transfer, change status, open source records and review history.
+ Changes to organisation or status launch impact-aware workflows rather than inline edits.
+ Provide clear effective dates and historical versions.
+Required states
+ Active, pre-boarding, probation, on leave, suspended, resigned, terminated, archived and limited permission.
+Responsive behaviour
+Tablet keeps tabs horizontally scrollable. Mobile uses a summary-first profile with section cards and a More actions 
+menu.
+SCR-ATT-07 - Attendance operations dashboard
+Specification Decision
+Priority P0
+Primary purpose Monitor live attendance, exceptions and payroll readiness.
+Primary frame Desktop 1440 x 900 unless stated otherwise
+
+===== PAGE 19 =====
+High-fidelity reference: Attendance operations dashboard
+Layout composition
+ Four KPI cards for presence, late arrivals, missing events and pending corrections.
+ Location status table and exception distribution in the middle row.
+ Prioritised exception queue fills the lower section.
+Required components and content
+ Location expected/present/late status, last sync and attendance-source health.
+ Exception type, source, payroll impact, status and assigned resolver.
+ Import, lock period and review exception actions.
+Primary interactions
+ Open location detail, exception queue, employee day detail or integration health.
+ Lock period requires unresolved-issue summary and explicit confirmation.
+ Attendance values show last-refresh time and stale-data warning.
+Required states
+ Live, stale integration, partial failure, no events, period locked, period ready and permission-limited.
+Responsive behaviour
+Tablet stacks exception distribution below location status. Mobile administrators receive a simplified exception 
+queue rather than the full analytics layout.
+SCR-ESS-01 - Employee self-service home
+Specification Decision
+Priority P0
+Primary purpose Prioritise daily attendance and routine workforce actions for employees.
+
+===== PAGE 23 =====
+Required states
+ Assigned, delegated, escalated, overdue, completed, unavailable source record and permission changed.
+Responsive behaviour
+Tablet uses a full-width queue and opens detail in a drawer. Mobile uses separate queue and detail screens with a 
+sticky decision footer.
+SCR-PAY-01 - Payroll command centre
+Specification Decision
+Priority P0
+Primary purpose Summarise payroll value, readiness, blockers and controlled next steps.
+Primary frame Desktop 1440 x 900 unless stated otherwise
+High-fidelity reference: Payroll command centre
+Layout composition
+ Four KPI cards for period, gross, net and blockers.
+ Payroll readiness and cost variance form the main analytical row.
+ A visible controlled workflow communicates the current processing stage.
+Required components and content
+ Payroll period, employee count, gross, deductions, net, variance and readiness checks.
+ Attendance lock, leave finalisation, salary structure, bank warnings and adjustment blockers.
+ Open payroll workspace and payroll reports actions.
+Primary interactions
+ Drill into readiness items or current payroll period.
+
+===== PAGE 24 =====
+ Primary action changes by status: open, calculate, review, approve or publish.
+ Display monetary data only to authorised roles.
+Required states
+ Not opened, data collection, blocked, ready to calculate, under review, approved, locked and published.
+Responsive behaviour
+Tablet keeps KPI cards in two columns. Mobile supports summary and approval only where tenant security permits; 
+calculation remains desktop/tablet focused.
+SCR-PAY-08 - Payroll calculation workspace
+Specification Decision
+Priority P0
+Primary purpose Calculate and resolve employee-level payroll exceptions without losing period context.
+Primary frame Desktop 1440 x 900 unless stated otherwise
+High-fidelity reference: Payroll calculation workspace
+Layout composition
+ Persistent period title, version and blocker alert at the top.
+ Four amount cards followed by filters and primary process actions.
+ Dense employee calculation table with aligned tabular amounts.
+Required components and content
+ Paid days, gross, deductions, net, variance and exception status per employee.
+ Search, department and exception filters; Recalculate and Submit for review actions.
+ Clear calculation version and last-calculated timestamp.
+
+===== PAGE 25 =====
+Primary interactions
+ Open employee payroll detail, resolve source data, add authorised adjustment, recalculate and submit.
+ Approval remains disabled while blocking errors exist.
+ Long calculations run asynchronously and preserve the last approved/draft version.
+Required states
+ Calculating, failed, calculated with warnings, blocked, under review, stale source data and locked.
+Responsive behaviour
+Tablet supports the table with horizontal priority management. Mobile offers read-only summary and targeted 
+exception cards rather than the full calculation grid.
+SCR-RPT-01 - Report centre
+Specification Decision
+Priority P0
+Primary purpose Provide role-based access to operational reports, saved views and secure background exports.
+Primary frame Desktop 1440 x 900 unless stated otherwise
+High-fidelity reference: Report centre
+Layout composition
+ Category cards across the top for HR, attendance and payroll.
+ Frequently used reports and export-centre status form the main row.
+ Management snapshot presents product and operational outcomes.
+Required components and content
+ Report name, description, permission, last run, favourite and action.
+
+===== PAGE 26 =====
+ Export job name, status, requested time and expiry.
+ Monthly active users, self-service adoption, approval time and correction rate.
+Primary interactions
+ Open report viewer, apply filters, save preset, request export and download ready file.
+ Sensitive export triggers permission check and audit event.
+ Large exports run in the background and expire after the configured period.
+Required states
+ No reports, no permission, queued, processing, ready, failed, expired and stale data.
+Responsive behaviour
+Tablet reduces report cards to two columns. Mobile prioritises report search, favourites and export status; dense 
+results open in responsive card/list views.
+SCR-AUD-02 - Security and audit log
+Specification Decision
+Priority P0
+Primary purpose Give authorised reviewers a traceable view of sensitive actions and operational risk.
+Primary frame Desktop 1440 x 900 unless stated otherwise
+High-fidelity reference: Security and audit log
+Layout composition
+ Four risk KPI cards followed by search, filters and audit table.
+ High-risk events are visually distinct but remain readable without colour.
+ Event detail opens in a permission-aware drawer.
+
+===== PAGE 27 =====
+Required components and content
+ Time, user, role, action, module, record, source, result and risk.
+ Before/after values, reason, approval reference and related events in detail view.
+ Security settings and audited export actions.
+Primary interactions
+ Filter, open event, export, open related record and investigate support access.
+ Sensitive before/after values remain masked without elevated permission.
+ Audit data cannot be edited by tenant users.
+Required states
+ Normal, high-risk, failed event, masked fields, archived record, export processing and access denied.
+Responsive behaviour
+Tablet uses a reduced column set and detail drawer. Mobile uses event cards with explicit risk and an expandable 
+detail page.
+
+===== PAGE 28 =====
+14. Standard High-Fidelity Page Templates
+Template Composition and use
+Dashboard Page header; KPI row; two analytical cards; action/exception area; recent activity. Use for 
+HR, attendance, payroll, manager and audit dashboards.
+Index / directory Header actions; search and filters; table or card list; pagination; bulk actions. Use for 
+employees, tenants, policies, shifts and reports.
+Record detail Identity header; status; actions; permission-aware tabs; summary cards; timeline. Use for 
+employee, tenant, request and integration detail.
+Wizard Progress stepper; one logical task per step; save draft; review and confirmation. Use for 
+tenant setup, add employee and workflow creation.
+Configuration builder Left section navigation or stages; policy controls; plain-language examples; preview; 
+version/effective date. Use for leave, attendance and workflow policies.
+Processing workspace Persistent period/version context; summary; filters; dense table; exception state; process 
+actions. Use for payroll, imports and integration reconciliation.
+Approval split view Queue plus detail; policy/impact context; comments; sticky decisions. Use for manager and 
+administrative approval work.
+Calendar / roster Time controls; employee/team filter; calendar grid; conflicts; publish state; accessible list 
+alternative.
+Mobile employee action Branded summary; one dominant action; clear status; limited cards; five-item bottom 
+navigation.
+Security detail Risk summary; immutable event timeline; masked data; related records; export and 
+investigation controls.
+
+===== PAGE 29 =====
+15. Complete MVP Screen Inventory
+Every approved screen must have a corresponding Figma frame or documented template 
+mapping.
+AUTH module screens
+Screen ID Screen title Priority Frame
+SCR-AUTH-01 Sign-in P0 Desktop + Mobile
+SCR-AUTH-02 Account invitation P1 Desktop + Mobile
+SCR-AUTH-03 Forgot password P1 Desktop + Mobile
+SCR-AUTH-04 Reset password P1 Desktop + Mobile
+SCR-AUTH-05 Multi-factor authentication P1 Desktop + Mobile
+SCR-AUTH-06 Session expired P1 Desktop + Mobile
+PLT module screens
+Screen ID Screen title Priority Frame
+SCR-PLT-01 Platform overview P1 Desktop
+SCR-PLT-02 Tenant directory P1 Desktop
+SCR-PLT-03 Create tenant P1 Desktop
+SCR-PLT-04 Tenant detail P1 Desktop
+SCR-PLT-05 Tenant suspension P1 Desktop
+SCR-PLT-06 Controlled support access P1 Desktop
+TEN module screens
+Screen ID Screen title Priority Frame
+SCR-TEN-01 Tenant setup checklist P0 Desktop
+SCR-TEN-02 Company profile P1 Desktop
+SCR-TEN-03 Branding settings P1 Desktop
+SCR-TEN-04 Language and regional settings P1 Desktop
+SCR-TEN-05 Tenant administrators P1 Desktop
+SCR-TEN-06 Module settings P1 Desktop
+ORG module screens
+Screen ID Screen title Priority Frame
+SCR-ORG-01 Organisation overview P1 Desktop
+
+===== PAGE 34 =====
+SCR-RPT-05 Dashboard configuration P1 Desktop + Mobile
+INT module screens
+Screen ID Screen title Priority Frame
+SCR-INT-01 Integration directory P1 Desktop
+SCR-INT-02 Integration setup P1 Desktop
+SCR-INT-03 Biometric connector setup P1 Desktop
+SCR-INT-04 Biometric mapping P1 Desktop
+SCR-INT-05 Integration health P1 Desktop
+SCR-INT-06 API credentials P1 Desktop
+SUB module screens
+Screen ID Screen title Priority Frame
+SCR-SUB-01 Subscription overview P2 Desktop
+SCR-SUB-02 Plan comparison P2 Desktop
+SCR-SUB-03 Upgrade request P2 Desktop
+SCR-SUB-04 Usage details P2 Desktop
+AUD module screens
+Screen ID Screen title Priority Frame
+SCR-AUD-01 Audit dashboard P1 Desktop
+SCR-AUD-02 Audit log P0 Desktop
+SCR-AUD-03 Audit event detail P1 Desktop
+SCR-AUD-04 Role and permission matrix P1 Desktop
+SCR-AUD-05 Security settings P1 Desktop
+SCR-AUD-06 Active sessions P1 Desktop
+SET module screens
+Screen ID Screen title Priority Frame
+SCR-SET-01 Settings home P1 Desktop
+SCR-SET-02 Custom fields P1 Desktop
+SCR-SET-03 Holiday calendar P1 Desktop
+SCR-SET-04 Payroll calendar P1 Desktop
+
+===== PAGE 36 =====
+16. Responsive Web Behaviour
+Pattern Desktop Tablet Mobile
+Navigation Expanded sidebar with labels Collapsed icon rail or drawer Employee/manager bottom 
+navigation; admin drawer
+KPI cards Four per row Two per row One or two per row depending 
+on content
+Data tables Full table with sticky header Priority columns; horizontal 
+handling
+Record cards; no desktop table 
+shrinking
+Filters Inline toolbar and optional drawer Drawer for advanced filters Full-screen filter sheet
+Record detail Tabbed page with side context Scrollable tabs and drawer Section cards and More actions
+Approval Split queue/detail Queue plus drawer Separate queue and detail pages
+Payroll Full calculation workspace Supported with compact columns Summary and targeted 
+exceptions only
+Forms One or two columns Mostly one column Single column and sticky action 
+footer
+Calendar Month/week/day Week/day emphasis Agenda/list with compact 
+calendar selector
+Responsive design rules
+ Do not simply scale desktop screens. Change information hierarchy for smaller screens.
+ Hide secondary metadata before hiding status, ownership or next action.
+ Move advanced filters into a drawer or sheet and display the applied-filter count.
+ Keep employee check-in/check-out visible without scrolling on common mobile screens.
+ Use sticky bottom action bars for long mobile forms and approvals.
+ Complex payroll configuration may show a desktop-required message on small devices, while still allowing safe 
+summary access.
+17. Figma File and Library Architecture
+Required Figma pages
+Figma page Contents
+00 Cover and documentation Project purpose, owners, version, links and status legend.
+01 Foundations Colour, typography, spacing, grid, radius, shadows, icons and accessibility.
+02 Variables Primitive and semantic variables with Light, RTL and reserved Dark modes.
+03 Components - Core Buttons, inputs, selects, tabs, badges, alerts, modals and navigation.
+04 Components - Data Tables, cards, charts, filters, pagination, employee rows and exports.
+05 Components - Workforce Attendance, leave, approval, payroll, onboarding and audit components.
+06 Templates Dashboard, directory, detail, wizard, builder, processing and mobile templates.
+10 Authentication All authentication states and responsive variants.
+
+===== PAGE 38 =====
+Auto Layout and component requirements
+ Every component and screen section must use Auto Layout unless free positioning is essential for a chart or 
+illustration.
+ Text layers use Hug contents; form controls and cards use Fill container where responsive behaviour requires 
+it.
+ Component variants should use properties instead of duplicated detached components.
+ Components must expose content slots for icons, labels, helper text and actions where appropriate.
+ Do not detach library components in production frames except for documented exceptions.
+ Use minimum and maximum width rules for dense tables, drawers, form fields and dashboard cards.
+18. Clickable Prototype Journeys
+Prototype Connected frames
+01 Tenant implementation Invitation -> setup checklist -> company -> organisation -> policy setup -> employee import -> 
+readiness -> go-live.
+02 Employee onboarding Add employee -> assignment -> invite -> employee activation -> documents -> policy 
+acknowledgement -> HR review -> active.
+03 Employee attendance Employee home -> check-in -> location validation -> success -> missing check-out -> 
+correction -> manager approval.
+04 Leave request Leave home -> request -> policy validation -> team coverage -> submit -> manager approval 
+-> employee confirmation.
+05 Monthly payroll Readiness -> period -> calculate -> exception resolution -> review -> approve and lock -> 
+publish payslips.
+06 Manager approvals Dashboard -> approval inbox -> request detail -> policy context -> decision -> confirmation.
+07 Employee self-service Home -> attendance history -> leave -> payslip -> profile change request.
+08 Reporting and export Report centre -> filters -> result -> background export -> ready notification -> secure 
+download.
+09 Security investigation Audit dashboard -> filter high risk -> event detail -> related record -> export or close 
+investigation.
+Prototype standards
+ Use realistic data and role permissions throughout each journey.
+ Include success, warning and error branches for attendance, leave and payroll journeys.
+ Prototype overlays, drawers, menus and loading transitions using the actual component variants.
+ Begin every usability journey from a recognisable dashboard or navigation context.
+ End with a visible system outcome, updated status and next action.
+19. Design Annotation and Engineering Handoff
+Required frame annotations
+Tag Meaning
+BR Business rule or policy dependency
+
+===== PAGE 39 =====
+Tag Meaning
+UX Interaction or responsive behaviour
+SEC Security, privacy or permission rule
+DATA Data source, format or derived value
+A11Y Accessibility behaviour
+I18N Localisation or RTL behaviour
+API Loading, error or asynchronous integration state
+AN Analytics event
+Developer-ready handoff information
+ Frame dimensions, responsive behaviour and component names.
+ Exact token names rather than manually copied colours or spacing values.
+ All component states, validation messages, loading patterns and empty states.
+ Role and permission differences for sensitive screens.
+ Keyboard and focus order for forms, modals and approval actions.
+ Content rules, truncation, date/time/currency formatting and numerical alignment.
+ Analytics event names for critical journeys.
+ Links to BRD, PRD and UX flow requirement IDs.
+20. Design QA and Approval Checklist
+Foundation QA
+  Only approved variables are used for colour, spacing, radius and typography.☐
+  Contrast, focus and semantic state rules pass accessibility review.☐
+  English and Urdu/RTL samples are tested in core components.☐
+  Tabular numerals are applied to payroll and attendance data.☐
+Component QA
+  Default, hover, focus, active, disabled, loading, error and read-only variants exist.☐
+  Core and workforce-specialised components use Auto Layout.☐
+  No duplicate components exist for the same semantic purpose.☐
+  Tables, drawers, forms and dialogs have responsive variants.☐
+Screen QA
+  Every P0 screen includes empty, loading, error and permission states.☐
+  High-impact actions show an impact summary and confirmation.☐
+  Status, owner, effective date and next action are visible where relevant.☐
+  Sensitive fields are masked or removed according to role.☐
+Prototype QA
+  Critical journeys begin and end in a coherent application state.☐
+  Success and failure paths are included.☐
+  Back navigation, close behaviour and focus return are defined.☐
+
+===== PAGE 40 =====
+  Prototype data remains consistent between connected frames.☐
+Handoff QA
+  Frame and component names follow the approved convention.☐
+  Annotations include business, security, data and responsive decisions.☐
+  Product, engineering, QA, security and accessibility reviews are complete.☐
+  Unresolved decisions are listed rather than hidden in design.☐
+21. Recommended Figma Production Sequence
+Stage Output
+Stage 1 Create variables, typography, grids and icon rules.
+Stage 2 Build core components and interaction states.
+Stage 3 Build workforce-specialised components.
+Stage 4 Create application shells and standard page templates.
+Stage 5 Design authentication, tenant, organisation and employee P0 screens.
+Stage 6 Design attendance, shift, leave and approval P0 screens.
+Stage 7 Design payroll dashboard, workspace, exceptions, review and payslip screens.
+Stage 8 Design employee and manager responsive experiences.
+Stage 9 Complete reports, integrations, subscription, audit and settings.
+Stage 10 Build clickable prototypes and run usability testing.
+Stage 11 Revise, annotate and hand off to engineering.
+Final design principle
+Workforce Cloud OS should look and behave like a calm enterprise command centre for administrators and a 
+simple, transparent daily workspace for employees. Every design decision must strengthen clarity, confidence, 
+privacy and connected action.
+22. Appendix A - Standard Status Vocabulary
+Semantic group Approved labels
+Neutral Draft, not started, inactive, archived
+Information Submitted, under review, assigned, processing
+Positive Active, approved, complete, ready, healthy
+Warning Due soon, late, incomplete, needs review, expiring
+Critical Rejected, failed, blocked, overdue, suspended
+Locked Closed, locked, published, finalised
+
+===== PAGE 41 =====
+Status writing rules
+ Use one label for one system state. Do not alternate between Pending, Waiting and In progress without product 
+meaning.
+ Status labels should describe the record, not instruct the user. Use a separate action label for what to do next.
+ Past-tense labels indicate a completed action; active labels indicate current process state.
+ Locked and published are not interchangeable: locked prevents change, published exposes approved output to 
+employees.
+23. Appendix B - Standard Empty, Error and Loading 
+States
+State Design requirement
+First-use empty Explain the capability and provide the first permitted action.
+Filtered empty State that no records match and provide Reset filters.
+Permission empty Explain that access is restricted without revealing protected data.
+Integration empty Identify the missing connection and link to configuration.
+Inline validation Place below the field; explain exactly how to correct it.
+Page error State what failed, whether changes were saved, retry action and support reference.
+Partial failure Keep available data visible and mark stale or unavailable sections.
+Loading skeleton Match the expected layout and avoid large shifts.
+Long process Show progress, stage, elapsed context, safe navigation and completion notification.
+Offline attendance Preserve clear retry behaviour and prevent duplicate event creation.
+24. Appendix C - Figma Acceptance Definition
+1. All variables, components and templates are published in the approved Figma library.
+2. Every P0 screen is high fidelity at desktop reference size and all employee P0 screens have mobile variants.
+3. Every P1 and P2 screen is represented by a frame, a template mapping or an approved documented deferral.
+4. All critical component states and permission variants are present.
+5. Nine prototype journeys are connected and tested with realistic data.
+6. Accessibility, security, privacy, localisation and responsive reviews are complete.
+7. Engineering can inspect exact tokens and component properties without measuring ad hoc values.
+8. QA can derive visual and interaction test cases from screen annotations.
+9. No unresolved business decision is hidden in final design frames.
+10. Product owner, UX lead, engineering lead and security reviewer approve the release candidate.

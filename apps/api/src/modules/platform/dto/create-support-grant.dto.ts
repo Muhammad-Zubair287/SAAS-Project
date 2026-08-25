@@ -1,10 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsDateString, IsNotEmpty, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
+import { IsArray, IsDateString, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
 
 export class CreateSupportGrantDto {
-  @ApiProperty({ description: 'Platform support engineer user ID (UUID)' })
+  @ApiPropertyOptional({ description: 'Platform support engineer user ID (UUID). Defaults to the authenticated actor.' })
+  @IsOptional()
   @IsUUID()
-  supportUserId!: string;
+  supportUserId?: string;
 
   @ApiProperty({
     description: 'Business reason for the support access.',
@@ -33,6 +34,15 @@ export class CreateSupportGrantDto {
   @ApiProperty({ description: 'Hard access expiry (ISO 8601 UTC, max 24 h from startsAt)', example: '2026-08-01T08:00:00Z' })
   @IsDateString()
   endsAt!: string;
+
+  @ApiPropertyOptional({
+    description: 'TOTP or backup MFA code required when MFA is enrolled (always in production).',
+  })
+  @IsOptional()
+  @IsString()
+  @MinLength(6)
+  @MaxLength(32)
+  mfaCode?: string;
 }
 
 export class RevokeSupportGrantDto {
@@ -41,4 +51,13 @@ export class RevokeSupportGrantDto {
   @IsString()
   @MaxLength(500)
   reason!: string;
+
+  @ApiPropertyOptional({
+    description: 'TOTP or backup MFA code required when MFA is enrolled (always in production).',
+  })
+  @IsOptional()
+  @IsString()
+  @MinLength(6)
+  @MaxLength(32)
+  mfaCode?: string;
 }

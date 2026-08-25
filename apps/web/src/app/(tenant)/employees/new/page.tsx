@@ -1,6 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '../../../../components/common/page-header';
-import { CreateEmployeeForm } from './create-employee-form';
+import { EmployeeOnboardingWizard } from './employee-onboarding-wizard';
 import { ROUTES } from '../../../../constants/routes.constants';
 
 export default async function NewEmployeePage() {
@@ -16,7 +16,7 @@ export default async function NewEmployeePage() {
           { label: t('employees.create.title') },
         ]}
       />
-      <CreateEmployeeForm />
+      <EmployeeOnboardingWizard />
     </div>
   );
 }

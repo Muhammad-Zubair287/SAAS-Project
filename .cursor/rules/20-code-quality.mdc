@@ -1,0 +1,29 @@
+---
+description: TypeScript typing, naming conventions, and file/function complexity limits
+globs: "**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# Typing Contracts
+- `strict: true`, `noImplicitAny: true`, `strictNullChecks: true`.
+- Zero `any` allowed. Use `unknown` with type guards or branded types.
+- Prefer discriminated unions over optional chaining for state.
+- Use `satisfies` over `as` type assertions.
+- Max 3 function parameters (use options object pattern for >3).
+- Explicit return types required on all exported functions.
+
+# Code Structure Constraints
+- Max **250 LOC** per file.
+- Max **3 levels nesting** (if/loop/try).
+- Max **5 dependencies** per module (Law of Demeter).
+- Cyclomatic complexity: ≤10 per function.
+- Cognitive complexity: ≤15 per function.
+- Prefer pure functions; isolate side effects.
+
+# Naming Conventions
+- Files: `PascalCase.tsx`, `camelCase.ts`, `kebab-case.css`
+- Functions: `verbNoun` (e.g., `validateUser`)
+- Variables: `noun` (e.g., `userProfile`)
+- Booleans: `is` | `has` | `should` | `can` (e.g., `isActive`)
+- Constants: `SCREAMING_SNAKE_CASE`
+- Types/Interfaces: `PascalCase` (No `I` prefix on interfaces. Prefer `type` over `interface` for unions).

@@ -64,4 +64,27 @@ export class SupportGrantRepository extends BaseRepository {
     });
     return result.count;
   }
+
+  async findMany(filters: {
+    tenantId?: string;
+    status?: SupportGrantStatus;
+    page: number;
+    pageSize: number;
+  }): Promise<{ data: SupportGrant[]; total: number }> {
+    const where: Prisma.SupportGrantWhereInput = {
+      ...(filters.tenantId ? { tenantId: filters.tenantId } : {}),
+      ...(filters.status ? { status: filters.status } : {}),
+    };
+    const skip = (filters.page - 1) * filters.pageSize;
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.supportGrant.findMany({
+        where,
+        skip,
+        take: filters.pageSize,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.supportGrant.count({ where }),
+    ]);
+    return { data, total };
+  }
 }

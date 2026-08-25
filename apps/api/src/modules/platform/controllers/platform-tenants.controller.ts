@@ -24,6 +24,7 @@ import { CorrelationId } from '../../../common/decorators/correlation-id.decorat
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { RequirePermissions } from '../../../common/decorators/require-permissions.decorator';
 import { PLATFORM_PERMISSIONS } from '../../../common/constants/permissions.constants';
+import { PlatformAuthenticationGuard } from '../../../common/guards/platform-authentication.guard';
 import { PlatformRoleGuard } from '../../../common/guards/platform-role.guard';
 import type { PlatformActorContext } from '../../../common/interfaces/platform-actor.interface';
 import { TenantService } from '../services/tenant.service';
@@ -34,10 +35,11 @@ import { SuspendTenantDto, RestoreTenantDto } from '../dto/suspend-tenant.dto';
 import { ChangePlanDto } from '../dto/change-plan.dto';
 import { UpdateEntitlementsDto } from '../dto/update-entitlements.dto';
 import { TenantResponseDto, TenantUsageDto } from '../dto/tenant-response.dto';
+import { PlatformUsageSummaryDto } from '../dto/plan-response.dto';
 
 @ApiTags('Platform — Tenants')
 @ApiBearerAuth()
-@UseGuards(PlatformRoleGuard)
+@UseGuards(PlatformAuthenticationGuard, PlatformRoleGuard)
 @Controller('platform/tenants')
 export class PlatformTenantsController {
   constructor(private readonly tenantService: TenantService) {}
@@ -72,6 +74,28 @@ export class PlatformTenantsController {
   @ApiOkResponse({ description: 'Tenant status counts' })
   async getDashboardStats(@CurrentUser() _actor: PlatformActorContext) {
     return this.tenantService.getDashboardStats();
+  }
+
+  @Get('validate/slug')
+  @RequirePermissions(PLATFORM_PERMISSIONS.TENANT_CREATE)
+  @ApiOperation({ summary: 'Validate tenant slug availability' })
+  async validateSlug(@Query('slug') slug: string) {
+    return this.tenantService.validateSlug(slug ?? '');
+  }
+
+  @Get('validate/email')
+  @RequirePermissions(PLATFORM_PERMISSIONS.TENANT_CREATE)
+  @ApiOperation({ summary: 'Validate primary admin email availability' })
+  async validateAdminEmail(@Query('email') email: string) {
+    return this.tenantService.validateAdminEmail(email ?? '');
+  }
+
+  @Get('usage/summary')
+  @RequirePermissions(PLATFORM_PERMISSIONS.USAGE_READ)
+  @ApiOperation({ summary: 'Platform-wide seat usage summary' })
+  @ApiOkResponse({ type: PlatformUsageSummaryDto })
+  async getPlatformUsageSummary(@CurrentUser() _actor: PlatformActorContext): Promise<PlatformUsageSummaryDto> {
+    return this.tenantService.getPlatformUsageSummary();
   }
 
   @Get(':tenantId')
@@ -137,6 +161,20 @@ export class PlatformTenantsController {
     @CorrelationId() correlationId: string,
   ): Promise<TenantResponseDto> {
     return this.tenantService.restore(tenantId, dto, actor, correlationId);
+  }
+
+  @Post(':tenantId/close')
+  @HttpCode(HttpStatus.OK)
+  @RequirePermissions(PLATFORM_PERMISSIONS.TENANT_CLOSE)
+  @ApiOperation({ summary: 'Close a tenant (lifecycle end)' })
+  @ApiOkResponse({ type: TenantResponseDto })
+  async close(
+    @Param('tenantId', ParseUUIDPipe) tenantId: string,
+    @Body() dto: SuspendTenantDto,
+    @CurrentUser() actor: PlatformActorContext,
+    @CorrelationId() correlationId: string,
+  ): Promise<TenantResponseDto> {
+    return this.tenantService.close(tenantId, dto.reason, actor, correlationId, dto.mfaCode);
   }
 
   @Get(':tenantId/usage')

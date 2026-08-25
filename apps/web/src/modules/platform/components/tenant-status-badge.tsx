@@ -1,5 +1,8 @@
+'use client';
+
+import { useTranslations } from 'next-intl';
 import type { TenantStatus } from '../types/platform.types';
-import { TENANT_STATUS_LABELS, TENANT_STATUS_VARIANTS } from '../constants/platform.constants';
+import { TENANT_STATUS_VARIANTS } from '../constants/platform.constants';
 
 const VARIANT_CLASSES = {
   neutral: 'bg-slate-100 text-slate-600',
@@ -16,12 +19,14 @@ interface TenantStatusBadgeProps {
 }
 
 export function TenantStatusBadge({ status, className = '' }: TenantStatusBadgeProps) {
+  const t = useTranslations();
   const variant = TENANT_STATUS_VARIANTS[status];
+  const statusKey = status.toLowerCase();
   return (
     <span
       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-label-md font-semibold ${VARIANT_CLASSES[variant]} ${className}`}
     >
-      {TENANT_STATUS_LABELS[status]}
+      {t(`platform.tenants.status.${statusKey}`)}
     </span>
   );
 }

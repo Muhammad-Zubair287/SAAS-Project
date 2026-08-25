@@ -133,7 +133,113 @@ export interface ListEmployeesParams {
   branchId?: string;
   departmentId?: string;
   managerId?: string;
+  positionId?: string;
+  gradeId?: string;
+  hireDateFrom?: string;
+  hireDateTo?: string;
+  legalEntityName?: string;
   search?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
+}
+
+export interface EmployeeEmploymentRecord {
+  id: string;
+  employeeId: string;
+  legalEntityId: string;
+  branchId: string | null;
+  departmentId: string | null;
+  positionId: string | null;
+  managerId: string | null;
+  costCentreId: string | null;
+  gradeId: string | null;
+  employmentType: string;
+  workArrangement: string | null;
+  probationEndDate: string | null;
+  changeReason: string | null;
+  changeType: string;
+  effectiveFrom: string;
+  effectiveTo: string | null;
+}
+
+export interface TransferEmployeePayload {
+  legalEntityId?: string;
+  branchId?: string | null;
+  departmentId?: string | null;
+  positionId?: string | null;
+  managerId?: string | null;
+  costCentreId?: string | null;
+  gradeId?: string | null;
+  effectiveDate: string;
+  reason?: string;
+}
+
+export interface ChangeEmployeeStatusPayload {
+  status: string;
+  effectiveDate: string;
+  reason?: string;
+  lastWorkingDate?: string;
+  accessDisableDate?: string;
+  notes?: string;
+}
+
+export interface EmployeeTimelineEvent {
+  id: string;
+  eventType: string;
+  summary: string;
+  metadata: unknown;
+  occurredAt: string;
+  actorId: string;
+  visibility: string;
+}
+
+export interface EmployeeImportRow {
+  id: string;
+  rowNumber: number;
+  status: string;
+  errors?: string[];
+  warnings?: string[];
+  payload: Record<string, unknown>;
+  employeeId?: string | null;
+}
+
+export interface EmployeeImportJob {
+  id: string;
+  status: string;
+  fileName: string | null;
+  totalRows: number;
+  validRows: number;
+  warningRows: number;
+  errorRows: number;
+  committedRows: number;
+  createdAt: string;
+  validatedAt: string | null;
+  committedAt: string | null;
+  rows?: EmployeeImportRow[];
+}
+
+export interface StartEmployeeImportPayload {
+  fileName?: string;
+  rows: Record<string, unknown>[];
+}
+
+export interface EmployeeDataQualityResponse {
+  totals: {
+    activeEmployees: number;
+    missingManager: number;
+    missingDepartment: number;
+    missingShift: number;
+    missingMandatoryFields: number;
+    missingCompensation: number;
+    inactiveStructureAssignments: number;
+    duplicateIdentifiers: number;
+    expiredDocuments: number;
+  };
+  samples: {
+    missingManager: string[];
+    missingDepartment: string[];
+    missingShift: string[];
+    missingMandatoryFields: string[];
+    missingCompensation: string[];
+  };
 }

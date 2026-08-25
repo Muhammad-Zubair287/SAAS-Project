@@ -7,6 +7,9 @@ import type {
   CreateAttendanceEventPayload,
   CreateManualAttendanceRecordPayload,
   ListAttendanceParams,
+  AttendancePeriod,
+  AttendancePeriodLockPayload,
+  AttendancePeriodUnlockPayload,
 } from '../types/attendance.types';
 
 export interface PaginatedResponse<T> {
@@ -92,6 +95,23 @@ export const attendanceApi = {
           `${EXCEPTIONS_BASE}/${id}/resolve`,
           payload,
         )
+        .then((r) => r.data),
+  },
+
+  periods: {
+    list: () =>
+      apiClient
+        .get<ApiSuccessResponse<AttendancePeriod[]>>('/attendance/periods')
+        .then((r) => r.data),
+
+    lock: (payload: AttendancePeriodLockPayload) =>
+      apiClient
+        .post<ApiSuccessResponse<AttendancePeriod>>('/attendance/period-lock', payload)
+        .then((r) => r.data),
+
+    unlock: (payload: AttendancePeriodUnlockPayload) =>
+      apiClient
+        .post<ApiSuccessResponse<AttendancePeriod>>('/attendance/period-unlock', payload)
         .then((r) => r.data),
   },
 };

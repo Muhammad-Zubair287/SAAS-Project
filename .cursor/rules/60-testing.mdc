@@ -1,0 +1,15 @@
+---
+alwaysApply: true
+---
+---
+description: Vitest unit testing, Playwright E2E, co-located test structures, and coverage thresholds
+globs: "**/*.{test,spec}.{ts,tsx}"
+alwaysApply: false
+---
+
+# Testing Rules
+- Co-locate tests adjacent to source files: `[name].test.ts` next to `[name].ts`.
+- Naming: `describe('Feature')` → `it('should...')`.
+- Coverage thresholds: Branches ≥ 80% | Functions ≥ 90% | Lines ≥ 85%.
+- Mocks: Only mock external boundaries (Database, External APIs, File System, Date).
+- Fixtures must be deterministic with no shared mutable state.

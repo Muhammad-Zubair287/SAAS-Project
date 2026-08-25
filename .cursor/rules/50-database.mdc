@@ -1,0 +1,16 @@
+---
+alwaysApply: true
+---
+---
+description: PostgreSQL, Prisma ORM guidelines, database schemas, and query optimization
+globs: "{prisma,src/db,src/repositories}/**/*.ts"
+alwaysApply: false
+---
+
+# Database Schema & Query Rules
+- **Naming:** `snake_case` tables/columns, `PascalCase` models.
+- **Primary Keys:** `UUIDv7` or `ULID` (time-sortable). Never auto-increment integers.
+- **Timestamps:** Mandatory `created_at`, `updated_at`, and `deleted_at` (soft delete).
+- **Queries:** No raw SQL unless performance-critical and documented. Use Prisma query builder with parameterized inputs.
+- **Optimization:** Explicit indexes named `idx_table_column`. Prevent N+1 issues using eager loading or `DataLoader`. Max 100 items per paginated page.
+- Connection pooling required (min 2, max 20).

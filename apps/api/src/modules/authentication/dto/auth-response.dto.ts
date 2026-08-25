@@ -1,11 +1,14 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class AuthResponseDto {
   @ApiProperty()
   accessToken!: string;
 
-  @ApiProperty()
-  refreshToken!: string;
+  @ApiPropertyOptional({
+    description:
+      'Present only for body-transport API clients (X-Auth-Transport: body). Browser clients receive the refresh token via HttpOnly cookie only.',
+  })
+  refreshToken?: string;
 
   @ApiProperty({ example: 'Bearer' })
   tokenType!: string;

@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
+  IsBoolean,
   IsEmail,
   IsInt,
   IsNotEmpty,
@@ -79,10 +80,25 @@ export class CreateTenantDto {
 
   @ApiProperty({ example: 350, minimum: 1, maximum: 100000, required: false })
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   @Min(1)
   @Max(100_000)
   seatLimit?: number;
+
+  @ApiProperty({
+    example: 50,
+    minimum: 1,
+    maximum: 100000,
+    required: false,
+    description: 'Storage limit in GB. Persisted as tenant_entitlement storage_limit_gb. Defaults to the selected plan catalogue value when omitted.',
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100_000)
+  storageLimitGb?: number;
 
   @ApiProperty({ example: 'monthly', enum: ['monthly', 'annual'], required: false })
   @IsOptional()
@@ -106,4 +122,15 @@ export class CreateTenantDto {
   @IsString()
   @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'trialEndsAt must be YYYY-MM-DD' })
   trialEndsAt?: string;
+
+  @ApiProperty({
+    required: false,
+    default: true,
+    description:
+      'When true (default), seed and send the primary administrator invitation after commit. When false, persist the tenant as DRAFT only (Save Draft).',
+  })
+  @IsOptional()
+  @Transform(({ value }) => value === undefined || value === null ? undefined : value === true || value === 'true')
+  @IsBoolean()
+  sendInvitation?: boolean;
 }

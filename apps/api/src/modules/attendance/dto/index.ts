@@ -5,3 +5,6 @@ export { AttendanceExceptionResponseDto } from './attendance-exception-response.
 export { ListAttendanceDto } from './list-attendance.dto';
 export { CreateManualAttendanceRecordDto } from './create-manual-record.dto';
 export { ResolveExceptionDto } from './resolve-exception.dto';
+export * from './attendance-capture.dto';
+export { ListAttendanceDevicesDto } from './list-attendance-devices.dto';
+export { ListOfflineSessionsDto } from './list-offline-sessions.dto';

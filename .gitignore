@@ -12,3 +12,8 @@ prisma/generated
 *.tsbuildinfo
 *.pdf
 CLAUDE.md
+
+# Local M02 email capture (may contain one-time tokens)
+.email-capture/
+apps/api/.email-capture/
+.pw-browsers/

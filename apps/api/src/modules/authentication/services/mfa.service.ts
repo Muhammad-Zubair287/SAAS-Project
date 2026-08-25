@@ -20,7 +20,7 @@ import type { JwtPayload } from '../interfaces/jwt-payload.interface';
 import type { DisableMfaDto } from '../dto/disable-mfa.dto';
 import type { ChallengeMfaDto } from '../dto/challenge-mfa.dto';
 import type { VerifyMfaDto } from '../dto/verify-mfa.dto';
-import type { RequestContext } from './auth.service';
+import type { AuthTokenPair, RequestContext } from './auth.service';
 
 export interface EnrollMfaResponse {
   secret: string;
@@ -131,10 +131,48 @@ export class MfaService {
     return credential !== null;
   }
 
+  /**
+   * Step-up verification for sensitive platform actions (suspend, support grants, etc.).
+   * Production requires enrolled MFA + a valid TOTP/backup code.
+   * Non-production allows the action when MFA is not yet enrolled (local seed ergonomics).
+   */
+  async assertPlatformStepUp(userId: string, mfaCode?: string): Promise<void> {
+    const credential = await this.mfaRepo.findActiveCredential(userId);
+    const isProd = this.config.get<string>('NODE_ENV') === 'production';
+
+    if (!credential) {
+      if (isProd) {
+        throw new AppException({
+          code: ERROR_CODES.MFA_REQUIRED,
+          message: 'Multi-factor authentication must be enrolled before this action.',
+          statusCode: HttpStatus.FORBIDDEN,
+        });
+      }
+      return;
+    }
+
+    if (!mfaCode?.trim()) {
+      throw new AppException({
+        code: ERROR_CODES.MFA_REQUIRED,
+        message: 'Enter your MFA code to confirm this action.',
+        statusCode: HttpStatus.FORBIDDEN,
+      });
+    }
+
+    const accepted = await this.verifyCode(credential, mfaCode.trim());
+    if (!accepted) {
+      throw new AppException({
+        code: ERROR_CODES.MFA_VERIFICATION_FAILED,
+        message: 'MFA code is invalid or has already been used.',
+        statusCode: HttpStatus.UNAUTHORIZED,
+      });
+    }
+  }
+
   async completeMfaChallenge(
     dto: ChallengeMfaDto,
     ctx: RequestContext,
-  ): Promise<AuthResponseDto> {
+  ): Promise<AuthTokenPair> {
     const { userId, tenantId, email } = this.challengeService.validateChallengeToken(
       dto.challengeToken,
     );
@@ -192,7 +230,14 @@ export class MfaService {
       correlationId: ctx.correlationId,
     });
 
-    return { accessToken, refreshToken, tokenType: 'Bearer', expiresIn, sessionId: session.id };
+    return {
+      accessToken,
+      refreshToken,
+      tokenType: 'Bearer',
+      expiresIn,
+      sessionId: session.id,
+      sessionExpiresAt: session.expiresAt,
+    };
   }
 
   async disableMfa(

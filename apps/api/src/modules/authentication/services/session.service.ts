@@ -27,12 +27,12 @@ export class SessionService {
     private readonly password: PasswordService,
   ) {}
 
-  private buildExpiry(): { expiresAt: Date; idleExpiresAt: Date } {
-    const now = Date.now();
-    return {
-      expiresAt: new Date(now + ABSOLUTE_TTL_MS),
-      idleExpiresAt: new Date(now + IDLE_TTL_MS),
-    };
+  private buildIdleExpiry(from: Date = new Date()): Date {
+    return new Date(from.getTime() + IDLE_TTL_MS);
+  }
+
+  private buildAbsoluteExpiry(from: Date = new Date()): Date {
+    return new Date(from.getTime() + ABSOLUTE_TTL_MS);
   }
 
   // Format: <sessionId>.<64-hex-random>
@@ -55,6 +55,7 @@ export class SessionService {
     hash: string,
     family: string,
     ctx: SessionRequestContext,
+    absoluteExpiresAt: Date,
   ): CreateSessionInput {
     return {
       id: sessionId,
@@ -64,7 +65,8 @@ export class SessionService {
       refreshTokenFamily: family,
       userAgent: ctx.userAgent,
       ipAddress: ctx.ipAddress,
-      ...this.buildExpiry(),
+      expiresAt: absoluteExpiresAt,
+      idleExpiresAt: this.buildIdleExpiry(),
     };
   }
 
@@ -78,7 +80,15 @@ export class SessionService {
     const hash = await this.password.hashPassword(randomPart);
 
     const session = await this.authRepo.createSession(
-      this.buildSessionData(sessionId, userId, tenantId, hash, randomUUID(), ctx),
+      this.buildSessionData(
+        sessionId,
+        userId,
+        tenantId,
+        hash,
+        randomUUID(),
+        ctx,
+        this.buildAbsoluteExpiry(),
+      ),
     );
 
     return { session, refreshToken };
@@ -146,7 +156,8 @@ export class SessionService {
       });
     }
 
-    // Rotate: revoke old, create new session preserving the family.
+    // Rotate: revoke old, create new session preserving the family AND absolute expiry.
+    // Idle window may advance; absolute boundary never resets.
     const newSessionId = randomUUID();
     const { refreshToken: newToken, randomPart: newRandomPart } = this.buildRefreshToken(newSessionId);
     const newHash = await this.password.hashPassword(newRandomPart);
@@ -160,10 +171,81 @@ export class SessionService {
         newHash,
         session.refreshTokenFamily,
         ctx,
+        session.expiresAt,
       ),
     );
 
     return { session: newSession, refreshToken: newToken };
+  }
+
+  /**
+   * Validates that a session referenced by an access JWT is still live.
+   * Used by JwtStrategy — PK lookup only (indexed by id).
+   */
+  async assertSessionActive(
+    sessionId: string,
+    userId: string,
+    tenantId: string | null,
+  ): Promise<Session> {
+    if (!sessionId) {
+      throw new AppException({
+        code: ERROR_CODES.AUTHENTICATION_REQUIRED,
+        message: 'Session is required.',
+        statusCode: HttpStatus.UNAUTHORIZED,
+      });
+    }
+
+    const session = await this.authRepo.findSessionById(sessionId);
+    if (!session) {
+      throw new AppException({
+        code: ERROR_CODES.AUTHENTICATION_REQUIRED,
+        message: 'Session not found.',
+        statusCode: HttpStatus.UNAUTHORIZED,
+      });
+    }
+
+    if (session.userId !== userId) {
+      throw new AppException({
+        code: ERROR_CODES.AUTHENTICATION_REQUIRED,
+        message: 'Session does not belong to this user.',
+        statusCode: HttpStatus.UNAUTHORIZED,
+      });
+    }
+
+    const sessionTenant = session.tenantId ?? null;
+    if (sessionTenant !== (tenantId ?? null)) {
+      throw new AppException({
+        code: ERROR_CODES.AUTHENTICATION_REQUIRED,
+        message: 'Session tenant mismatch.',
+        statusCode: HttpStatus.UNAUTHORIZED,
+      });
+    }
+
+    if (session.revokedAt !== null) {
+      throw new AppException({
+        code: ERROR_CODES.AUTHENTICATION_REQUIRED,
+        message: 'Session has been revoked.',
+        statusCode: HttpStatus.UNAUTHORIZED,
+      });
+    }
+
+    if (session.expiresAt < new Date()) {
+      throw new AppException({
+        code: ERROR_CODES.SESSION_EXPIRED,
+        message: 'Session has expired.',
+        statusCode: HttpStatus.UNAUTHORIZED,
+      });
+    }
+
+    if (session.idleExpiresAt < new Date()) {
+      throw new AppException({
+        code: ERROR_CODES.SESSION_EXPIRED,
+        message: 'Session has expired due to inactivity.',
+        statusCode: HttpStatus.UNAUTHORIZED,
+      });
+    }
+
+    return session;
   }
 
   async revokeSession(sessionId: string): Promise<void> {

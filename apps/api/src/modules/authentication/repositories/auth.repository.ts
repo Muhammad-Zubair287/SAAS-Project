@@ -96,6 +96,15 @@ export class AuthRepository {
     });
   }
 
+  /** Resolve public tenant slug → id for tenant-specific login URLs. */
+  async findTenantIdBySlug(slug: string): Promise<string | null> {
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { slug },
+      select: { id: true },
+    });
+    return tenant?.id ?? null;
+  }
+
   async updateLastLoginAt(userId: string): Promise<void> {
     await this.prisma.appUser.update({
       where: { id: userId },

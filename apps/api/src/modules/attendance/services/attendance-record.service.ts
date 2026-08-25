@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../../../database/prisma/prisma.service';
 import { AppException } from '../../../common/exceptions/app.exception';
@@ -10,11 +10,13 @@ import { AttendanceRawEventRepository } from '../repositories/attendance-raw-eve
 import { AttendanceRecordRepository } from '../repositories/attendance-record.repository';
 import { AttendanceExceptionRepository } from '../repositories/attendance-exception.repository';
 import { AttendanceCalculatorService } from './attendance-calculator.service';
-import { AttendancePolicyService } from './attendance-policy.service';
 import { NullLeaveCheckAdapter } from '../interfaces/leave-check-adapter.interface';
-import { NullShiftCheckAdapter } from '../interfaces/shift-check-adapter.interface';
 import type { LeaveCheckAdapter } from '../interfaces/leave-check-adapter.interface';
-import type { ShiftCheckAdapter } from '../interfaces/shift-check-adapter.interface';
+import {
+  SHIFT_CHECK_ADAPTER,
+  type ScheduleSource,
+  type ShiftCheckAdapter,
+} from '../interfaces/shift-check-adapter.interface';
 import type { ListAttendanceDto } from '../dto/list-attendance.dto';
 import type { CreateManualAttendanceRecordDto } from '../dto/create-manual-record.dto';
 import type { AttendanceRecordResponseDto } from '../dto/attendance-record-response.dto';
@@ -40,6 +42,11 @@ type RecordRow = {
   periodLocked: boolean;
   calculationVersion: number;
   calculatedAt: Date | null;
+  scheduleSource: string | null;
+  resolvedShiftId: string | null;
+  shiftAssignmentId: string | null;
+  rosterAssignmentId: string | null;
+  attendancePolicyId: string | null;
   createdAt: Date;
   updatedAt: Date;
   rowVersion: bigint;
@@ -49,19 +56,18 @@ type RecordRow = {
 export class AttendanceRecordService {
   private readonly logger = new Logger(AttendanceRecordService.name);
   private readonly leaveAdapter: LeaveCheckAdapter;
-  private readonly shiftAdapter: ShiftCheckAdapter;
 
   constructor(
     private readonly recordRepo: AttendanceRecordRepository,
     private readonly exceptionRepo: AttendanceExceptionRepository,
     private readonly rawEventRepo: AttendanceRawEventRepository,
     private readonly calculator: AttendanceCalculatorService,
-    private readonly policyService: AttendancePolicyService,
     private readonly prisma: PrismaService,
     private readonly employeeRepo: EmployeeRepository,
+    @Inject(SHIFT_CHECK_ADAPTER)
+    private readonly shiftCheck: ShiftCheckAdapter,
   ) {
     this.leaveAdapter = new NullLeaveCheckAdapter();
-    this.shiftAdapter = new NullShiftCheckAdapter();
   }
 
   async findMany(
@@ -256,20 +262,81 @@ export class AttendanceRecordService {
     correlationId: string,
   ): Promise<void> {
     try {
-      // Resolve attendance policy for this employee's context
-      const policy = await this.policyService.resolvePolicy(
-        tenantId,
-        workDate,
-        branchId,
-        legalEntityId,
-      );
-      const policySchedule = this.policyService.policyToSchedule(policy);
+      const existing = await this.prisma.attendanceRecord.findFirst({
+        where: { tenantId, employeeId, attendanceDate: workDate },
+      });
 
-      const events = await this.rawEventRepo.findByEmployeeAndDate(
-        employeeId,
-        workDate,
-        tenantId,
-      );
+      const pinned =
+        existing?.scheduleSource === 'ROSTER' && existing.rosterAssignmentId
+          ? {
+              scheduleSource: 'ROSTER' as ScheduleSource,
+              resolvedShiftId: existing.resolvedShiftId,
+              shiftAssignmentId: null,
+              rosterAssignmentId: existing.rosterAssignmentId,
+              attendancePolicyId: existing.attendancePolicyId,
+            }
+          : existing?.scheduleSource === 'SHIFT_ASSIGNMENT' &&
+              existing.shiftAssignmentId &&
+              existing.resolvedShiftId &&
+              existing.attendancePolicyId
+            ? {
+                scheduleSource: 'SHIFT_ASSIGNMENT' as ScheduleSource,
+                resolvedShiftId: existing.resolvedShiftId,
+                shiftAssignmentId: existing.shiftAssignmentId,
+                rosterAssignmentId: null,
+                attendancePolicyId: existing.attendancePolicyId,
+              }
+            : existing?.scheduleSource === 'ATTENDANCE_POLICY'
+              ? {
+                  scheduleSource: 'ATTENDANCE_POLICY' as ScheduleSource,
+                  resolvedShiftId: null,
+                  shiftAssignmentId: null,
+                  rosterAssignmentId: null,
+                  attendancePolicyId: existing.attendancePolicyId,
+                }
+              : null;
+
+      let events;
+      if (
+        pinned?.scheduleSource === 'ROSTER' ||
+        pinned?.scheduleSource === 'SHIFT_ASSIGNMENT'
+      ) {
+        const rebuilt = await this.shiftCheck.rebuildFromProvenance(
+          tenantId,
+          workDate,
+          {
+            scheduleSource: pinned.scheduleSource,
+            shiftAssignmentId: pinned.shiftAssignmentId,
+            rosterAssignmentId: pinned.rosterAssignmentId,
+            resolvedShiftId: pinned.resolvedShiftId,
+            attendancePolicyId: pinned.attendancePolicyId,
+          },
+        );
+        events = await this.rawEventRepo.findByEmployeeAndTimeRange(
+          employeeId,
+          rebuilt.attributionWindowStart,
+          rebuilt.attributionWindowEnd,
+          tenantId,
+        );
+      } else {
+        const live = await this.shiftCheck.getWorkSchedule(
+          tenantId,
+          employeeId,
+          workDate,
+        );
+        events = live
+          ? await this.rawEventRepo.findByEmployeeAndTimeRange(
+              employeeId,
+              live.attributionWindowStart,
+              live.attributionWindowEnd,
+              tenantId,
+            )
+          : await this.rawEventRepo.findByEmployeeAndDate(
+              employeeId,
+              workDate,
+              tenantId,
+            );
+      }
 
       const rawEventInputs = events
         .filter((e) => e.status !== 'ERROR')
@@ -282,12 +349,12 @@ export class AttendanceRecordService {
       const result = await this.calculator.calculate({
         tenantId,
         employeeId,
+        branchId,
         legalEntityId,
         workDate,
         rawEvents: rawEventInputs,
         leaveAdapter: this.leaveAdapter,
-        shiftAdapter: this.shiftAdapter,
-        policySchedule,
+        pinnedProvenance: pinned,
       });
 
       await this.prisma.withTenantTransaction(tenantId, async (tx) => {
@@ -317,6 +384,11 @@ export class AttendanceRecordService {
             calculatedAt: new Date(),
             createdBy: actorId,
             updatedBy: actorId,
+            scheduleSource: result.provenance.scheduleSource,
+            resolvedShiftId: result.provenance.resolvedShiftId,
+            shiftAssignmentId: result.provenance.shiftAssignmentId,
+            rosterAssignmentId: result.provenance.rosterAssignmentId,
+            attendancePolicyId: result.provenance.attendancePolicyId,
           },
           update: {
             firstCheckIn: result.firstCheckIn,
@@ -334,6 +406,12 @@ export class AttendanceRecordService {
             updatedBy: actorId,
             rowVersion: { increment: 1 },
             calculationVersion: { increment: 1 },
+            // Keep provenance stable when pinned; otherwise refresh from result.
+            scheduleSource: result.provenance.scheduleSource,
+            resolvedShiftId: result.provenance.resolvedShiftId,
+            shiftAssignmentId: result.provenance.shiftAssignmentId,
+            rosterAssignmentId: result.provenance.rosterAssignmentId,
+            attendancePolicyId: result.provenance.attendancePolicyId,
           },
         });
 
@@ -365,14 +443,21 @@ export class AttendanceRecordService {
             action: 'attendance.record.recalculated',
             resourceType: 'attendance_record',
             resourceId: record.id,
-            after: { status: result.status, totalWorkedMinutes: result.totalWorkedMinutes },
+            after: {
+              status: result.status,
+              totalWorkedMinutes: result.totalWorkedMinutes,
+              scheduleSource: result.provenance.scheduleSource,
+            },
             correlationId,
             severity: 'INFO',
           },
         });
       });
     } catch (err) {
-      this.logger.error(`[AttendanceRecalculate] Failed for ${employeeId} on ${workDate.toISOString()}:`, err);
+      this.logger.error(
+        `[AttendanceRecalculate] Failed for ${employeeId} on ${workDate.toISOString()}:`,
+        err,
+      );
     }
   }
 
@@ -381,11 +466,14 @@ export class AttendanceRecordService {
       id: r.id,
       tenantId: r.tenantId,
       employeeId: r.employeeId,
-      attendanceDate: r.attendanceDate instanceof Date
-        ? (r.attendanceDate.toISOString().split('T')[0] ?? '')
-        : String(r.attendanceDate),
-      firstCheckIn: r.firstCheckIn instanceof Date ? r.firstCheckIn.toISOString() : null,
-      lastCheckOut: r.lastCheckOut instanceof Date ? r.lastCheckOut.toISOString() : null,
+      attendanceDate:
+        r.attendanceDate instanceof Date
+          ? (r.attendanceDate.toISOString().split('T')[0] ?? '')
+          : String(r.attendanceDate),
+      firstCheckIn:
+        r.firstCheckIn instanceof Date ? r.firstCheckIn.toISOString() : null,
+      lastCheckOut:
+        r.lastCheckOut instanceof Date ? r.lastCheckOut.toISOString() : null,
       totalWorkedMinutes: r.totalWorkedMinutes,
       regularMinutes: r.regularMinutes,
       overtimeMinutes: r.overtimeMinutes,
@@ -399,9 +487,21 @@ export class AttendanceRecordService {
       manualNote: r.manualNote,
       periodLocked: r.periodLocked,
       calculationVersion: r.calculationVersion,
-      calculatedAt: r.calculatedAt instanceof Date ? r.calculatedAt.toISOString() : null,
-      createdAt: r.createdAt instanceof Date ? r.createdAt.toISOString() : String(r.createdAt),
-      updatedAt: r.updatedAt instanceof Date ? r.updatedAt.toISOString() : String(r.updatedAt),
+      calculatedAt:
+        r.calculatedAt instanceof Date ? r.calculatedAt.toISOString() : null,
+      scheduleSource: r.scheduleSource ?? null,
+      resolvedShiftId: r.resolvedShiftId ?? null,
+      shiftAssignmentId: r.shiftAssignmentId ?? null,
+      rosterAssignmentId: r.rosterAssignmentId ?? null,
+      attendancePolicyId: r.attendancePolicyId ?? null,
+      createdAt:
+        r.createdAt instanceof Date
+          ? r.createdAt.toISOString()
+          : String(r.createdAt),
+      updatedAt:
+        r.updatedAt instanceof Date
+          ? r.updatedAt.toISOString()
+          : String(r.updatedAt),
       rowVersion: r.rowVersion.toString(),
     };
   }

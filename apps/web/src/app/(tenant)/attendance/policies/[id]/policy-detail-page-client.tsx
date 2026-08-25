@@ -17,19 +17,19 @@ export function PolicyDetailPageClient({ id }: Props) {
   if (error || !policy) return <div className="p-8 text-sm text-red-600">{t('detail.error')}</div>;
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
+    <div className="mx-auto max-w-4xl space-y-6">
       <div className="flex items-center gap-3">
         <Link href="/attendance/policies" className="text-sm text-gray-500 hover:text-gray-700">
           &larr; {t('detail.back')}
         </Link>
       </div>
 
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{policy.name}</h1>
           {policy.description && <p className="mt-1 text-sm text-gray-500">{policy.description}</p>}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <AttendancePolicyScopeBadge legalEntityId={policy.legalEntityId} branchId={policy.branchId} />
           {policy.isCurrent && (
             <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
@@ -70,7 +70,7 @@ export function PolicyDetailPageClient({ id }: Props) {
       {/* Effective dates + version */}
       <div className="rounded-lg border bg-white p-6 shadow-sm">
         <h2 className="text-base font-semibold text-gray-900 mb-4">{t('detail.versionHistory')}</h2>
-        <dl className="grid grid-cols-3 gap-4 text-sm">
+        <dl className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2 lg:grid-cols-3">
           <div>
             <dt className="text-gray-400">{t('fields.effectiveFrom')}</dt>
             <dd className="font-medium">{policy.effectiveFrom}</dd>

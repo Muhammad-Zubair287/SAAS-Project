@@ -1,0 +1,204 @@
+{
+  "info": {
+    "name": "Workforce Cloud OS — HR Console (Scope A)",
+    "description": "HR Dashboard, Core HR lifecycle, Org grades/overview, Documents library, Attendance period lock",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3001/api/v1" },
+    { "key": "accessToken", "value": "" },
+    { "key": "employeeId", "value": "" },
+    { "key": "importId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "HR Dashboard",
+      "item": [
+        {
+          "name": "GET HR Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/hr/dashboard"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Employees Lifecycle",
+      "item": [
+        {
+          "name": "List Employees",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/employees?page=1&pageSize=20"
+          }
+        },
+        {
+          "name": "Data Quality",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/employees/data-quality"
+          }
+        },
+        {
+          "name": "Get Employment",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/employees/{{employeeId}}/employment"
+          }
+        },
+        {
+          "name": "Transfer Employee",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"departmentId\": null,\n  \"effectiveDate\": \"2026-08-23\",\n  \"reason\": \"Reorg\"\n}"
+            },
+            "url": "{{baseUrl}}/employees/{{employeeId}}/transfers"
+          }
+        },
+        {
+          "name": "Change Status",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ON_LEAVE\",\n  \"effectiveDate\": \"2026-08-23\",\n  \"reason\": \"Approved leave\"\n}"
+            },
+            "url": "{{baseUrl}}/employees/{{employeeId}}/status-changes"
+          }
+        },
+        {
+          "name": "Timeline",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/employees/{{employeeId}}/history"
+          }
+        },
+        {
+          "name": "Start Import",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fileName\": \"employees.csv\",\n  \"rows\": []\n}"
+            },
+            "url": "{{baseUrl}}/imports/employees"
+          }
+        },
+        {
+          "name": "Commit Import",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/imports/{{importId}}/commit"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Organisation",
+      "item": [
+        {
+          "name": "Overview",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/organisation/overview"
+          }
+        },
+        {
+          "name": "History",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/organisation/history"
+          }
+        },
+        {
+          "name": "Department Tree",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/departments/tree"
+          }
+        },
+        {
+          "name": "List Grades",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/grades"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Documents & Onboarding",
+      "item": [
+        {
+          "name": "Document Library",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/documents"
+          }
+        },
+        {
+          "name": "Onboarding Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/onboarding/dashboard"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Attendance Period",
+      "item": [
+        {
+          "name": "List Periods",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/attendance/periods"
+          }
+        },
+        {
+          "name": "Lock Period",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"periodStart\": \"2026-08-01\",\n  \"periodEnd\": \"2026-08-31\"\n}"
+            },
+            "url": "{{baseUrl}}/attendance/period-lock"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,14 +1,6 @@
+import { ROUTES } from '../../../constants/routes.constants';
+import { PLATFORM_PERMISSIONS } from '../../../lib/permissions/constants';
 import type { TenantStatus } from '../types/platform.types';
-
-export const TENANT_STATUS_LABELS: Record<TenantStatus, string> = {
-  DRAFT: 'Draft',
-  TRIAL: 'Trial',
-  ACTIVE: 'Active',
-  GRACE: 'Grace',
-  SUSPENDED: 'Suspended',
-  CLOSED: 'Closed',
-  ARCHIVED: 'Archived',
-};
 
 export const TENANT_STATUS_VARIANTS: Record<
   TenantStatus,
@@ -23,59 +15,99 @@ export const TENANT_STATUS_VARIANTS: Record<
   ARCHIVED: 'locked',
 };
 
-export const BILLING_CYCLE_LABELS: Record<string, string> = {
-  monthly: 'Monthly',
-  annual: 'Annual',
-};
-
 export const PLATFORM_NAV_ITEMS = [
-  { key: 'dashboard', labelKey: 'platform.nav.overview', href: '/platform/dashboard', icon: 'LayoutDashboard' },
-  { key: 'tenants', labelKey: 'platform.nav.tenants', href: '/platform/tenants', icon: 'Building2' },
-  { key: 'plans', labelKey: 'platform.nav.plans', href: '/platform/plans', icon: 'CreditCard' },
-  { key: 'usage', labelKey: 'platform.nav.usage', href: '/platform/usage', icon: 'BarChart3' },
-  { key: 'support', labelKey: 'platform.nav.supportAccess', href: '/platform/support', icon: 'ShieldCheck' },
-  { key: 'audit', labelKey: 'platform.nav.audit', href: '/platform/audit', icon: 'FileText' },
-  { key: 'config', labelKey: 'platform.nav.config', href: '/platform/config', icon: 'Settings' },
+  {
+    key: 'dashboard',
+    labelKey: 'platform.nav.overview',
+    href: ROUTES.PLATFORM.DASHBOARD,
+    status: 'available' as const,
+    permission: PLATFORM_PERMISSIONS.TENANT_READ,
+  },
+  {
+    key: 'tenants',
+    labelKey: 'platform.nav.tenants',
+    href: ROUTES.PLATFORM.TENANTS,
+    status: 'available' as const,
+    permission: PLATFORM_PERMISSIONS.TENANT_READ,
+  },
+  {
+    key: 'plans',
+    labelKey: 'platform.nav.plans',
+    href: ROUTES.PLATFORM.PLANS,
+    status: 'available' as const,
+    permission: PLATFORM_PERMISSIONS.TENANT_READ,
+  },
+  {
+    key: 'usage',
+    labelKey: 'platform.nav.usage',
+    href: ROUTES.PLATFORM.USAGE,
+    status: 'available' as const,
+    permission: PLATFORM_PERMISSIONS.USAGE_READ,
+  },
+  {
+    key: 'support',
+    labelKey: 'platform.nav.supportAccess',
+    href: ROUTES.PLATFORM.SUPPORT,
+    status: 'available' as const,
+    permission: PLATFORM_PERMISSIONS.TENANT_READ,
+  },
+  {
+    key: 'audit',
+    labelKey: 'platform.nav.audit',
+    href: ROUTES.PLATFORM.AUDIT,
+    status: 'available' as const,
+    permission: PLATFORM_PERMISSIONS.AUDIT_READ,
+  },
+  {
+    key: 'config',
+    labelKey: 'platform.nav.config',
+    href: ROUTES.PLATFORM.CONFIG,
+    status: 'available' as const,
+    permission: PLATFORM_PERMISSIONS.CONFIG_READ,
+    children: [
+      { key: 'config-general', labelKey: 'platform.nav.configGeneral', href: ROUTES.PLATFORM.CONFIG_GENERAL },
+      { key: 'config-security', labelKey: 'platform.nav.configSecurity', href: ROUTES.PLATFORM.CONFIG_SECURITY },
+      { key: 'config-retention', labelKey: 'platform.nav.configRetention', href: ROUTES.PLATFORM.CONFIG_RETENTION },
+      { key: 'config-regions', labelKey: 'platform.nav.configRegions', href: ROUTES.PLATFORM.CONFIG_REGIONS },
+      { key: 'config-notifications', labelKey: 'platform.nav.configNotifications', href: ROUTES.PLATFORM.CONFIG_NOTIFICATIONS },
+      { key: 'config-integrations', labelKey: 'platform.nav.configIntegrations', href: ROUTES.PLATFORM.CONFIG_INTEGRATIONS },
+      { key: 'config-audit-logging', labelKey: 'platform.nav.configAuditLogging', href: ROUTES.PLATFORM.CONFIG_AUDIT_LOGGING },
+    ],
+  },
+  {
+    key: 'integrationHealth',
+    labelKey: 'platform.nav.integrationHealth',
+    href: ROUTES.PLATFORM.INTEGRATION_HEALTH,
+    status: 'available' as const,
+    permission: PLATFORM_PERMISSIONS.INTEGRATION_READ,
+  },
 ] as const;
 
-export const SUPPORTED_COUNTRIES = [
-  { code: 'PK', name: 'Pakistan' },
-  { code: 'AE', name: 'United Arab Emirates' },
-  { code: 'SA', name: 'Saudi Arabia' },
-  { code: 'GB', name: 'United Kingdom' },
-  { code: 'US', name: 'United States' },
+/** ISO 3166-1 alpha-2 launch countries from BRD (Pakistan first, then GCC/UK). */
+export const LAUNCH_COUNTRY_CODES = ['PK', 'AE', 'SA', 'GB', 'US'] as const;
+
+/** ISO 4217 codes paired to launch countries. */
+export const LAUNCH_CURRENCY_CODES = ['PKR', 'AED', 'SAR', 'GBP', 'USD'] as const;
+
+/** IANA time zones for launch countries. */
+export const LAUNCH_TIMEZONES = [
+  'Asia/Karachi',
+  'Asia/Dubai',
+  'Asia/Riyadh',
+  'Europe/London',
+  'America/New_York',
 ] as const;
 
-export const SUPPORTED_CURRENCIES = [
-  { code: 'PKR', name: 'Pakistani Rupee' },
-  { code: 'AED', name: 'UAE Dirham' },
-  { code: 'SAR', name: 'Saudi Riyal' },
-  { code: 'GBP', name: 'British Pound' },
-  { code: 'USD', name: 'US Dollar' },
-] as const;
+/** BCP 47 locales from API-TEN-001 / M01-FR-003. */
+export const LAUNCH_LOCALES = ['en-PK', 'ur-PK'] as const;
 
-export const SUPPORTED_TIMEZONES = [
-  { value: 'Asia/Karachi', label: 'Asia/Karachi (PKT, UTC+5)' },
-  { value: 'Asia/Dubai', label: 'Asia/Dubai (GST, UTC+4)' },
-  { value: 'Asia/Riyadh', label: 'Asia/Riyadh (AST, UTC+3)' },
-  { value: 'Europe/London', label: 'Europe/London (GMT/BST)' },
-  { value: 'America/New_York', label: 'America/New_York (EST/EDT)' },
-] as const;
-
-export const HOSTING_REGIONS = [
-  { key: 'aws-ap-south-1', label: 'AWS Asia Pacific (Mumbai)', countries: ['PK', 'IN'] },
-  { key: 'aws-me-south-1', label: 'AWS Middle East (Bahrain)', countries: ['AE', 'SA'] },
-  { key: 'aws-eu-west-2', label: 'AWS Europe (London)', countries: ['GB'] },
-  { key: 'aws-us-east-1', label: 'AWS US East (N. Virginia)', countries: ['US'] },
-] as const;
-
-export const SUPPORT_GRANT_SCOPES = [
-  { value: 'attendance', label: 'Attendance' },
-  { value: 'payroll', label: 'Payroll' },
-  { value: 'leave', label: 'Leave' },
-  { value: 'employees', label: 'Employees' },
-  { value: 'organisation', label: 'Organisation' },
-  { value: 'reports', label: 'Reports' },
-  { value: 'settings', label: 'Settings' },
-  { value: 'audit', label: 'Audit' },
+export const SUPPORT_GRANT_SCOPE_VALUES = [
+  'attendance',
+  'payroll',
+  'leave',
+  'employees',
+  'organisation',
+  'reports',
+  'settings',
+  'audit',
 ] as const;

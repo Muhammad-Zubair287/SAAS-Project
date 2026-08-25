@@ -19,6 +19,11 @@ export class AttendanceRecordResponseDto {
   periodLocked!: boolean;
   calculationVersion!: number;
   calculatedAt!: string | null;
+  scheduleSource!: string | null;
+  resolvedShiftId!: string | null;
+  shiftAssignmentId!: string | null;
+  rosterAssignmentId!: string | null;
+  attendancePolicyId!: string | null;
   createdAt!: string;
   updatedAt!: string;
   rowVersion!: string;

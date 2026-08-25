@@ -11,7 +11,7 @@ export class PrismaService
   extends PrismaClient
   implements OnModuleInit, OnModuleDestroy
 {
-  private readonly logger = new Logger(PrismaService.name);
+  private readonly logger = new Logger('DB');
 
   constructor() {
     super({
@@ -23,13 +23,13 @@ export class PrismaService
   }
 
   async onModuleInit(): Promise<void> {
-    this.logger.log('Connecting to database...');
+    this.logger.debug('Connecting to PostgreSQL...');
     await this.$connect();
-    this.logger.log('Database connected');
+    this.logger.log('PostgreSQL connected');
   }
 
   async onModuleDestroy(): Promise<void> {
-    this.logger.log('Disconnecting from database...');
+    this.logger.debug('Disconnecting from PostgreSQL...');
     await this.$disconnect();
   }
 
@@ -45,7 +45,9 @@ export class PrismaService
     fn: (tx: Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>) => Promise<T>,
   ): Promise<T> {
     return this.$transaction(async (tx) => {
-      await tx.$executeRaw`SET LOCAL app.tenant_id = ${tenantId}`;
+      // Prisma parameterizes tagged `$executeRaw` as `$1`, which breaks `SET LOCAL … = $1`.
+      // `set_config(..., true)` is transaction-local and accepts bound parameters safely.
+      await tx.$executeRaw`SELECT set_config('app.tenant_id', ${tenantId}, true)`;
       return fn(tx);
     });
   }

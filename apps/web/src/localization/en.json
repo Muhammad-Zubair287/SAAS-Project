@@ -1,6 +1,7 @@
 {
   "common": {
     "loading": "Loading...",
+    "refreshing": "Refreshing…",
     "error": "An error occurred",
     "retry": "Retry",
     "cancel": "Cancel",
@@ -21,7 +22,16 @@
     "no": "No",
     "required": "Required",
     "optional": "Optional",
-    "actions": "Actions"
+    "actions": "Actions",
+    "skipToContent": "Skip to main content",
+    "comingSoonHint": "This module is not available yet",
+    "closeSidebar": "Close sidebar",
+    "language": "Language",
+    "create": "Create",
+    "confirm": "Confirm",
+    "saving": "Saving…",
+    "empty": "No records yet.",
+    "clear": "Clear"
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
@@ -29,13 +39,367 @@
     "unauthorized": "You are not authorized to perform this action.",
     "networkError": "Network error. Please check your connection.",
     "serverError": "Server error. Please try again later.",
-    "validationFailed": "Please correct the errors below."
+    "validationFailed": "Please correct the errors below.",
+    "loadFailed": "Failed to load data.",
+    "saveFailed": "Failed to save changes."
+  },
+  "auth": {
+    "brand": {
+      "name": "Workforce Cloud OS",
+      "tagline": "People. Work. Payroll. One operating system.",
+      "headline": "Run your entire workforce from one connected cloud.",
+      "trust": "Unify HR, attendance, leave, payroll, approvals and employee self-service with enterprise-grade security and Pakistan-first localisation.",
+      "organisationSignIn": "Organisation sign-in · {name}"
+    },
+    "language": "Language",
+    "links": {
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "support": "Help"
+    },
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "show": "Show",
+    "hide": "Hide",
+    "backToSignIn": "Back to sign in",
+    "fields": {
+      "email": "Work email",
+      "password": "Password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm password"
+    },
+    "validation": {
+      "emailRequired": "Email is required",
+      "passwordRequired": "Password is required",
+      "passwordMin": "Password must be at least 8 characters",
+      "passwordMatch": "Passwords must match",
+      "codeRequired": "Verification code is required",
+      "termsRequired": "You must accept the terms to continue"
+    },
+    "errors": {
+      "invalidCredentials": "Invalid email or password.",
+      "accountLocked": "Account is locked. Contact your administrator.",
+      "tenantSuspended": "This organisation is not accessible.",
+      "membershipRequired": "You do not have access to this organisation.",
+      "tenantContextRequired": "Use your organisation sign-in link to continue.",
+      "mfaInvalid": "The verification code is invalid or has expired.",
+      "resetInvalid": "This reset link is invalid or has already been used.",
+      "resetExpired": "This reset link has expired. Request a new one.",
+      "invitationInvalid": "This invitation is invalid.",
+      "invitationExpired": "This invitation has expired.",
+      "invitationAccepted": "This invitation has already been accepted.",
+      "generic": "Something went wrong. Please try again."
+    },
+    "signIn": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to continue to your workforce workspace.",
+      "emailPlaceholder": "sara.ahmed@company.com",
+      "forgotPassword": "Forgot password?",
+      "rememberDevice": "Remember this device",
+      "submit": "Sign in securely",
+      "orContinueWith": "or continue with",
+      "ssoMicrosoft": "Microsoft",
+      "ssoGoogle": "Google",
+      "ssoNotConfigured": "{provider} sign-in is not configured for this environment.",
+      "maintenance": "Workforce Cloud OS is temporarily unavailable for maintenance. Please try again later.",
+      "ssoOnly": "Password sign-in is disabled for this organisation. Use your organisation SSO provider."
+    },
+    "forgot": {
+      "title": "Forgot password",
+      "subtitle": "We will send reset instructions if an account exists.",
+      "submit": "Send reset link",
+      "genericSuccess": "If an account exists for that email, reset instructions have been sent."
+    },
+    "reset": {
+      "title": "Reset password",
+      "subtitle": "Choose a new password for your account.",
+      "policy": "Use at least 8 characters. Prefer a unique password you do not reuse elsewhere.",
+      "submit": "Reset password",
+      "success": "Password updated. Redirecting to sign in…"
+    },
+    "mfa": {
+      "title": "Multi-factor authentication",
+      "subtitle": "Enter the code from your authenticator app.",
+      "code": "Verification code",
+      "backupCode": "Backup code",
+      "totpHint": "6-digit code from your authenticator.",
+      "backupHint": "One-time backup code provided at enrollment.",
+      "submit": "Verify",
+      "useBackup": "Use a backup code",
+      "useTotp": "Use authenticator code"
+    },
+    "invite": {
+      "title": "Activate your account",
+      "subtitle": "Set a password to complete your invitation.",
+      "terms": "I accept the terms of use and privacy policy.",
+      "submit": "Activate account"
+    },
+    "sessionExpired": {
+      "title": "Session expired",
+      "subtitle": "Your session ended securely.",
+      "body": "Sign in again to continue. Unsaved sensitive data is no longer accessible.",
+      "signInAgain": "Sign in again",
+      "banner": "Your previous session expired. Please sign in again."
+    },
+    "unauthorized": {
+      "title": "Authentication required",
+      "subtitle": "Sign in to access this area."
+    },
+    "forbidden": {
+      "title": "Access denied",
+      "subtitle": "You do not have permission to view this page.",
+      "home": "Go to dashboard"
+    }
   },
   "nav": {
     "dashboard": "Dashboard",
     "settings": "Settings",
     "profile": "Profile",
-    "logout": "Sign out"
+    "logout": "Sign out",
+    "comingSoon": "Soon",
+    "primaryLabel": "Main navigation",
+    "breadcrumbLabel": "Breadcrumb",
+    "openMenu": "Open navigation menu",
+    "preferences": "Preferences",
+    "collapseSidebar": "Collapse sidebar",
+    "expandSidebar": "Expand sidebar"
+  },
+  "employee": {
+    "nav": {
+      "home": "Home",
+      "attendance": "Attendance",
+      "requests": "Requests",
+      "documents": "Documents",
+      "profile": "Profile",
+      "notifications": "Notifications",
+      "policies": "Policies",
+      "roster": "Roster",
+      "leave": "Leave",
+      "payslips": "Payslips",
+      "more": "More",
+      "bottomLabel": "Employee primary navigation",
+      "sidebarLabel": "Employee menu"
+    },
+    "shell": {
+      "userFallback": "Employee",
+      "roleLabel": "Employee"
+    }
+  },
+  "ess": {
+    "common": {
+      "notRecorded": "Not recorded"
+    },
+    "actions": {
+      "newRequest": "New request",
+      "checkIn": "Check in",
+      "checkOut": "Check out",
+      "submit": "Submit",
+      "cancelRequest": "Cancel request",
+      "markAllRead": "Mark all read",
+      "markRead": "Mark read",
+      "acknowledge": "Acknowledge"
+    },
+    "dashboard": {
+      "title": "My workspace",
+      "description": "Your attendance, requests, documents and notifications in one place.",
+      "greeting": "Good day, {name}",
+      "attendanceStatus": "Attendance status",
+      "checkedIn": "Checked in",
+      "checkedOut": "Checked out",
+      "notCheckedIn": "Not checked in",
+      "firstCheckIn": "Checked in at",
+      "lastCheckOut": "Last check-out",
+      "workedToday": "Worked today",
+      "weeklyWorked": "Worked this week",
+      "leaveBalance": "Leave",
+      "leaveBalanceUnit": "days available",
+      "latestPayslip": "Latest payslip",
+      "location": "Location",
+      "locationUnavailable": "Location not set",
+      "pendingRequests": "Pending requests",
+      "unreadNotifications": "Unread notifications",
+      "todayShift": "Today's shift",
+      "noShift": "No shift scheduled",
+      "documents": "Documents and policies",
+      "documentReminder": "{count} document or policy item needs attention.",
+      "onboarding": "Onboarding",
+      "noOnboarding": "No active onboarding tasks.",
+      "quickActions": {
+        "title": "Quick actions",
+        "requestLeave": "Request leave",
+        "correctAttendance": "Correct attendance",
+        "viewPayslip": "View payslip",
+        "viewNotifications": "View notifications"
+      },
+      "announcements": {
+        "title": "Company announcements"
+      }
+    },
+    "more": {
+      "description": "Profile, documents, leave, and other employee tools."
+    },
+    "attendance": {
+      "title": "My attendance",
+      "description": "Review today's attendance and your recent attendance history.",
+      "todayStatus": "Today's status",
+      "worked": "Worked",
+      "overtime": "Overtime",
+      "empty": "No attendance records found for this date range.",
+      "checkInTitle": "Check in",
+      "checkInDescription": "Confirm your location and shift before checking in.",
+      "checkOutTitle": "Check out",
+      "checkOutDescription": "Review worked time before checking out.",
+      "currentTime": "Current time",
+      "locationConsent": "Location may be used to verify attendance according to your organisation policy.",
+      "alreadyCheckedIn": "You are already checked in for today.",
+      "cannotCheckOut": "Check-out is not available right now. Complete check-in first, or you may already be checked out.",
+      "checkOutWarning": "Checking out before shift end may be flagged by attendance policy.",
+      "correctionTitle": "Request attendance correction",
+      "correctionDescription": "Submit a correction for review by your manager or HR.",
+      "attendanceDate": "Attendance date",
+      "correctionType": "Correction type",
+      "requestedCheckIn": "Requested check-in",
+      "requestedCheckOut": "Requested check-out",
+      "correctionTypes": {
+        "ADD_EVENT": "Add event",
+        "CHANGE_TIME": "Change time",
+        "REMOVE_EVENT": "Remove event",
+        "STATUS_CORRECTION": "Status correction"
+      }
+    },
+    "requests": {
+      "title": "My requests",
+      "description": "Track profile changes, attendance corrections and document requests.",
+      "empty": "No requests match the current filters.",
+      "detailTitle": "Request detail",
+      "detailDescription": "Review status, timeline and submitted values.",
+      "newTitle": "New request",
+      "newDescription": "Submit a profile change or attendance correction for review."
+    },
+    "requestTypes": {
+      "PROFILE_CHANGE": "Profile change",
+      "ATTENDANCE_CORRECTION": "Attendance correction",
+      "DOCUMENT": "Document",
+      "OTHER": "Other"
+    },
+    "profile": {
+      "title": "My profile",
+      "description": "View employment details and update allowed contact fields.",
+      "requestChange": "Request change",
+      "directEdit": "Direct edit fields",
+      "saved": "Profile changes saved."
+    },
+    "documents": {
+      "title": "My documents",
+      "description": "View documents issued to you by HR.",
+      "empty": "No documents are available yet.",
+      "fileAvailable": "File available",
+      "noFile": "No file attached"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Read system and HR notifications sent to you.",
+      "empty": "No notifications found.",
+      "unread": "Unread",
+      "read": "Read"
+    },
+    "policies": {
+      "title": "Policies",
+      "description": "Review and acknowledge pending policy documents.",
+      "empty": "No policies require acknowledgement."
+    },
+    "roster": {
+      "title": "My roster",
+      "description": "View your published shifts and rest days.",
+      "empty": "No roster entries found for this range.",
+      "restDay": "Rest day"
+    },
+    "leave": {
+      "title": "My leave",
+      "description": "View balances and manage your leave requests.",
+      "empty": "No leave requests match the current filters.",
+      "noBalances": "No leave balances are available yet.",
+      "noTypes": "No active leave types are configured.",
+      "requestLeave": "Request leave",
+      "newTitle": "Request leave",
+      "newDescription": "Submit a leave request using your available balance.",
+      "detailTitle": "Leave request detail",
+      "detailDescription": "Review leave request dates, status and payroll impact.",
+      "pendingReserved": "{count} pending",
+      "pendingRequests": "Pending leave requests",
+      "upcoming": "Upcoming leave",
+      "leaveType": "Leave type",
+      "dayPart": "Day part",
+      "quantity": "Quantity",
+      "payrollImpact": "Payroll impact",
+      "emergency": "Emergency leave",
+      "dayParts": {
+        "FULL": "Full day",
+        "FIRST_HALF": "First half",
+        "SECOND_HALF": "Second half"
+      }
+    },
+    "payslips": {
+      "title": "My payslips",
+      "description": "View published payslips from payroll.",
+      "empty": "No published payslips are available yet.",
+      "detailTitle": "Payslip detail",
+      "detailDescription": "Review earnings, deductions, gross pay and net pay.",
+      "grossPay": "Gross pay",
+      "netPay": "Net pay",
+      "earnings": "Earnings",
+      "deductions": "Deductions",
+      "earning": "Earning",
+      "deduction": "Deduction"
+    },
+    "comingSoon": {
+      "title": "Coming soon",
+      "description": "This employee self-service module is not live yet.",
+      "moduleUnavailable": "This module is not available for your workspace yet.",
+      "notImplemented": "The module is enabled but this screen is still being completed."
+    },
+    "filters": {
+      "from": "From",
+      "to": "To",
+      "allTypes": "All types",
+      "allStatuses": "All statuses"
+    },
+    "fields": {
+      "date": "Date",
+      "status": "Status",
+      "shift": "Shift",
+      "time": "Time",
+      "dueDate": "Due date",
+      "currentValue": "Current value",
+      "requestedValue": "Requested value",
+      "reason": "Reason",
+      "createdAt": "Created at",
+      "submittedAt": "Submitted at",
+      "decidedAt": "Decided at",
+      "decisionNote": "Decision note",
+      "requestType": "Request type",
+      "section": "Section",
+      "fieldPath": "Field",
+      "employeeNumber": "Employee number",
+      "workEmail": "Work email",
+      "department": "Department",
+      "position": "Position",
+      "manager": "Manager",
+      "preferredName": "Preferred name",
+      "phoneMobile": "Mobile phone",
+      "emailPersonal": "Personal email",
+      "addressLine1": "Address line 1",
+      "addressLine2": "Address line 2",
+      "city": "City",
+      "stateProvince": "State / province",
+      "postalCode": "Postal code",
+      "countryCode": "Country code",
+      "issuedDate": "Issued date",
+      "expiryDate": "Expiry date",
+      "file": "File",
+      "version": "Version",
+      "effectiveDate": "Effective date"
+    }
   },
   "pagination": {
     "showing": "Showing {from}–{to} of {total}",
@@ -48,7 +412,17 @@
   "platform": {
     "admin": {
       "label": "Platform Admin",
-      "roleLabel": "Super Admin"
+      "roleLabel": "Super Admin",
+      "roles": {
+        "superAdmin": "Platform Super Admin",
+        "supportEngineer": "Platform Support Engineer",
+        "auditor": "Platform Auditor",
+        "operator": "Platform operator"
+      }
+    },
+    "brand": {
+      "shortName": "Workforce OS",
+      "fullName": "Workforce Cloud OS"
     },
     "nav": {
       "overview": "Platform Overview",
@@ -57,18 +431,58 @@
       "usage": "Usage",
       "supportAccess": "Support Access",
       "audit": "Platform Audit",
-      "config": "System Configuration"
+      "config": "System Configuration",
+      "integrationHealth": "Integration Health",
+      "configGeneral": "General",
+      "configSecurity": "Security",
+      "configRetention": "Data retention",
+      "configRegions": "Regions",
+      "configNotifications": "Email / SMS / Push",
+      "configIntegrations": "Integrations",
+      "configAuditLogging": "Audit logging"
     },
     "dashboard": {
       "title": "Platform Overview",
       "description": "Monitor tenants, subscriptions, and platform health.",
       "recentTenants": "Recent tenants",
+      "recentActivity": "Recent tenant activity",
+      "noRecentActivity": "No recent platform tenant activity.",
+      "lastUpdated": "Updated: {time}",
+      "period": {
+        "label": "Time period",
+        "today": "Today",
+        "7d": "Last 7 Days",
+        "30d": "Last 30 Days",
+        "month": "This Month",
+        "custom": "Custom"
+      },
       "stats": {
         "total": "Total tenants",
-        "active": "Active",
+        "active": "Active tenants",
+        "trial": "Trial tenants",
         "draft": "Draft",
-        "suspended": "Suspended",
-        "closed": "Closed"
+        "suspended": "Suspended tenants",
+        "closed": "Closed",
+        "grace": "Grace period tenants"
+      },
+      "widgets": {
+        "subscriptionAlerts": "Subscription alerts",
+        "trialsEndingSoon": "Trials ending within 14 days",
+        "noAlerts": "No subscription alerts from live tenant data.",
+        "supportAccess": "Support access",
+        "activeGrants": "Active grants",
+        "supportIssues": "Support issues",
+        "supportIssuesDeferred": "Support-issue queues are owned by later notification/support modules (M13) and are not live in M01. Ticket counts are not invented.",
+        "integrationIncidents": "Integration incidents",
+        "noIncidents": "No open integration incidents."
+      },
+      "actions": {
+        "viewTenants": "View tenants",
+        "viewAll": "View all",
+        "openAudit": "Open platform audit",
+        "reviewHealth": "Review integration health",
+        "export": "Export",
+        "grantSupport": "Grant support access"
       }
     },
     "billing": {
@@ -79,13 +493,23 @@
       "title": "Tenants",
       "description": "Manage all customer organisations on this platform.",
       "createButton": "Create tenant",
-      "searchPlaceholder": "Search by name or ID…",
+      "searchPlaceholder": "Search tenants…",
       "empty": {
         "title": "No tenants found",
         "description": "Adjust your filters or create the first tenant."
       },
       "filters": {
-        "allStatuses": "All statuses"
+        "allStatuses": "All statuses",
+        "allPlans": "All plans",
+        "allCountries": "All countries",
+        "createdFrom": "Created from",
+        "createdTo": "Created to",
+        "trialEndingBefore": "Trial ending before",
+        "usageThreshold": "Usage threshold",
+        "usageThresholdAll": "Any utilisation",
+        "usageThreshold50": "50% or more",
+        "usageThreshold80": "80% or more",
+        "usageThreshold90": "90% or more"
       },
       "status": {
         "draft": "Draft",
@@ -98,12 +522,23 @@
       },
       "columns": {
         "name": "Organisation",
+        "identifier": "Identifier",
         "country": "Country",
         "plan": "Plan",
         "seats": "Seat limit",
+        "usage": "Employee usage",
         "status": "Status",
-        "created": "Created"
+        "created": "Created",
+        "renewal": "Renewal / trial expiry",
+        "actions": "Actions"
       },
+      "rowActions": {
+        "open": "Open",
+        "edit": "Edit",
+        "support": "Support",
+        "more": "More"
+      },
+      "usageUnavailable": "Unavailable",
       "actions": {
         "activate": "Activate",
         "suspend": "Suspend",
@@ -118,6 +553,8 @@
           "overview": "Overview",
           "usage": "Usage",
           "subscription": "Subscription",
+          "modules": "Modules",
+          "administrators": "Administrators",
           "support": "Support",
           "audit": "Audit"
         },
@@ -132,12 +569,20 @@
           "currency": "Currency",
           "timezone": "Time zone",
           "locale": "Primary locale",
-          "createdBy": "Created by"
+          "createdBy": "Created by",
+          "trialStatus": "Payment / trial status",
+          "lastActivity": "Last activity",
+          "primaryContact": "Primary contact"
         }
       },
       "usage": {
         "seats": "Seat utilisation",
-        "activeOf": "active of {total} seats"
+        "activeOf": "active of {total} seats",
+        "storage": "Storage",
+        "storageOf": "{used} used of {limit} GB configured",
+        "storageUsed": "{used} used",
+        "storageLimitUnknown": "Storage usage is measured when a documented subsystem reports it. The configured limit is shown when available.",
+        "noSnapshot": "No usage snapshot has been recorded for this tenant. Employee usage is not invented."
       },
       "subscription": {
         "currentPlan": "Current plan",
@@ -152,7 +597,20 @@
         "startsAt": "Starts at",
         "endsAt": "Ends at",
         "durationNote": "Maximum duration is 24 hours from start time.",
-        "createButton": "Grant access"
+        "createButton": "Grant access",
+        "bannerTitle": "Controlled support access is active",
+        "bannerBody": "A time-limited support grant is in effect for this tenant. Support users access the tenant through this grant — they do not impersonate a customer user.",
+        "grantAs": "Grant access as",
+        "scopes": {
+          "attendance": "Attendance",
+          "payroll": "Payroll",
+          "leave": "Leave",
+          "employees": "Employees",
+          "organisation": "Organisation",
+          "reports": "Reports",
+          "settings": "Settings",
+          "audit": "Audit"
+        }
       },
       "suspend": {
         "title": "Suspend tenant",
@@ -161,18 +619,57 @@
         "reasonPlaceholder": "Describe the business reason for suspending this tenant…",
         "reasonHelp": "This reason is stored in the audit log and is not visible to the tenant.",
         "confirmLabel": "Type the tenant name to confirm: {name}",
-        "confirmButton": "Suspend tenant"
+        "confirmButton": "Suspend tenant",
+        "userMessage": "User-facing message",
+        "effectiveNow": "Effective immediately",
+        "dataAccess": "Writes are blocked. Reads and exports remain available during any grace period. Data is not deleted.",
+        "mfaLabel": "MFA confirmation code",
+        "mfaPlaceholder": "6-digit code",
+        "mfaHelp": "Required when MFA is enrolled on your platform account (always required in production)."
+      },
+      "restore": {
+        "title": "Restore tenant",
+        "reasonLabel": "Reason for restore"
+      },
+      "changePlan": {
+        "reason": "Reason for plan change"
+      },
+      "modules": {
+        "empty": "No plan entitlements are available for this tenant."
+      },
+      "administrators": {
+        "empty": "No administrator invitations have been recorded for this tenant.",
+        "expires": "Expires"
       },
       "create": {
         "title": "Create tenant",
-        "description": "Provision a new customer organisation. The tenant will be created in DRAFT state.",
+        "description": "Save draft provisions the tenant in DRAFT without an invitation. Create and send invitation also provisions DRAFT and sends the primary administrator invitation. Activation is a separate action.",
         "breadcrumb": "New tenant",
         "wizardProgress": "Wizard progress",
         "submitButton": "Create and send invitation",
+        "saveDraft": "Save draft",
         "steps": {
           "company": "Company",
           "commercial": "Commercial",
-          "admin": "Administrator"
+          "product": "Product",
+          "admin": "Administrator",
+          "review": "Review"
+        },
+        "selectPlan": "Select a plan…",
+        "selectRegion": "Select a region…",
+        "review": {
+          "title": "Review and create",
+          "description": "Confirm every value that will be submitted. Save draft keeps the tenant in DRAFT with no invitation. Create and send invitation keeps DRAFT and sends the primary administrator invitation."
+        },
+        "success": {
+          "title": "Tenant created",
+          "titleInvited": "Tenant created and invitation sent",
+          "description": "The tenant has been provisioned in DRAFT state.",
+          "descriptionInvited": "The tenant was provisioned and the primary administrator invitation was created. Delivery follows the NotificationGateway result.",
+          "invitationStatus": "Invitation status",
+          "invitationPending": "The tenant was created but invitation status could not be confirmed. Check tenant detail or retry invitation.",
+          "viewTenant": "View tenant",
+          "backToDirectory": "Back to tenant directory"
         },
         "company": {
           "title": "Company details",
@@ -181,40 +678,746 @@
           "country": "Country",
           "currency": "Currency",
           "timeZone": "Time zone",
-          "hostingRegion": "Hosting region"
+          "hostingRegion": "Hosting region",
+          "language": "Primary language"
         },
         "commercial": {
           "title": "Commercial setup",
           "plan": "Plan",
           "billingCycle": "Billing cycle",
           "seatLimit": "Seat limit",
+          "storageLimit": "Storage limit (GB)",
           "trialEndsAt": "Trial end date",
-          "trialHelp": "Leave blank for a paid subscription from day one."
+          "trialHelp": "Required for a trial start. Paid tenants do not set a trial expiry.",
+          "subscriptionStart": "Subscription start",
+          "trial": "Trial",
+          "paid": "Paid"
+        },
+        "product": {
+          "title": "Product setup",
+          "entitlementNote": "Enabled modules, SSO, API access and support tier are confirmed from the selected plan. M01 does not create independent overrides.",
+          "noEntitlements": "This plan has no entitlement rows in the catalogue.",
+          "enabledModules": "Enabled modules",
+          "entitlements": "Entitlements",
+          "source": "Source",
+          "sso": "SSO",
+          "apiAccess": "API access",
+          "supportTier": "Support tier",
+          "included": "Included",
+          "notIncluded": "Not included",
+          "supportPremium": "Premium",
+          "supportStandard": "Standard"
         },
         "admin": {
           "title": "Primary administrator",
           "displayName": "Full name",
           "email": "Email address",
-          "emailHelp": "An invitation will be sent to this email address."
+          "emailHelp": "Used as the primary administrator. An invitation is sent only when you choose Create and send invitation.",
+          "emailTaken": "This email is already in use or has a pending invitation.",
+          "emailAvailable": "Email is available.",
+          "role": "Role",
+          "roleValue": "Tenant Admin"
         }
       }
     },
+    "plans": {
+      "title": "Plans & Entitlements",
+      "description": "Commercial plan catalogue and entitlement defaults.",
+      "billingModel": "Billing model",
+      "entitlements": "Included entitlements",
+      "included": "Included",
+      "notIncluded": "Not included",
+      "empty": "No plans have been configured.",
+      "total": "{count} plan(s) configured",
+      "active": "{count} active",
+      "createPlan": "Create Plan",
+      "editPlan": "Edit Plan",
+      "editNote": "Plan edits affect all tenants on this plan.",
+      "fields": {
+        "name": "Plan name",
+        "description": "Description"
+      }
+    },
+    "usage": {
+      "title": "Platform Usage",
+      "description": "Aggregate seat allocation and utilisation across tenants.",
+      "totalSeats": "Total seat allocation",
+      "activeEmployees": "Active employees",
+      "utilisation": "Seat utilisation",
+      "tenantsReporting": "Tenants with usage data",
+      "perTenantNote": "Detailed storage and API metrics are available on each tenant's Usage tab.",
+      "seats": "seats",
+      "utilisationBreakdown": "Seat Utilisation Breakdown",
+      "utilBand": {
+        "under50": "< 50%",
+        "50to75": "50 – 75%",
+        "75to90": "75 – 90%",
+        "over90": "> 90%"
+      },
+      "topTenants": "Top Tenants by Usage",
+      "noTenantData": "No tenant usage data available."
+    },
+    "support": {
+      "title": "Support Access",
+      "description": "Time-limited, scoped support grants across customer tenants.",
+      "empty": "No support grants match the current filters.",
+      "revoke": "Revoke",
+      "confirmRevoke": "Confirm revoke",
+      "filters": {
+        "allStatuses": "All statuses"
+      },
+      "status": {
+        "active": "Active",
+        "revoked": "Revoked",
+        "expired": "Expired",
+        "pending": "Pending",
+        "rejected": "Rejected"
+      },
+      "approve": "Approve",
+      "reject": {
+        "label": "Reject",
+        "title": "Reject Support Grant",
+        "description": "Provide a reason for rejecting this support access request.",
+        "reason": "Rejection reason",
+        "confirm": "Reject"
+      }
+    },
     "audit": {
-      "comingSoon": "Audit log viewer will be available in a future release."
+      "title": "Platform Audit",
+      "description": "Cross-tenant audit trail for platform administration actions.",
+      "empty": "No audit events match the current filters.",
+      "filters": {
+        "allModules": "All modules",
+        "tenant": "Tenant",
+        "module": "Module",
+        "severity": "Severity",
+        "allSeverities": "All severities",
+        "from": "From date",
+        "to": "To date",
+        "clear": "Clear filters"
+      },
+      "columns": {
+        "time": "Time",
+        "action": "Action",
+        "tenant": "Tenant",
+        "actor": "Actor",
+        "severity": "Severity"
+      },
+      "totalResults": "{total} results",
+      "detail": {
+        "title": "Event Details",
+        "id": "Event ID",
+        "action": "Action",
+        "module": "Module",
+        "resource": "Resource",
+        "actor": "Actor",
+        "actorType": "Actor type",
+        "tenant": "Tenant",
+        "severity": "Severity",
+        "correlationId": "Correlation ID"
+      }
+    },
+    "config": {
+      "title": "System Configuration",
+      "description": "M01 platform reference configuration for regions and commercial plans.",
+      "readOnlyTitle": "M01 platform reference configuration",
+      "readOnlyDescription": "This page is the M01 read-only reference catalogue (regions and plans). Editable global settings, feature-flag administration, billing, and compliance-pack configuration are owned by later modules (M15/M16/M17) and are not complete here.",
+      "regions": {
+        "create": "Add region",
+        "code": "Region code",
+        "name": "Region name"
+      },
+      "regionsNote": "Managed via deployment region catalogue (see Plans & tenant provisioning).",
+      "plans": "Commercial plans",
+      "plansNote": "Managed via plan catalogue. Billing and subscription lifecycle belongs to M16.",
+      "emptyRegions": "No active deployment regions are seeded.",
+      "emptyPlans": "No active commercial plans are seeded.",
+      "tabsLabel": "Configuration domains",
+      "general": {
+        "platformName": "Platform name",
+        "supportEmail": "Support email",
+        "maintenanceMode": "Maintenance mode",
+        "maintenanceModeDesc": "Prevents new logins while enabled."
+      },
+      "security": {
+        "mfaRequired": "Require MFA for all platform admins",
+        "mfaRequiredDesc": "Enforces multi-factor authentication on next login.",
+        "sessionTimeout": "Session timeout (seconds)",
+        "sessionTimeoutDesc": "Idle sessions expire after this duration.",
+        "passwordMinLength": "Minimum password length"
+      },
+      "retention": {
+        "auditDays": "Audit log retention (days)",
+        "auditDaysDesc": "Audit events older than this are purged.",
+        "archiveDays": "Archive after (days)"
+      },
+      "notifications": {
+        "email": "Email notifications",
+        "slack": "Slack notifications",
+        "slackWebhook": "Slack webhook URL"
+      },
+      "integrations": {
+        "webhook": "Outbound webhooks",
+        "webhookUrl": "Webhook endpoint URL"
+      },
+      "auditLogging": {
+        "stream": "Stream audit events",
+        "streamDesc": "Forward audit events to an external endpoint.",
+        "endpoint": "Streaming endpoint URL",
+        "minSeverity": "Minimum severity to stream"
+      }
+    },
+    "integrationHealth": {
+      "title": "Integration Health",
+      "description": "Connector and sync health for platform-operated integrations.",
+      "unavailableTitle": "Not available in this release",
+      "deferredDescription": "Integration incident telemetry is owned by M15 (Data Migration & Integrations) and is not live yet. No health data is invented.",
+      "lastSync": "Last sync",
+      "errors24h": "Errors (24h)",
+      "successRate": "Success rate",
+      "retry": "Retry",
+      "disable": "Disable",
+      "configure": "Configure",
+      "empty": "No integrations configured",
+      "lastChecked": "Last checked",
+      "latency": "Latency",
+      "status": {
+        "healthy": "Healthy",
+        "degraded": "Degraded",
+        "down": "Down"
+      },
+      "incidents": "Active Incidents"
+    },
+    "catalogue": {
+      "countries": {
+        "PK": "Pakistan",
+        "AE": "United Arab Emirates",
+        "SA": "Saudi Arabia",
+        "GB": "United Kingdom",
+        "US": "United States"
+      },
+      "currencies": {
+        "PKR": "Pakistani Rupee",
+        "AED": "UAE Dirham",
+        "SAR": "Saudi Riyal",
+        "GBP": "British Pound",
+        "USD": "US Dollar"
+      },
+      "locales": {
+        "en-PK": "English (Pakistan)",
+        "ur-PK": "Urdu (Pakistan)"
+      }
+    },
+    "chrome": {
+      "tenantSwitcher": {
+        "placeholder": "Switch tenant",
+        "search": "Search tenants…",
+        "noResults": "No tenants found",
+        "viewAll": "View all tenants"
+      },
+      "search": {
+        "placeholder": "Search tenants, users, audit…",
+        "noResults": "No results found",
+        "users": "Users",
+        "audit": "Audit events"
+      },
+      "notifications": {
+        "label": "Notifications",
+        "title": "Notifications",
+        "markAll": "Mark all read",
+        "markRead": "Mark as read",
+        "empty": "No unread notifications",
+        "viewAll": "View all notifications"
+      },
+      "quickCreate": {
+        "label": "Quick create",
+        "createTenant": "Create Tenant",
+        "inviteUser": "Invite User",
+        "announcement": "Create Announcement",
+        "announcementTitle": "Title",
+        "announcementBody": "Message body",
+        "viewAll": "View all"
+      },
+      "help": {
+        "label": "Help",
+        "helpCenter": "Help Center",
+        "docs": "Documentation",
+        "support": "Contact Support",
+        "status": "System Status"
+      },
+      "userMenu": {
+        "profile": "Profile",
+        "myAccount": "My Account",
+        "mfa": "MFA Settings",
+        "notificationPreferences": "Notification Preferences",
+        "language": "Language",
+        "help": "Help",
+        "logout": "Logout"
+      }
     }
   },
   "tenant": {
     "nav": {
-      "dashboard": "Dashboard",
+      "dashboard": "Home",
+      "home": "Home",
       "organisation": "Organisation",
       "employees": "Employees",
-      "documents": "Documents",
+      "documents": "Onboarding & Documents",
       "attendance": "Attendance",
       "leave": "Leave",
       "shifts": "Shifts",
+      "roster": "Roster calendar",
       "payroll": "Payroll",
       "reports": "Reports",
-      "settings": "Settings"
+      "settings": "Settings",
+      "subscription": "Subscription",
+      "integrations": "Integrations",
+      "audit": "Audit",
+      "people": "People",
+      "employeeRecords": "Employee Records",
+      "orgStructure": "Org Structure",
+      "timeAttendance": "Time & Attendance",
+      "attendanceOverview": "Overview",
+      "timeTracking": "Time Tracking",
+      "attendancePolicies": "Attendance Policies",
+      "captureOverview": "Capture Overview",
+      "captureDevices": "Devices",
+      "captureGeofences": "Geofences",
+      "captureOfflineSessions": "Offline Sessions",
+      "hrDashboard": "HR Dashboard",
+      "onboarding": "Onboarding",
+      "documentsLibrary": "Documents",
+      "attendanceExceptions": "Exceptions",
+      "periodLock": "Period lock",
+      "hrSettings": "HR Settings",
+      "shiftsRosters": "Shifts & Rosters",
+      "shiftAssign": "Assign shifts",
+      "approvals": "Approvals"
+    },
+    "brand": {
+      "shortName": "Workforce OS",
+      "fullName": "Workforce Cloud OS"
+    },
+    "chrome": {
+      "search": {
+        "placeholder": "Search employees…",
+        "noResults": "No employees found",
+        "employees": "Employees"
+      },
+      "notifications": {
+        "label": "Notifications",
+        "title": "Notifications",
+        "markAll": "Mark all read",
+        "markRead": "Mark as read",
+        "empty": "No unread notifications",
+        "viewAll": "View all notifications"
+      },
+      "quickCreate": {
+        "label": "Quick create",
+        "addEmployee": "Add Employee",
+        "requestLeave": "Request Leave",
+        "recordAttendance": "Record Attendance"
+      },
+      "help": {
+        "label": "Help",
+        "helpCenter": "Help Center",
+        "docs": "Documentation",
+        "support": "Contact Support",
+        "status": "System Status"
+      },
+      "userMenu": {
+        "profile": "Profile",
+        "mfa": "MFA Settings",
+        "settings": "Settings",
+        "logout": "Logout"
+      }
+    },
+    "admin": {
+      "label": "Tenant Admin",
+      "roleLabel": "HR Administrator"
+    },
+    "dashboard": {
+      "title": "Home",
+      "description": "Overview of your workforce.",
+      "welcome": "Welcome back, {name}! Here's your workforce overview for today.",
+      "quickActions": "Quick actions",
+      "refresh": "Refresh",
+      "workforceHeading": "Workforce today",
+      "organisationHeading": "Organisation",
+      "totalEmployees": "Total employees",
+      "activeEmployees": "Active employees",
+      "onLeaveToday": "On leave today",
+      "presentToday": "Present today",
+      "absentToday": "Absent today",
+      "pendingApprovals": "Pending approvals",
+      "lateArrivals": "Late arrivals today",
+      "openExceptions": "Open exceptions",
+      "attendanceRate": "{rate}% of active staff",
+      "needsReview": "Awaiting review",
+      "ofHeadcount": "of {total} employees",
+      "viewAll": "View all",
+      "actions": {
+        "addEmployee": "Add employee",
+        "importEmployees": "Import employees",
+        "recordAttendance": "Record attendance",
+        "requestLeave": "Request leave",
+        "runPayroll": "Run payroll",
+        "viewReports": "View reports"
+      }
+    },
+    "settings": {
+      "title": "Settings",
+      "description": "Configure your organisation, users, branding, and security.",
+      "hub": {
+        "complete": "Complete",
+        "incomplete": "Incomplete",
+        "comingSoon": "Coming soon",
+        "percent": "{percent}% configured"
+      },
+      "categories": {
+        "company": "Company",
+        "organisation": "Organisation",
+        "users_roles": "Users and roles",
+        "attendance": "Attendance",
+        "regional": "Regional",
+        "branding": "Branding",
+        "modules": "Modules",
+        "security": "Security",
+        "subscription": "Subscription",
+        "leave": "Leave",
+        "payroll": "Payroll",
+        "workflows": "Workflows",
+        "notifications": "Notifications",
+        "integrations": "Integrations",
+        "sessions": "Active sessions",
+        "roles": "Roles and permissions"
+      },
+      "company": {
+        "title": "Company profile",
+        "description": "Legal and display details for your organisation.",
+        "save": "Save profile",
+        "saved": "Company profile saved."
+      },
+      "branding": {
+        "title": "Branding",
+        "description": "Logos and colours within permitted limits.",
+        "save": "Save branding",
+        "saved": "Branding updated.",
+        "previewLogin": "Login preview",
+        "previewEmail": "Email header preview",
+        "previewPayslip": "Payslip header preview",
+        "contrastWarning": "Contrast warning",
+        "uploads": "Logo uploads",
+        "uploading": "Uploading logo..."
+      },
+      "regional": {
+        "title": "Language and regional settings",
+        "description": "Locale, formats, and working week.",
+        "save": "Save regional settings",
+        "saved": "Regional settings saved.",
+        "rtlPreview": "RTL preview",
+        "enabledLocales": "Enabled locales",
+        "workingWeekPattern": "Working week"
+      },
+      "users": {
+        "title": "Tenant administrators and users",
+        "description": "Invite, deactivate, and manage access.",
+        "invite": "Invite user",
+        "resend": "Resend",
+        "revoke": "Revoke",
+        "deactivate": "Deactivate",
+        "requireReset": "Require password reset",
+        "requireMfa": "Require MFA",
+        "empty": "No users found.",
+        "invitations": "Pending invitations",
+        "detail": "User detail"
+      },
+      "roles": {
+        "title": "Roles and permissions",
+        "description": "View and edit the permission matrix.",
+        "create": "Create role",
+        "system": "System",
+        "custom": "Custom",
+        "assignments": "{count} users",
+        "delete": "Delete role",
+        "confirmDelete": "Delete {name}? Users assigned to this role will lose these permissions."
+      },
+      "modules": {
+        "title": "Module settings",
+        "description": "Active, inactive, and unavailable modules.",
+        "configure": "Configure",
+        "requestUpgrade": "Request upgrade",
+        "active": "Active",
+        "inactive": "Inactive",
+        "unavailable": "Unavailable"
+      },
+      "security": {
+        "title": "Security settings",
+        "description": "Password, MFA, and session policy.",
+        "save": "Save security policy",
+        "saved": "Security policy saved."
+      },
+      "sessions": {
+        "title": "Active sessions",
+        "description": "Review and revoke signed-in sessions.",
+        "revoke": "End session",
+        "revokeAll": "End all sessions",
+        "empty": "No active sessions."
+      },
+      "subscription": {
+        "title": "Subscription",
+        "description": "Plan, seats, and usage for your tenant.",
+        "requestUpgrade": "Request upgrade",
+        "seatLimit": "Seat limit",
+        "activeEmployees": "Active employees",
+        "storage": "Storage used",
+        "approaching": "Approaching seat limit",
+        "reached": "Seat limit reached",
+        "history": "Upgrade request history",
+        "status": "Status",
+        "plan": "Plan",
+        "createdAt": "Created",
+        "note": "Note",
+        "noHistory": "No upgrade requests yet."
+      },
+      "setup": {
+        "title": "Tenant setup checklist",
+        "description": "Complete required configuration before go-live.",
+        "progress": "{percent}% complete",
+        "required": "Required",
+        "optional": "Optional",
+        "blocked": "Blocked",
+        "resume": "Continue",
+        "goLiveReady": "Ready for go-live",
+        "notReady": "Setup incomplete"
+      },
+      "audit": {
+        "title": "Audit log",
+        "description": "Sensitive changes within your tenant.",
+        "empty": "No audit events found."
+      }
+    },
+    "setupSteps": {
+      "company_profile": "Company profile",
+      "branding": "Branding",
+      "organisation": "Organisation structure",
+      "locations": "Locations",
+      "roles_administrators": "Roles and administrators",
+      "attendance_policy": "Attendance policy",
+      "leave_policy": "Leave policy",
+      "payroll_settings": "Payroll settings",
+      "employee_import": "Employee import",
+      "notifications": "Notifications",
+      "integration_setup": "Integration setup",
+      "validation": "Validation",
+      "go_live_readiness": "Go-live readiness"
+    },
+    "leave": {
+      "home": {
+        "title": "Leave",
+        "description": "Manage leave requests, types, and balances.",
+        "pendingCount": "Pending requests",
+        "typesCount": "Active leave types",
+        "links": {
+          "requests": "Leave requests",
+          "requestsHint": "Review and decide submitted leave.",
+          "types": "Leave types",
+          "typesHint": "Configure paid and unpaid leave types.",
+          "adjust": "Balance adjustments",
+          "adjustHint": "Grant or adjust employee leave balances."
+        }
+      },
+      "requests": {
+        "title": "Leave requests",
+        "description": "Filter and open leave requests for this tenant.",
+        "filterStatus": "Filter by status",
+        "allStatuses": "All statuses",
+        "empty": "No leave requests match the current filters."
+      },
+      "detail": {
+        "title": "Leave request",
+        "description": "Review request details and approve or reject.",
+        "approve": "Approve",
+        "reject": "Reject",
+        "noActions": "No decision actions are available for this status."
+      },
+      "types": {
+        "title": "Leave types",
+        "description": "Create and edit leave types for this organisation.",
+        "create": "Create type",
+        "edit": "Edit type",
+        "empty": "No leave types configured yet.",
+        "halfDayAllowed": "Half-day allowed",
+        "columns": {
+          "code": "Code",
+          "name": "Name",
+          "paidStatus": "Paid status",
+          "unit": "Unit",
+          "status": "Status"
+        }
+      },
+      "adjust": {
+        "title": "Balance adjustments",
+        "description": "Grant or adjust leave balances for an employee.",
+        "employeeId": "Employee ID",
+        "leaveType": "Leave type",
+        "selectType": "Select leave type",
+        "entryType": "Entry type",
+        "grant": "Grant",
+        "adjustment": "Adjustment",
+        "quantity": "Quantity",
+        "effectiveDate": "Effective date",
+        "reason": "Reason"
+      },
+      "columns": {
+        "employee": "Employee",
+        "type": "Type",
+        "dates": "Dates",
+        "quantity": "Quantity",
+        "status": "Status",
+        "reason": "Reason"
+      },
+      "status": {
+        "DRAFT": "Draft",
+        "SUBMITTED": "Submitted",
+        "APPROVED": "Approved",
+        "REJECTED": "Rejected",
+        "RETURNED": "Returned",
+        "CANCELLED": "Cancelled",
+        "COMPLETED": "Completed"
+      }
+    },
+    "payroll": {
+      "home": {
+        "title": "Payroll",
+        "description": "Payslip publishing and payroll overview.",
+        "published": "Published payslips",
+        "generated": "Generated payslips",
+        "total": "Total payslips",
+        "links": {
+          "payslips": "Payslips",
+          "payslipsHint": "Browse published and generated payslips.",
+          "publish": "Publish payslip",
+          "publishHint": "Publish an ESS-visible payslip for an employee."
+        }
+      },
+      "payslips": {
+        "title": "Payslips",
+        "description": "Admin list of tenant payslips.",
+        "publishCta": "Publish payslip",
+        "filterStatus": "Filter by status",
+        "allStatuses": "All statuses",
+        "empty": "No payslips found.",
+        "publish": "Publish"
+      },
+      "publish": {
+        "title": "Publish payslip",
+        "description": "Create a published payslip visible in employee self-service.",
+        "fields": {
+          "employeeId": "Employee ID",
+          "periodLabel": "Period label",
+          "periodStart": "Period start",
+          "periodEnd": "Period end",
+          "currency": "Currency",
+          "grossAmount": "Gross amount",
+          "netAmount": "Net amount"
+        }
+      },
+      "columns": {
+        "employee": "Employee",
+        "period": "Period",
+        "gross": "Gross",
+        "net": "Net",
+        "status": "Status",
+        "publishedAt": "Published at"
+      }
+    },
+    "approvals": {
+      "title": "Approvals",
+      "description": "Items assigned for your decision.",
+      "tabs": {
+        "assigned": "Assigned to me"
+      },
+      "empty": "No items waiting for approval.",
+      "columns": {
+        "type": "Type",
+        "employee": "Employee",
+        "title": "Summary",
+        "status": "Status",
+        "submittedAt": "Submitted",
+        "open": "Open"
+      },
+      "types": {
+        "LEAVE": "Leave",
+        "CHANGE_REQUEST": "Change request"
+      }
+    },
+    "reports": {
+      "title": "Reports",
+      "description": "Open operational reports from existing modules.",
+      "run": "Run",
+      "empty": "No reports are available for your permissions.",
+      "catalogue": {
+        "hrDirectory": {
+          "title": "HR employee directory",
+          "description": "Browse the employee directory."
+        },
+        "attendanceDaily": {
+          "title": "Attendance daily",
+          "description": "Open attendance records for daily review."
+        },
+        "leavePending": {
+          "title": "Leave pending",
+          "description": "Submitted leave requests awaiting decision."
+        },
+        "audit": {
+          "title": "Audit",
+          "description": "Tenant audit event log."
+        }
+      }
+    },
+    "integrations": {
+      "title": "Integrations",
+      "description": "Connect biometric, SSO, payroll export, and messaging channels.",
+      "configure": "Configure",
+      "status": {
+        "configured": "Configured",
+        "notConfigured": "Not configured"
+      },
+      "categories": {
+        "biometric": {
+          "title": "Biometric devices",
+          "description": "Attendance capture devices and connectors."
+        },
+        "sso": {
+          "title": "Single sign-on",
+          "description": "Identity provider and security settings."
+        },
+        "payrollExport": {
+          "title": "Payroll export",
+          "description": "Export payroll outputs to external systems."
+        },
+        "finance": {
+          "title": "Finance",
+          "description": "Finance and GL integrations."
+        },
+        "email": {
+          "title": "Email",
+          "description": "Transactional email delivery."
+        },
+        "sms": {
+          "title": "SMS",
+          "description": "SMS notification channel."
+        },
+        "webhook": {
+          "title": "Webhooks",
+          "description": "Outbound event webhooks."
+        },
+        "api": {
+          "title": "API access",
+          "description": "API clients and credentials."
+        }
+      }
     }
   },
   "documents": {
@@ -280,12 +1483,22 @@
       "status": "Status",
       "expiry": "Expiry",
       "actions": "Actions"
+    },
+    "library": {
+      "title": "Document library",
+      "description": "Review and approve employee documents.",
+      "approve": "Approve",
+      "reject": "Reject"
     }
   },
   "organisation": {
     "overview": {
       "title": "Organisation Structure",
-      "description": "Manage your legal entities, branches, departments, cost centres, and positions."
+      "description": "Manage your legal entities, branches, departments, cost centres, and positions.",
+      "legalEntities": "Legal entities",
+      "departments": "Departments",
+      "activeEmployees": "Active employees",
+      "unassigned": "Unassigned placements"
     },
     "nav": {
       "legalEntities": "Legal Entities",
@@ -510,6 +1723,16 @@
         "breadcrumb": "Position detail",
         "sectionDetails": "Position details"
       }
+    },
+    "grades": {
+      "title": "Grades",
+      "description": "Job grade catalogue for positions and employment.",
+      "code": "Code",
+      "name": "Name"
+    },
+    "history": {
+      "title": "Organisation history",
+      "description": "Effective-dated organisation structure changes."
     }
   },
   "attendance": {
@@ -519,80 +1742,78 @@
     },
     "createButton": "Log Attendance",
     "status": {
-      "PRESENT":         "Present",
-      "ABSENT":          "Absent",
-      "LATE":            "Late",
-      "HALF_DAY":        "Half Day",
+      "PRESENT": "Present",
+      "ABSENT": "Absent",
+      "LATE": "Late",
+      "HALF_DAY": "Half Day",
       "EARLY_DEPARTURE": "Early Departure",
-      "MISSING_PUNCH":   "Missing Punch",
-      "ON_LEAVE":        "On Leave",
-      "HOLIDAY":         "Holiday",
-      "WEEKEND":         "Weekend",
-      "REMOTE_WORK":     "Remote Work",
-      "BUSINESS_TRIP":   "Business Trip"
+      "MISSING_PUNCH": "Missing Punch",
+      "ON_LEAVE": "On Leave",
+      "HOLIDAY": "Holiday",
+      "WEEKEND": "Weekend",
+      "REMOTE_WORK": "Remote Work",
+      "BUSINESS_TRIP": "Business Trip"
     },
     "eventType": {
-      "CHECK_IN":  "Check In",
+      "CHECK_IN": "Check In",
       "CHECK_OUT": "Check Out"
     },
     "source": {
-      "BIOMETRIC":    "Biometric",
-      "MOBILE":       "Mobile",
-      "WEB":          "Web",
-      "MANUAL":       "Manual",
-      "API":          "API",
+      "BIOMETRIC": "Biometric",
+      "MOBILE": "Mobile",
+      "WEB": "Web",
+      "MANUAL": "Manual",
+      "API": "API",
       "OFFLINE_SYNC": "Offline Sync"
     },
     "exceptionType": {
-      "LATE":               "Late Arrival",
-      "EARLY_DEPARTURE":    "Early Departure",
-      "MISSING_CHECK_IN":   "Missing Check-In",
-      "MISSING_CHECK_OUT":  "Missing Check-Out",
-      "OVERTIME_UNAPPROVED":"Unapproved Overtime"
+      "LATE": "Late Arrival",
+      "EARLY_DEPARTURE": "Early Departure",
+      "MISSING_CHECK_IN": "Missing Check-In",
+      "MISSING_CHECK_OUT": "Missing Check-Out",
+      "OVERTIME_UNAPPROVED": "Unapproved Overtime"
     },
     "columns": {
-      "date":     "Date",
-      "checkIn":  "Check In",
+      "date": "Date",
+      "checkIn": "Check In",
       "checkOut": "Check Out",
-      "worked":   "Worked",
-      "status":   "Status",
+      "worked": "Worked",
+      "status": "Status",
       "employee": "Employee",
-      "type":     "Type",
+      "type": "Type",
       "severity": "Severity",
       "resolved": "Resolved"
     },
     "records": {
-      "title":       "Attendance Records",
+      "title": "Attendance Records",
       "description": "View and manage daily attendance records.",
       "empty": {
-        "title":       "No attendance records found",
+        "title": "No attendance records found",
         "description": "Attendance records will appear here once employees check in."
       }
     },
     "detail": {
-      "title":            "Attendance Detail",
-      "breadcrumb":       "Record Detail",
-      "sectionRecord":    "Record",
-      "sectionEvents":    "Raw Events",
-      "sectionExceptions":"Exceptions"
+      "title": "Attendance Detail",
+      "breadcrumb": "Record Detail",
+      "sectionRecord": "Record",
+      "sectionEvents": "Raw Events",
+      "sectionExceptions": "Exceptions"
     },
     "exceptions": {
-      "title":       "Attendance Exceptions",
-      "empty": {
-        "title":       "No exceptions",
-        "description": "No attendance exceptions have been raised."
-      },
-      "resolveButton": "Resolve"
+      "title": "Attendance exceptions",
+      "description": "Unresolved and recent attendance exceptions.",
+      "resolved": "Resolved",
+      "open": "Open"
     },
     "filters": {
       "allStatuses": "All statuses",
-      "dateFrom":    "From date",
-      "dateTo":      "To date"
+      "dateFrom": "From date",
+      "dateTo": "To date"
     },
     "cards": {
       "presentToday": "Present Today",
-      "absentToday":  "Absent Today",
-      "lateToday":    "Late Today",
+      "absentToday": "Absent Today",
+      "lateToday": "Late Today",
       "totalRecords": "Total Records"
     },
     "policy": {
@@ -602,7 +1823,12 @@
         "error": "Failed to load policies",
         "empty": "No attendance policies yet"
       },
-      "create": { "title": "Create Attendance Policy" },
+      "create": {
+        "title": "Create Attendance Policy"
+      },
+      "edit": {
+        "title": "Edit Attendance Policy"
+      },
       "detail": {
         "back": "Policies",
         "loading": "Loading policy...",
@@ -644,7 +1870,9 @@
         "allowLateCheckOut": "Allow Late Check-out",
         "allowOvertime": "Allow Overtime"
       },
-      "units": { "minutes": "min" },
+      "units": {
+        "minutes": "min"
+      },
       "actions": {
         "create": "Create Policy",
         "createFirst": "Create your first policy",
@@ -656,6 +1884,568 @@
       "errors": {
         "nameRequired": "Policy name is required"
       }
+    },
+    "capture": {
+      "title": "Capture Overview",
+      "description": "Monitor attendance capture infrastructure and device health — not employee attendance analytics.",
+      "navLabel": "Capture Overview",
+      "purpose": "Operational health of biometric terminals, gateways, and related capture endpoints.",
+      "loading": "Loading capture overview…",
+      "error": "Unable to load capture overview.",
+      "retry": "Retry",
+      "refresh": "Refresh",
+      "lastUpdated": "Last refreshed",
+      "lastUpdatedValue": "Last refreshed {time}",
+      "summary": {
+        "title": "Operational summary",
+        "total": "Total devices",
+        "healthy": "Healthy",
+        "degraded": "Degraded",
+        "unhealthy": "Unhealthy",
+        "offline": "Offline",
+        "suspended": "Suspended",
+        "decommissioned": "Decommissioned"
+      },
+      "attention": {
+        "title": "Attention required",
+        "description": "Devices that are degraded, unhealthy, offline, or suspended.",
+        "empty": "No devices currently require attention."
+      },
+      "empty": {
+        "title": "No capture devices to monitor",
+        "description": "No attendance capture devices are currently available for health monitoring."
+      },
+      "operational": {
+        "title": "Operational information",
+        "dataSource": "Source: device health summary",
+        "rowCount": "{count} device health rows"
+      },
+      "actions": {
+        "refresh": "Refresh",
+        "viewGeofences": "View geofences"
+      },
+      "a11y": {
+        "page": "Attendance capture operational overview",
+        "refresh": "Refresh capture health data",
+        "summary": "Device health summary counts",
+        "attentionTable": "Devices requiring attention",
+        "deviceId": "Device identifier {id}"
+      }
+    },
+    "devices": {
+      "title": "Devices",
+      "description": "Register and manage attendance capture devices.",
+      "purpose": "Device registry for biometric terminals, gateways, and related capture endpoints.",
+      "navLabel": "Devices",
+      "loading": "Loading devices…",
+      "error": "Unable to load devices.",
+      "success": {
+        "registered": "Device registered successfully.",
+        "provisioned": "Device provisioned successfully.",
+        "activated": "Device activated.",
+        "suspended": "Device suspended.",
+        "decommissioned": "Device decommissioned.",
+        "replaced": "Device replaced successfully."
+      },
+      "empty": {
+        "title": "No devices registered",
+        "description": "Register a capture device to begin ingesting attendance events."
+      },
+      "filters": {
+        "search": "Search devices",
+        "searchPlaceholder": "Search by name or serial…",
+        "status": "Status",
+        "allStatuses": "All statuses"
+      },
+      "columns": {
+        "name": "Name",
+        "deviceType": "Type",
+        "serialNumber": "Serial number",
+        "status": "Status",
+        "health": "Health",
+        "vendor": "Vendor",
+        "model": "Model",
+        "timezone": "Timezone",
+        "lastSeenAt": "Last seen",
+        "createdAt": "Created",
+        "updatedAt": "Updated",
+        "actions": "Actions"
+      },
+      "fields": {
+        "name": "Device name",
+        "deviceType": "Device type",
+        "serialNumber": "Serial number",
+        "vendor": "Vendor",
+        "model": "Model",
+        "timezone": "Timezone",
+        "timezonePlaceholder": "Select timezone (optional)",
+        "deviceFingerprint": "Device fingerprint",
+        "publicKeyFingerprint": "Public key fingerprint",
+        "ipWhitelist": "IP whitelist",
+        "ipWhitelistHint": "One IP or CIDR per entry (optional).",
+        "ipAdd": "Add IP / CIDR",
+        "ipRemove": "Remove",
+        "reason": "Reason",
+        "reasonPlaceholder": "Provide a reason for this action",
+        "newSerialNumber": "New serial number",
+        "newDeviceFingerprint": "New device fingerprint (optional)",
+        "newPublicKeyFingerprint": "New public key fingerprint (optional)"
+      },
+      "sections": {
+        "basic": "Basic information",
+        "manufacturer": "Manufacturer",
+        "regional": "Regional / operational",
+        "overview": "Overview",
+        "lifecycle": "Lifecycle",
+        "provisioning": "Provisioning",
+        "health": "Health",
+        "heartbeat": "Heartbeat",
+        "heartbeatLatest": "Latest heartbeat",
+        "heartbeatHistory": "Heartbeat history",
+        "system": "System information",
+        "identity": "Trusted identity",
+        "network": "Network controls"
+      },
+      "validation": {
+        "nameRequired": "Device name is required.",
+        "nameMax": "Name must be at most 255 characters.",
+        "deviceTypeRequired": "Device type is required.",
+        "deviceTypeMax": "Device type must be at most 64 characters.",
+        "serialRequired": "Serial number is required.",
+        "serialMax": "Serial number must be at most 128 characters.",
+        "vendorMax": "Vendor must be at most 128 characters.",
+        "modelMax": "Model must be at most 128 characters.",
+        "timezoneMax": "Timezone must be at most 50 characters.",
+        "fingerprintRequired": "This fingerprint is required.",
+        "fingerprintMax": "Fingerprint must be at most 128 characters.",
+        "ipMax": "Each IP/CIDR entry must be at most 64 characters.",
+        "reasonRequired": "A reason is required.",
+        "reasonMax": "Reason must be at most 500 characters.",
+        "newSerialRequired": "New serial number is required."
+      },
+      "actions": {
+        "register": "Register device",
+        "registerFirst": "Register your first device",
+        "provision": "Provision",
+        "activate": "Activate",
+        "suspend": "Suspend",
+        "decommission": "Decommission",
+        "replace": "Replace",
+        "issueToken": "Issue token",
+        "view": "View",
+        "save": "Save",
+        "saving": "Saving…",
+        "cancel": "Cancel",
+        "confirm": "Confirm",
+        "issuing": "Issuing…"
+      },
+      "confirm": {
+        "activate": "Activate this device so it can capture attendance events?",
+        "activateNamed": "Activate “{name}” so it can capture attendance events?",
+        "suspend": "Suspend this device? Capture will stop until it is reactivated.",
+        "suspendNamed": "Suspend “{name}”? Capture will stop until it is reactivated.",
+        "decommission": "Decommission this device permanently? This cannot be undone from the registry.",
+        "decommissionNamed": "Decommission “{name}” permanently? This cannot be undone from the registry.",
+        "replace": "Replace this device? The current device will be decommissioned.",
+        "replaceNamed": "Replace “{name}”? The current device will be decommissioned and a new device created."
+      },
+      "lifecycle": {
+        "title": "Lifecycle actions",
+        "pendingHint": "Provision this device to establish trusted identity before capture.",
+        "noActions": "No lifecycle actions are available for this status."
+      },
+      "status": {
+        "PENDING": "Pending",
+        "ACTIVE": "Active",
+        "SUSPENDED": "Suspended",
+        "DECOMMISSIONED": "Decommissioned"
+      },
+      "pagination": {
+        "showing": "Showing {from}–{to} of {total}",
+        "previous": "Previous page",
+        "next": "Next page"
+      },
+      "heartbeat": {
+        "empty": "No heartbeat received yet.",
+        "error": "Unable to load heartbeat data.",
+        "sinceHours": "History window",
+        "hours": {
+          "1": "1 hour",
+          "6": "6 hours",
+          "24": "24 hours",
+          "72": "72 hours",
+          "168": "7 days"
+        },
+        "columns": {
+          "occurredAt": "Received",
+          "cpu": "CPU",
+          "memory": "Memory",
+          "disk": "Disk",
+          "queueLength": "Queue",
+          "clockOffsetMs": "Clock offset (ms)",
+          "firmwareVersion": "Firmware",
+          "lastSyncAt": "Last sync",
+          "ipAddress": "IP"
+        }
+      },
+      "forbidden": "You do not have permission to view devices.",
+      "a11y": {
+        "page": "Attendance devices",
+        "table": "Devices table",
+        "status": "Device status {status}",
+        "openDetail": "Open device {name}",
+        "serialNumber": "Serial number",
+        "editLifecycle": "{action} device {name}",
+        "heartbeatTable": "Device heartbeat history"
+      },
+      "new": {
+        "title": "Register device",
+        "description": "Create a new attendance capture device in pending state.",
+        "breadcrumb": "Register"
+      },
+      "detail": {
+        "title": "Device detail",
+        "description": "Lifecycle, health, and capture activity for this device.",
+        "breadcrumb": "Device",
+        "notFound": "Device not found."
+      },
+      "provision": {
+        "title": "Provision device",
+        "description": "Bind fingerprints and network controls to establish trusted device identity.",
+        "breadcrumb": "Provision",
+        "warning": "Provisioning establishes trusted device identity. Fingerprints are write-only and will not be shown again after submit.",
+        "submit": "Provision device"
+      },
+      "replaceForm": {
+        "title": "Replace device",
+        "description": "Decommission this device and create a replacement with a new serial number."
+      }
+    },
+    "geofences": {
+      "title": "Geofences",
+      "description": "Define circular capture geofences for location validation.",
+      "purpose": "Circle geofences scoped to legal entities and branches.",
+      "navLabel": "Geofences",
+      "loading": "Loading geofences…",
+      "error": "Unable to load geofences.",
+      "success": {
+        "created": "Geofence created successfully.",
+        "updated": "Geofence updated successfully.",
+        "deleted": "Geofence deleted."
+      },
+      "empty": {
+        "title": "No geofences defined",
+        "description": "Create a circular geofence to validate capture locations."
+      },
+      "filters": {
+        "legalEntity": "Legal entity",
+        "branch": "Branch",
+        "allLegalEntities": "All legal entities",
+        "allBranches": "All branches"
+      },
+      "columns": {
+        "name": "Name",
+        "scope": "Scope",
+        "latitude": "Latitude",
+        "longitude": "Longitude",
+        "shape": "Shape",
+        "center": "Center",
+        "radiusMeters": "Radius (m)",
+        "legalEntity": "Legal entity",
+        "branch": "Branch",
+        "activeFrom": "Active from",
+        "activeTo": "Active to",
+        "rowVersion": "Version",
+        "updatedAt": "Updated",
+        "createdAt": "Created",
+        "actions": "Actions"
+      },
+      "fields": {
+        "name": "Geofence name",
+        "legalEntityId": "Legal entity",
+        "branchId": "Branch",
+        "centerLat": "Center latitude",
+        "centerLng": "Center longitude",
+        "radiusMeters": "Radius (meters)",
+        "activeFrom": "Active from",
+        "activeTo": "Active to",
+        "legalEntityPlaceholder": "Select legal entity (optional)",
+        "branchPlaceholder": "Select branch (optional)",
+        "tenantScope": "Tenant-wide"
+      },
+      "sections": {
+        "basic": "Basic information",
+        "location": "Location",
+        "dates": "Effective dates",
+        "overview": "Overview",
+        "scope": "Scope",
+        "system": "System information"
+      },
+      "validation": {
+        "nameRequired": "Geofence name is required.",
+        "nameMax": "Name must be at most 200 characters.",
+        "latRange": "Latitude must be between -90 and 90.",
+        "lngRange": "Longitude must be between -180 and 180.",
+        "radiusRange": "Radius must be between {min} and {max} meters.",
+        "dateOrder": "Active to must be after active from."
+      },
+      "actions": {
+        "create": "Create geofence",
+        "createFirst": "Create your first geofence",
+        "edit": "Edit",
+        "delete": "Delete",
+        "check": "Check location",
+        "save": "Save",
+        "saving": "Saving…",
+        "cancel": "Cancel",
+        "confirmDelete": "Delete geofence",
+        "view": "View"
+      },
+      "confirm": {
+        "delete": "Delete this geofence? Location checks that reference it will stop.",
+        "deleteNamed": "Delete “{name}”? Location checks that reference it will stop."
+      },
+      "shape": {
+        "CIRCLE": "Circle"
+      },
+      "check": {
+        "title": "Location check",
+        "description": "Test whether a coordinate falls inside this circular geofence.",
+        "latitude": "Latitude",
+        "longitude": "Longitude",
+        "at": "At (optional)",
+        "submit": "Check",
+        "checking": "Checking…",
+        "result": "Result",
+        "within": "Within geofence",
+        "outside": "Outside geofence",
+        "distance": "Distance: {distance} m",
+        "exceedBy": "Exceeds by {exceedBy} m",
+        "close": "Close"
+      },
+      "conflict": {
+        "title": "This geofence was updated by another user.",
+        "description": "Reload the latest data before making changes. Your current edits will not be submitted.",
+        "reload": "Reload latest data",
+        "cancel": "Cancel"
+      },
+      "versionConflict": "This geofence changed since you loaded it. Reload and try again.",
+      "forbidden": "You do not have permission to view geofences.",
+      "a11y": {
+        "page": "Attendance geofences",
+        "table": "Geofences table",
+        "coordinates": "Coordinates",
+        "openDetail": "Open geofence {name}",
+        "editGeofence": "Edit geofence {name}",
+        "deleteGeofence": "Delete geofence {name}",
+        "checkLocation": "Check location against geofence {name}",
+        "numeric": "Numeric value"
+      },
+      "new": {
+        "title": "Create geofence",
+        "description": "Define a circular geofence for attendance capture validation.",
+        "breadcrumb": "New"
+      },
+      "detail": {
+        "title": "Geofence detail",
+        "breadcrumb": "Geofence",
+        "notFound": "Geofence not found."
+      },
+      "edit": {
+        "title": "Edit geofence",
+        "description": "Update geofence geometry or active dates.",
+        "breadcrumb": "Edit"
+      }
+    },
+    "offline": {
+      "title": "Offline sessions",
+      "description": "Monitor offline capture sessions and pending event queues.",
+      "purpose": "Monitor attendance capture sessions created for offline synchronization and recovery. This is not an employee attendance report.",
+      "navLabel": "Offline Sessions",
+      "loading": "Loading offline sessions…",
+      "error": "Unable to load offline sessions.",
+      "forbidden": "You do not have permission to view offline sessions.",
+      "success": {
+        "replayStarted": "Offline replay completed.",
+        "replaySummary": "Processed {processed}: {success} succeeded, {errors} failed, {deduplicated} already replayed.",
+        "closed": "Offline session closed.",
+        "closedWithPending": "Pending events were queued for asynchronous replay."
+      },
+      "errors": {
+        "replayFailed": "Unable to replay offline session.",
+        "closeFailed": "Unable to close offline session.",
+        "dateRange": "End date must be on or after the start date."
+      },
+      "empty": {
+        "title": "No offline sessions",
+        "description": "Offline capture sessions appear when devices operate without connectivity. Sessions are created by the capture workflow, not from this monitor."
+      },
+      "filters": {
+        "status": "Status",
+        "allStatuses": "All statuses",
+        "device": "Device",
+        "allDevices": "All devices",
+        "dateFrom": "From",
+        "dateTo": "To"
+      },
+      "columns": {
+        "sessionId": "Session",
+        "deviceId": "Device",
+        "mobileDeviceId": "Mobile device",
+        "startedAt": "Started",
+        "endedAt": "Ended",
+        "clientTimezone": "Client timezone",
+        "status": "Status",
+        "pendingEvents": "Pending events",
+        "actions": "Actions"
+      },
+      "fields": {
+        "reason": "Reason",
+        "reasonPlaceholder": "Provide a reason for closing this session",
+        "stillOpen": "Still open",
+        "sessionId": "Session ID",
+        "device": "Device",
+        "mobileDeviceId": "Mobile device ID",
+        "clientTimezone": "Client timezone",
+        "startedAt": "Started at",
+        "endedAt": "Ended at",
+        "status": "Status"
+      },
+      "sections": {
+        "overview": "Overview",
+        "timing": "Session timing",
+        "source": "Capture source",
+        "pending": "Pending events",
+        "actions": "Recovery actions"
+      },
+      "validation": {
+        "reasonRequired": "A reason is required.",
+        "reasonMax": "Reason must be at most 500 characters."
+      },
+      "actions": {
+        "view": "View",
+        "replay": "Replay queue",
+        "close": "Close session",
+        "confirm": "Confirm",
+        "cancel": "Cancel",
+        "refresh": "Refresh"
+      },
+      "confirm": {
+        "replay": "Replay pending events for this offline session? Events will be submitted for processing. Duplicate protection remains enforced by the backend. This does not guarantee immediate attendance-record creation.",
+        "replayNamed": "Replay pending events for session {id}? Events will be submitted for processing. Duplicate protection remains enforced by the backend. This does not guarantee immediate attendance-record creation.",
+        "close": "Close this offline session? New uploads will be rejected.",
+        "closeNamed": "Close session {id} ({device})? New uploads will be rejected.",
+        "closeWithPending": "This session still has pending events. Closing will queue those events for asynchronous replay."
+      },
+      "sessionStatus": {
+        "ACTIVE": "Active",
+        "CLOSED": "Closed",
+        "COMPLETED": "Completed"
+      },
+      "pendingStatus": {
+        "pending": "Pending",
+        "completed": "Completed",
+        "failed": "Failed"
+      },
+      "pending": {
+        "title": "Pending events",
+        "empty": "No pending events",
+        "emptyDescription": "There are no pending offline queue events for this session.",
+        "error": "Unable to load pending events.",
+        "sequence": "Sequence",
+        "source": "Source",
+        "status": "Replay state",
+        "uploadedAt": "Uploaded",
+        "attempts": "Attempts"
+      },
+      "detail": {
+        "title": "Offline session",
+        "breadcrumb": "Session",
+        "description": "Session metadata and pending offline queue events for recovery.",
+        "notFound": "Offline session not found."
+      },
+      "a11y": {
+        "page": "Offline capture sessions",
+        "table": "Offline sessions table",
+        "pendingTable": "Pending offline events table",
+        "openDetail": "Open offline session",
+        "openDetailNamed": "Open offline session {id}",
+        "sessionId": "Session identifier {id}",
+        "deviceId": "Device identifier {id}",
+        "sequence": "Sequence number {value}",
+        "status": "Session status {status}"
+      },
+      "pagination": {
+        "showing": "Showing {from}–{to} of {total}",
+        "previous": "Previous page",
+        "next": "Next page"
+      }
+    },
+    "deviceHealth": {
+      "title": "Device health",
+      "description": "Tenant-wide capture device health summary.",
+      "loading": "Loading device health…",
+      "error": "Unable to load device health.",
+      "empty": {
+        "title": "No health data",
+        "description": "Health summaries appear after devices send heartbeats."
+      },
+      "columns": {
+        "device": "Device",
+        "health": "Health",
+        "lastSeenAt": "Last seen",
+        "averageCpu": "Avg CPU",
+        "averageMemory": "Avg memory",
+        "averageDisk": "Avg disk",
+        "outstandingQueue": "Queue"
+      },
+      "status": {
+        "HEALTHY": "Healthy",
+        "DEGRADED": "Degraded",
+        "UNHEALTHY": "Unhealthy",
+        "OFFLINE": "Offline",
+        "SUSPENDED": "Suspended",
+        "DECOMMISSIONED": "Decommissioned"
+      },
+      "a11y": {
+        "status": "Device health {status}",
+        "summary": "Device health summary"
+      }
+    },
+    "deviceToken": {
+      "title": "Device token",
+      "issue": "Issue device token",
+      "issued": "Token issued",
+      "warning": {
+        "title": "Copy this token now",
+        "body": "This device token is shown once. Store it securely on the device. It cannot be retrieved again."
+      },
+      "fields": {
+        "token": "Token",
+        "tokenType": "Token type",
+        "expiresIn": "Expires in",
+        "expiresAt": "Expires at"
+      },
+      "actions": {
+        "copy": "Copy token",
+        "copied": "Token copied",
+        "dismiss": "Done"
+      },
+      "errors": {
+        "issueFailed": "Unable to issue device token."
+      },
+      "a11y": {
+        "dialog": "One-time device token",
+        "copy": "Copy device token to clipboard",
+        "tokenValue": "Device token value"
+      }
+    },
+    "periodLock": {
+      "title": "Attendance period lock",
+      "description": "Lock a date range to prevent retroactive attendance changes.",
+      "start": "Period start",
+      "end": "Period end",
+      "lock": "Lock period"
     }
   },
   "employees": {
@@ -731,7 +2521,7 @@
       "status": "Status",
       "legalEntityId": "Legal entity ID",
       "legalEntityIdPlaceholder": "Enter legal entity UUID",
-      "managerId": "Reporting manager ID",
+      "managerId": "Manager ID",
       "managerIdPlaceholder": "Enter manager employee UUID (optional)",
       "legalEntity": "Legal entity",
       "legalEntityPlaceholder": "Select legal entity",
@@ -742,7 +2532,9 @@
       "position": "Position",
       "positionPlaceholder": "Select position (optional)",
       "manager": "Reporting manager",
-      "managerPlaceholder": "Search by name or email…"
+      "managerPlaceholder": "Search by name or email…",
+      "departmentId": "Department ID",
+      "positionId": "Position ID"
     },
     "create": {
       "title": "Add employee",
@@ -784,6 +2576,484 @@
         "nextOfKinRelationship": "Relationship",
         "nextOfKinPhone": "Phone"
       }
+    },
+    "importButton": "Import",
+    "dataQualityButton": "Data quality",
+    "actions": {
+      "transfer": "Transfer",
+      "changeStatus": "Change status",
+      "timeline": "Timeline"
+    },
+    "statusChange": {
+      "title": "Change employee status",
+      "status": "Status",
+      "effectiveDate": "Effective date",
+      "reason": "Reason"
+    },
+    "transfer": {
+      "title": "Transfer employee",
+      "currentAssignment": "Current assignment",
+      "effectiveDate": "Effective date",
+      "reason": "Reason"
+    },
+    "timeline": {
+      "title": "Employee timeline"
+    },
+    "import": {
+      "title": "Bulk employee import",
+      "description": "Validate and commit employee rows. Data is not saved until you confirm.",
+      "rowsJson": "Employee rows (JSON array)",
+      "invalidJson": "Invalid JSON",
+      "validate": "Validate import",
+      "status": "Import status",
+      "counts": "Valid {valid} · Warnings {warning} · Errors {error}",
+      "commit": "Commit valid rows",
+      "committed": "Committed {count} employees"
+    },
+    "dataQuality": {
+      "title": "Employee data quality",
+      "description": "Gaps that block HR go-live completeness.",
+      "activeEmployees": "{count} active employees in scope",
+      "activeEmployeesLabel": "Active employees",
+      "missingManager": "Missing manager",
+      "missingDepartment": "Missing department",
+      "missingShift": "Missing shift",
+      "missingMandatoryFields": "Missing mandatory fields",
+      "missingCompensation": "Missing compensation",
+      "expiredDocuments": "Expired documents",
+      "duplicateIdentifiers": "Duplicate identifiers",
+      "inactiveStructureAssignments": "Inactive structure assignments",
+      "samplesTitle": "Employees needing attention",
+      "samplesDescription": "Open a sample employee record to remediate the gap.",
+      "openEmployee": "Open employee"
+    }
+  },
+  "shifts": {
+    "title": "Shifts",
+    "description": "Reusable working-time definitions used for rostering and attendance.",
+    "forbidden": "You do not have permission to view shifts.",
+    "columns": {
+      "shift": "Shift",
+      "code": "Code",
+      "startEnd": "Start / end",
+      "requiredHours": "Required hours",
+      "break": "Break",
+      "overnight": "Overnight",
+      "policy": "Attendance policy",
+      "assigned": "Assigned employees",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "ACTIVE": "Active",
+      "INACTIVE": "Inactive"
+    },
+    "overnight": {
+      "yes": "Overnight",
+      "no": "Day"
+    },
+    "fields": {
+      "code": "Shift code",
+      "name": "Shift name",
+      "policy": "Attendance policy",
+      "policyPlaceholder": "Select a policy",
+      "policyHint": "Grace, late, and overtime rules come from the linked policy.",
+      "policyLink": "Manage attendance policies",
+      "start": "Start time",
+      "end": "End time",
+      "overnight": "Overnight shift (ends next calendar day)",
+      "requiredMinutes": "Required minutes",
+      "breakMinutes": "Break duration (minutes)",
+      "breakPaid": "Break is paid",
+      "paid": "paid",
+      "unpaid": "unpaid",
+      "checkInBefore": "Check-in window before (minutes)",
+      "checkInAfter": "Check-in window after (minutes)",
+      "checkOutAfter": "Check-out window after (minutes)",
+      "effectiveFrom": "Effective from",
+      "effectiveTo": "Effective to (exclusive)",
+      "version": "Version"
+    },
+    "sections": {
+      "basic": "Basic information",
+      "timing": "Core timing",
+      "break": "Break",
+      "windows": "Attendance windows",
+      "effective": "Effective dating",
+      "policyRules": "Attendance evaluation rules"
+    },
+    "policyReadOnly": {
+      "hint": "These values are owned by the Attendance Policy and cannot be edited here.",
+      "selectPolicy": "Select an attendance policy to preview evaluation rules.",
+      "grace": "Grace period",
+      "lateTolerance": "Late tolerance",
+      "earlyDeparture": "Early-departure tolerance",
+      "overtime": "Overtime",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "minutes": "min"
+    },
+    "actions": {
+      "create": "Create shift",
+      "edit": "Edit",
+      "save": "Save",
+      "deactivate": "Deactivate",
+      "assign": "Assign shift",
+      "viewAssignments": "Assignments",
+      "viewRoster": "Roster calendar",
+      "cancel": "Cancel"
+    },
+    "filters": {
+      "search": "Search shifts",
+      "searchPlaceholder": "Search by name or code",
+      "status": "Status",
+      "allStatuses": "All statuses"
+    },
+    "empty": {
+      "title": "No shifts yet",
+      "description": "Create a reusable shift template to begin rostering."
+    },
+    "errors": {
+      "loadFailed": "Could not load shifts.",
+      "saveFailed": "Could not save the shift.",
+      "deactivateFailed": "Could not deactivate the shift."
+    },
+    "success": {
+      "created": "Shift created.",
+      "updated": "Shift updated.",
+      "versionCreated": "New shift version v{version} created. Historical versions are preserved.",
+      "deactivated": "Shift deactivated."
+    },
+    "validation": {
+      "codeRequired": "Shift code is required.",
+      "nameRequired": "Shift name is required.",
+      "policyRequired": "Attendance policy is required.",
+      "timesRequired": "Start and end times are required.",
+      "requiredMinutes": "Required minutes must be greater than zero.",
+      "breakMinutes": "Break minutes cannot be negative.",
+      "dateRange": "Effective to must be after effective from.",
+      "dayTimes": "For day shifts, end time must be after start time.",
+      "overnightTimes": "Overnight shifts must end earlier than they start (next calendar day)."
+    },
+    "version": {
+      "warning": "Saving these schedule changes will create a new shift version and preserve the previous version for history."
+    },
+    "conflict": {
+      "title": "Shift changed elsewhere",
+      "description": "This shift was updated by someone else. Reload to see the latest version, then try again.",
+      "reload": "Reload",
+      "cancel": "Cancel"
+    },
+    "deactivate": {
+      "title": "Deactivate shift?",
+      "description": "“{name}” will no longer be available for new assignments. Historical records remain available."
+    },
+    "new": {
+      "title": "Create shift",
+      "description": "Define a reusable working pattern.",
+      "breadcrumb": "New"
+    },
+    "edit": {
+      "title": "Edit shift",
+      "description": "Update “{name}”. Material schedule changes create a new version.",
+      "breadcrumb": "Edit"
+    },
+    "detail": {
+      "notFound": "Shift not found."
+    },
+    "pagination": {
+      "showing": "Showing {from}–{to} of {total}",
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "a11y": {
+      "table": "Shifts table"
+    },
+    "assign": {
+      "title": "Assign shift",
+      "description": "Set an effective-dated default working pattern for employees or current department members.",
+      "breadcrumb": "Assign",
+      "sections": {
+        "target": "Assignment target",
+        "configuration": "Assignment configuration"
+      },
+      "mode": {
+        "employees": "Employees",
+        "department": "Department"
+      },
+      "fields": {
+        "employees": "Employees",
+        "department": "Department",
+        "departmentPlaceholder": "Select a department",
+        "shift": "Shift",
+        "shiftPlaceholder": "Select an active shift",
+        "effectiveFrom": "Effective from",
+        "effectiveTo": "Effective to",
+        "effectiveToHint": "Leave blank for open-ended. End date is exclusive.",
+        "location": "Location (Branch)",
+        "locationPlaceholder": "Optional branch / location"
+      },
+      "employeeSearch": "Search employees by name or email…",
+      "selectedEmployees": "Selected employees",
+      "removeEmployee": "Remove employee",
+      "snapshotHint": "Applies to current ACTIVE department members at the time of assignment. Employees who join later do not inherit this assignment automatically.",
+      "actions": {
+        "submit": "Assign shift"
+      },
+      "validation": {
+        "shiftRequired": "Select a shift.",
+        "fromRequired": "Effective from is required.",
+        "range": "Effective to must be after effective from.",
+        "employeesRequired": "Select at least one employee.",
+        "departmentRequired": "Select a department."
+      },
+      "overlap": {
+        "title": "Overlapping assignments",
+        "description": "One or more employees already have a default shift that overlaps this date range.",
+        "row": "Employee {employeeId}: {from} → {to}",
+        "openEnded": "open-ended",
+        "override": "Override existing",
+        "noOverridePermission": "You do not have permission to override overlapping assignments."
+      },
+      "success": {
+        "summary": "Assigned {created} of {resolved} employees ({overridden} overrides)."
+      },
+      "errors": {
+        "assignFailed": "Could not assign the shift."
+      }
+    },
+    "assignments": {
+      "title": "Shift assignments",
+      "description": "Effective-dated default working patterns. This is not the published roster calendar.",
+      "breadcrumb": "Assignments",
+      "openEnded": "open-ended",
+      "columns": {
+        "employee": "Employee",
+        "shift": "Shift",
+        "range": "Effective range",
+        "source": "Source",
+        "location": "Location (Branch)"
+      },
+      "actions": {
+        "assign": "Assign shift"
+      },
+      "empty": {
+        "title": "No assignments yet",
+        "description": "Assign a default shift to employees or a department."
+      },
+      "errors": {
+        "loadFailed": "Could not load assignments."
+      },
+      "a11y": {
+        "table": "Shift assignments table"
+      }
+    }
+  },
+  "roster": {
+    "title": "Roster calendar",
+    "description": "Plan and publish dated roster assignments. Drafts do not affect attendance until published.",
+    "truncated": "Visible range returned more rows than the calendar page size. Narrow filters or date range.",
+    "views": {
+      "label": "Calendar view",
+      "day": "Day",
+      "week": "Week",
+      "month": "Month"
+    },
+    "nav": {
+      "prev": "Previous period",
+      "next": "Next period",
+      "today": "Today"
+    },
+    "filters": {
+      "search": "Search employees",
+      "department": "Department",
+      "branch": "Branch"
+    },
+    "actions": {
+      "assign": "Assign shift",
+      "rest": "Rest day",
+      "applyPattern": "Apply pattern",
+      "copyWeek": "Copy week",
+      "copyWeekDeferred": "Copy week is deferred pending product definition",
+      "publish": "Publish roster",
+      "refresh": "Refresh",
+      "retry": "Retry"
+    },
+    "legend": {
+      "label": "Legend",
+      "rest": "Rest day",
+      "draft": "Draft",
+      "published": "Published"
+    },
+    "grid": {
+      "employee": "Employee"
+    },
+    "empty": {
+      "employees": "No employees match the current filters",
+      "employeesHint": "Adjust search, department, or branch filters."
+    },
+    "error": {
+      "title": "Could not load roster"
+    },
+    "cell": {
+      "draft": "Draft",
+      "published": "Published",
+      "restDay": "Rest day",
+      "overnight": "Overnight",
+      "emptyAria": "No roster for {employee} on {date}. Activate to assign.",
+      "filledAria": "{employee} on {date}: {status}. {detail}"
+    },
+    "assign": {
+      "titleAssign": "Assign roster shift",
+      "titleRest": "Assign rest day",
+      "titlePattern": "Apply pattern",
+      "draftHint": "Creates DRAFT roster rows. Publish separately to affect attendance.",
+      "patternHint": "Uses existing recurrence (DAILY / WEEKLY). Generated rows remain DRAFT.",
+      "draftNotice": "All created rows stay DRAFT until you publish the roster period.",
+      "target": "Target",
+      "employees": "Employees",
+      "department": "Department snapshot",
+      "selectDepartment": "Select department",
+      "shift": "Shift",
+      "selectShift": "Select shift",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "branchOptional": "Branch (optional)",
+      "selectBranch": "Select branch",
+      "recurrence": "Recurrence",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "restWeekdays": "Mark these weekdays as rest days",
+      "weekday": {
+        "0": "Sun",
+        "1": "Mon",
+        "2": "Tue",
+        "3": "Wed",
+        "4": "Thu",
+        "5": "Fri",
+        "6": "Sat"
+      },
+      "cancel": "Cancel",
+      "submit": "Create draft",
+      "overrideConfirm": "Override and create draft",
+      "success": "Draft roster assignment created",
+      "conflictTitle": "Roster conflict",
+      "conflictNoOverride": "You do not have override permission. Change dates or targets.",
+      "conflictOverrideHint": "Override replaces the current draft tip or supersedes published rows when you publish later.",
+      "validation": {
+        "datesRequired": "Start and end dates are required.",
+        "range": "End date must be on or after start date.",
+        "employeesRequired": "Select at least one employee.",
+        "departmentRequired": "Select a department.",
+        "shiftRequired": "Select a shift.",
+        "daysOfWeek": "Select at least one weekday for weekly recurrence."
+      }
+    },
+    "edit": {
+      "title": "Edit draft roster",
+      "description": "Only the current DRAFT tip can be edited.",
+      "restDay": "Rest day",
+      "cancel": "Cancel",
+      "save": "Save",
+      "success": "Draft updated"
+    },
+    "conflict": {
+      "staleTitle": "Roster changed",
+      "staleBody": "This draft was updated by someone else. Reload to see the latest version. Your changes were not saved.",
+      "cancel": "Cancel",
+      "reload": "Reload"
+    },
+    "publish": {
+      "title": "Publish roster",
+      "description": "Publish DRAFT tips from {from} to {to}. This does not automatically recalculate attendance.",
+      "noRecalc": "Publishing changes future schedule resolution only. Existing attendance records are not recalculated automatically.",
+      "cancel": "Cancel",
+      "submit": "Publish",
+      "confirmAndPublish": "Confirm impact and publish",
+      "overrideLocked": "Override locked attendance and publish",
+      "confirmAttendance": "Existing unlocked attendance records would be impacted. Confirm to continue.",
+      "lockedOverride": "Period-locked attendance is impacted. Override requires roster.override.",
+      "lockedDenied": "Period-locked attendance is impacted. You need roster.override to continue.",
+      "success": "Published {count} roster row(s)"
+    }
+  },
+  "hr": {
+    "dashboard": {
+      "title": "HR Dashboard",
+      "description": "Real-time operational view of workforce health and required actions.",
+      "activeEmployees": "Active employees",
+      "onboardingInProgress": "Onboarding in progress",
+      "overdueTasks": "Overdue onboarding tasks",
+      "unresolvedExceptions": "Unresolved attendance exceptions",
+      "presentToday": "Present today",
+      "docsPending": "Documents pending review",
+      "docsExpiring": "Documents expiring (30 days)",
+      "missingManager": "Employees missing manager",
+      "importEmployees": "Import employees",
+      "dataQuality": "Data quality",
+      "kpis": {
+        "activeEmployees": "Active Employees",
+        "presentToday": "Present Today",
+        "onLeaveToday": "On Leave",
+        "pendingApprovals": "Pending Approvals",
+        "newJoiners": "New Joiners",
+        "exits": "Exits",
+        "probationDue": "Probation Due",
+        "documentsExpiring": "Documents Expiring"
+      },
+      "charts": {
+        "attendanceTrend": "Attendance Trend",
+        "workforceComposition": "Workforce Composition",
+        "headcountGrowth": "Headcount Growth",
+        "leaveUtilisation": "Leave Utilisation",
+        "empty": "No chart data for the selected window.",
+        "unassignedDepartment": "Unassigned"
+      },
+      "actionCentre": {
+        "title": "Action Centre",
+        "empty": "No open actions requiring HR attention.",
+        "review": "Review",
+        "items": {
+          "attendanceExceptions": "{count} attendance exceptions requiring review",
+          "onboardingJoiners": "{count} new joiners need onboarding",
+          "probationReviews": "{count} probation reviews due",
+          "documentExpiry": "{count} document expiry warnings",
+          "leavePending": "{count} leave requests pending approval",
+          "docsPendingReview": "{count} documents pending review"
+        }
+      },
+      "recentActivity": {
+        "title": "Recent Activity",
+        "viewAll": "View all",
+        "empty": "No recent HR activity.",
+        "columns": {
+          "time": "Time",
+          "event": "Event",
+          "employee": "Employee",
+          "status": "Status"
+        }
+      },
+      "quickActions": {
+        "title": "Quick Actions",
+        "addEmployee": "Add Employee",
+        "startOnboarding": "Start Onboarding",
+        "reviewExceptions": "Review Exceptions",
+        "approveLeave": "Approve Leave",
+        "uploadDocument": "Upload Document",
+        "runReports": "Run Reports"
+      },
+      "actions": {
+        "addEmployee": "Add Employee"
+      }
+    },
+    "settings": {
+      "title": "HR Settings",
+      "description": "Shortcuts to HR-related configuration.",
+      "attendancePolicies": "Attendance policies",
+      "organisation": "Organisation structure",
+      "security": "Security policy",
+      "regional": "Regional settings",
+      "dataQuality": "Employee data quality"
     }
   }
 }

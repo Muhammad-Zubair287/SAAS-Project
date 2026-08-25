@@ -14,10 +14,10 @@ import {
 import type { PlatformActorContext } from '../interfaces/platform-actor.interface';
 import { ERROR_CODES } from '../constants/error-codes.constants';
 
-// TODO(M02): This guard reads platformActor populated by M02 JWT AuthMiddleware.
-// Once M02 is implemented, every authenticated request will have platformActor
-// set on the request object via JwtStrategy. Until then, PlatformActorMiddleware
-// handles development actor injection.
+// PlatformActor comes from:
+// 1) PlatformActorMiddleware (development X-Dev-Actor-* headers), or
+// 2) PlatformAuthenticationGuard (JWT → platformActor for scope=platform).
+// Permission checks use PLATFORM_ROLE_PERMISSIONS for the actor's platformRole.
 
 @Injectable()
 export class PlatformRoleGuard implements CanActivate {

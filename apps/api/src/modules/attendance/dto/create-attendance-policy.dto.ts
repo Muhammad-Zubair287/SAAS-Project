@@ -1,6 +1,17 @@
 import {
-  IsBoolean, IsDateString, IsInt, IsNotEmpty, IsOptional,
-  IsString, IsUUID, Max, Min, MinLength,
+  ArrayMaxSize,
+  ArrayNotEmpty,
+  IsArray,
+  IsBoolean,
+  IsDateString,
+  IsInt,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Matches,
+  Max,
+  Min,
+  MinLength,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -15,8 +26,12 @@ export class CreateAttendancePolicyDto {
   @ApiPropertyOptional() @IsDateString() @IsOptional() effectiveTo?: string;
 
   @ApiProperty() @IsInt() @Min(1) @Max(1440) workingMinutesPerDay!: number;
-  @ApiProperty() @IsString() workStartTime!: string;  // "HH:MM"
-  @ApiProperty() @IsString() workEndTime!: string;    // "HH:MM"
+  @ApiProperty() @IsString() @Matches(/^(?:[01]\d|2[0-3]):[0-5]\d$/, {
+    message: 'workStartTime must be in HH:MM format',
+  }) workStartTime!: string;
+  @ApiProperty() @IsString() @Matches(/^(?:[01]\d|2[0-3]):[0-5]\d$/, {
+    message: 'workEndTime must be in HH:MM format',
+  }) workEndTime!: string;
 
   @ApiProperty() @IsInt() @Min(0) @Max(120) graceMinutes!: number;
   @ApiProperty() @IsInt() @Min(0) @Max(480) lateToleranceMinutes!: number;
@@ -26,12 +41,12 @@ export class CreateAttendancePolicyDto {
   @ApiProperty() @IsInt() @Min(0) overtimeThresholdMinutes!: number;
 
   @ApiPropertyOptional() @IsString() @IsOptional() roundingStrategy?: string;
-  @ApiProperty() weekendDefinition!: number[];  // [0,6] = Sun+Sat
+  @ApiProperty() @IsArray() @ArrayNotEmpty() @ArrayMaxSize(7) @IsInt({ each: true }) @Min(0, { each: true }) @Max(6, { each: true }) weekendDefinition!: number[];
   @ApiPropertyOptional() @IsString() @IsOptional() timezone?: string;
 
   @ApiPropertyOptional() @IsBoolean() @IsOptional() allowManualAttendance?: boolean;
   @ApiPropertyOptional() @IsBoolean() @IsOptional() allowEarlyCheckIn?: boolean;
   @ApiPropertyOptional() @IsBoolean() @IsOptional() allowLateCheckOut?: boolean;
   @ApiPropertyOptional() @IsBoolean() @IsOptional() allowOvertime?: boolean;
-  @ApiPropertyOptional() @IsOptional() allowedIpRanges?: string[];
+  @ApiPropertyOptional() @IsArray() @IsString({ each: true }) @IsOptional() allowedIpRanges?: string[];
 }

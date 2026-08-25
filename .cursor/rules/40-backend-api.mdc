@@ -1,0 +1,27 @@
+---
+alwaysApply: true
+---
+---
+description: API endpoints, REST/tRPC contracts, error handling, security, and logging
+globs: "src/{api,server,services,controllers,trpc,routes}/**/*.ts"
+alwaysApply: false
+---
+
+# Error Handling & Resilience
+- **Never swallow errors.** Always log + propagate or handle.
+- Use `Result<T, E>` pattern (`neverthrow` / Rust-style).
+- Custom Error Hierarchy: `DomainError`, `InfraError`, `ValidationError`.
+- Async: Wrap at boundaries in `try/catch`.
+- External APIs: Use circuit breaker + retry (3 attempts, exponential backoff).
+- Never expose stack traces or internal server paths to the client.
+
+# API Response Contracts
+- REST Envelope: `{ success: boolean, data: T, error?: { code, message, details }, meta?: { pagination, links } }`
+- Errors follow RFC 7807 Problem Details format.
+- Pagination: Cursor-based pagination preferred over offset.
+
+# Security & Input Validation
+- Validate all incoming boundary inputs using `zod`.
+- Sanitize HTML inputs using DOMPurify.
+- Rate limiting: 100 req/min per IP, 1000 req/min per user.
+- Structured JSON logs only via `pino` (Levels: `debug` → `info` → `warn` → `error` → `fatal`). No `console.log`.

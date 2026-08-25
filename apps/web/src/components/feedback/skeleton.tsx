@@ -14,7 +14,7 @@ export function Skeleton({
       role="status"
       aria-label={ariaLabel ?? 'Loading...'}
       aria-busy="true"
-      className={clsx('animate-pulse rounded-md bg-gray-200', className)}
+      className={clsx('animate-pulse rounded-md bg-border-default', className)}
     />
   );
 }

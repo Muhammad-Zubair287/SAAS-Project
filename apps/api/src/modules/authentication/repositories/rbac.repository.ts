@@ -60,6 +60,18 @@ export class RbacRepository {
     });
   }
 
+  /** True when the user holds at least one non-expired role assignment in the tenant. */
+  async hasActiveTenantMembership(userId: string, tenantId: string): Promise<boolean> {
+    const count = await this.prisma.roleAssignment.count({
+      where: {
+        userId,
+        tenantId,
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+      },
+    });
+    return count > 0;
+  }
+
   async findRoleAssignment(
     userId: string,
     roleId: string,

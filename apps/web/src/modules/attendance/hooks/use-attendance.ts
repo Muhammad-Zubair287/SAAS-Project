@@ -5,6 +5,8 @@ import { attendanceApi } from '../api/attendance-api';
 import type {
   CreateAttendanceEventPayload,
   CreateManualAttendanceRecordPayload,
+  AttendancePeriodLockPayload,
+  AttendancePeriodUnlockPayload,
   ListAttendanceParams,
 } from '../types/attendance.types';
 
@@ -18,6 +20,7 @@ export const ATTENDANCE_KEYS = {
     [...ATTENDANCE_KEYS.all, 'empRecords', empId, params] as const,
   exceptions: (params?: ListAttendanceParams) => [...ATTENDANCE_KEYS.all, 'exceptions', params] as const,
   exception:  (id: string) => [...ATTENDANCE_KEYS.all, 'exception', id] as const,
+  periods: () => [...ATTENDANCE_KEYS.all, 'periods'] as const,
 };
 
 // ─── Attendance Events ────────────────────────────────────────────────────────
@@ -123,6 +126,34 @@ export function useResolveAttendanceException() {
       attendanceApi.exceptions.resolve(id, payload),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ATTENDANCE_KEYS.exceptions() });
+    },
+  });
+}
+
+export function useAttendancePeriods() {
+  return useQuery({
+    queryKey: ATTENDANCE_KEYS.periods(),
+    queryFn: () => attendanceApi.periods.list(),
+    staleTime: 60_000,
+  });
+}
+
+export function useLockAttendancePeriod() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: AttendancePeriodLockPayload) => attendanceApi.periods.lock(payload),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ATTENDANCE_KEYS.periods() });
+    },
+  });
+}
+
+export function useUnlockAttendancePeriod() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: AttendancePeriodUnlockPayload) => attendanceApi.periods.unlock(payload),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ATTENDANCE_KEYS.periods() });
     },
   });
 }

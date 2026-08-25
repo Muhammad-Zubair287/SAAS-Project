@@ -43,6 +43,37 @@ enum OutboxEventStatus {
   @@map("outbox_event_status")
 }
 
+// ─── Infrastructure: Consumer Inbox ─────────────────────────────────────────
+// Per-consumer idempotency for at-least-once event delivery. This is deliberately
+// separate from HTTP IdempotencyKey records and from publisher-side OutboxEvent state.
+
+model ConsumerInbox {
+  id           String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId     String?             @db.Uuid
+  eventId      String              @db.Uuid
+  consumerName String              @db.VarChar(160)
+  status       ConsumerInboxStatus @default(PROCESSING)
+  attempts     Int                 @default(1)
+  processedAt  DateTime?           @db.Timestamptz(6)
+  lastError    String?             @db.Text
+  createdAt    DateTime            @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime            @updatedAt @db.Timestamptz(6)
+
+  @@unique([eventId, consumerName])
+  @@index([tenantId, status])
+  @@index([status, updatedAt])
+  @@map("consumer_inbox")
+}
+
+enum ConsumerInboxStatus {
+  PROCESSING
+  PROCESSED
+  FAILED
+  DEAD_LETTERED
+
+  @@map("consumer_inbox_status")
+}
+
 // ─── Infrastructure: Idempotency Keys ─────────────────────────────────────────
 // Deduplicates POST/PUT mutations via Idempotency-Key header.
 
@@ -108,6 +139,7 @@ model Plan {
   // planKey compatibility field on TenantSubscription still exists until cleanup batch.
   subscriptions    TenantSubscription[]
   tenants          Tenant[]
+  upgradeRequests  TenantUpgradeRequest[]
 
   @@index([status])
   @@map("plan")
@@ -200,12 +232,15 @@ model Tenant {
   plan   Plan?            @relation(fields: [planId], references: [id])
   region DeploymentRegion @relation(fields: [deploymentRegionId], references: [id])
 
-  branding        TenantBranding?
-  subscriptions   TenantSubscription[]
-  entitlements    TenantEntitlement[]
-  featureFlags    TenantFeatureFlag[]
-  usageSnapshots  TenantUsageSnapshot[]
-  supportGrants   SupportGrant[]
+  branding         TenantBranding?
+  settings         TenantSettings?
+  securityPolicy   TenantSecurityPolicy?
+  upgradeRequests  TenantUpgradeRequest[]
+  subscriptions    TenantSubscription[]
+  entitlements     TenantEntitlement[]
+  featureFlags     TenantFeatureFlag[]
+  usageSnapshots   TenantUsageSnapshot[]
+  supportGrants    SupportGrant[]
   // M02 Batch 1 back-relations
   sessions        Session[]
   userInvitations UserInvitation[]
@@ -223,10 +258,18 @@ model Tenant {
   costCentres   CostCentre[]
   departments   Department[]
   positions     Position[]
+  grades        Grade[]
+  organisationChangeEvents OrganisationChangeEvent[]
 
   // M04 Batch 1 back-relations
   employees               Employee[]
   employeePersonalDetails EmployeePersonalDetail[]
+  employmentRecords       EmploymentRecord[]
+  compensationRecords     CompensationRecord[]
+  emergencyContacts       EmergencyContact[]
+  employeeTimelineEvents  EmployeeTimelineEvent[]
+  employeeImportJobs      EmployeeImportJob[]
+  employeeImportRows      EmployeeImportRow[]
 
   // M05 Batch 1 back-relations
   documentTemplates       DocumentTemplate[]
@@ -244,9 +287,37 @@ model Tenant {
   attendanceRawEvents  AttendanceRawEvent[]
   attendanceRecords    AttendanceRecord[]
   attendanceExceptions AttendanceException[]
+  attendancePeriods    AttendancePeriod[]
 
   // M06 Batch 2 back-relations
   attendancePolicies AttendancePolicy[]
+
+  // M06 Batch 3 back-relations
+  attendanceDevices          AttendanceDevice[]
+  attendanceDeviceTokens     AttendanceDeviceToken[]
+  attendanceDeviceHeartbeats AttendanceDeviceHeartbeat[]
+  attendanceCaptureSessions  AttendanceCaptureSession[]
+  attendanceMobileDevices    AttendanceMobileDevice[]
+  attendanceGeofences        AttendanceGeofence[]
+  attendanceOfflineQueue     AttendanceOfflineQueue[]
+  attendanceDeviceEvents     AttendanceDeviceEvent[]
+  attendanceCaptureLogs      AttendanceCaptureLog[]
+  attendanceCaptureAudits    AttendanceCaptureAudit[]
+
+  // M07 Phase 1–4 back-relations
+  shifts            Shift[]
+  shiftAssignments  ShiftAssignment[]
+  rosterAssignments RosterAssignment[]
+
+  // M11 ESS
+  employeeChangeRequests EmployeeChangeRequest[]
+  policyAcknowledgements PolicyAcknowledgement[]
+  userNotifications      UserNotification[]
+  leaveTypes             LeaveType[]
+  leaveLedgerEntries     LeaveLedgerEntry[]
+  leaveRequests          LeaveRequest[]
+  leaveRequestDays       LeaveRequestDay[]
+  payslips               Payslip[]
 
   @@index([status])
   @@index([deploymentRegionId])
@@ -274,19 +345,119 @@ enum TenantStatus {
 }
 
 // ─── M01: Tenant Branding ─────────────────────────────────────────────────────
+// Extended toward ERD §tenant_branding for Tenant Admin (SCR-TEN-03).
+// Existing columns remain camelCase (schema_alignment); new columns use snake_case maps.
 
 model TenantBranding {
-  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  tenantId     String   @unique @db.Uuid
-  logoUrl      String?  @db.VarChar(500)
-  primaryColor String?  @db.VarChar(7)
-  faviconUrl   String?  @db.VarChar(500)
-  createdAt    DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt    DateTime @updatedAt @db.Timestamptz(6)
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId        String   @unique @db.Uuid
+  logoUrl         String?  @db.VarChar(500)
+  primaryColor    String?  @db.VarChar(7)
+  faviconUrl      String?  @db.VarChar(500)
+  loginLogoUrl    String?  @map("login_logo_url") @db.VarChar(500)
+  secondaryColor  String?  @map("secondary_colour") @db.VarChar(7)
+  applicationName String?  @map("application_name") @db.VarChar(100)
+  emailSenderName String?  @map("email_sender_name") @db.VarChar(120)
+  settings        Json     @default("{}") @map("settings")
+  createdAt       DateTime @default(now()) @db.Timestamptz(6)
+  createdBy       String?  @map("created_by") @db.Uuid
+  updatedAt       DateTime @updatedAt @db.Timestamptz(6)
+  updatedBy       String?  @map("updated_by") @db.Uuid
+  rowVersion      BigInt   @default(1) @map("row_version")
 
-  tenant Tenant @relation(fields: [tenantId], references: [id])
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
 
   @@map("tenant_branding")
+}
+
+// ─── Tenant Settings (company profile extras + regional) — SCR-TEN-02/04 ───────
+
+model TenantSettings {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId           String   @unique @map("tenant_id") @db.Uuid
+  registrationNumber String?  @map("registration_number") @db.VarChar(120)
+  industry           String?  @db.VarChar(120)
+  employeeSizeBand   String?  @map("employee_size_band") @db.VarChar(40)
+  addressLine1       String?  @map("address_line1") @db.VarChar(200)
+  addressLine2       String?  @map("address_line2") @db.VarChar(200)
+  city               String?  @db.VarChar(100)
+  stateProvince      String?  @map("state_province") @db.VarChar(100)
+  postalCode         String?  @map("postal_code") @db.VarChar(30)
+  contactEmail       String?  @map("contact_email") @db.VarChar(320)
+  contactPhone       String?  @map("contact_phone") @db.VarChar(40)
+  financialYearStart String?  @map("financial_year_start") @db.VarChar(10)
+  payrollMonthConfig String?  @map("payroll_month_config") @db.VarChar(40)
+  dateFormat         String?  @map("date_format") @db.VarChar(40)
+  numberFormat       String?  @map("number_format") @db.VarChar(40)
+  currencyDisplay    String?  @map("currency_display") @db.VarChar(40)
+  weekStart          Int?     @map("week_start")
+  workingWeekPattern Json?    @map("working_week_pattern")
+  enabledLocales     Json?    @map("enabled_locales")
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy          String?  @map("created_by") @db.Uuid
+  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy          String?  @map("updated_by") @db.Uuid
+  rowVersion         BigInt   @default(1) @map("row_version")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@map("tenant_settings")
+}
+
+// ─── Tenant Security Policy — SCR-AUD-05 MVP ──────────────────────────────────
+
+model TenantSecurityPolicy {
+  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId             String   @unique @map("tenant_id") @db.Uuid
+  passwordMinLength    Int      @default(10) @map("password_min_length")
+  passwordRequireUpper Boolean  @default(true) @map("password_require_upper")
+  passwordRequireLower Boolean  @default(true) @map("password_require_lower")
+  passwordRequireDigit Boolean  @default(true) @map("password_require_digit")
+  passwordRequireSymbol Boolean @default(false) @map("password_require_symbol")
+  mfaRequiredForAdmins Boolean  @default(false) @map("mfa_required_for_admins")
+  sessionTtlHours      Int      @default(8) @map("session_ttl_hours")
+  maxLoginAttempts     Int      @default(5) @map("max_login_attempts")
+  trustedEmailDomains  Json     @default("[]") @map("trusted_email_domains")
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy            String?  @map("created_by") @db.Uuid
+  updatedAt            DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy            String?  @map("updated_by") @db.Uuid
+  rowVersion           BigInt   @default(1) @map("row_version")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@map("tenant_security_policy")
+}
+
+enum TenantUpgradeRequestStatus {
+  PENDING
+  ACKNOWLEDGED
+  CLOSED
+
+  @@map("tenant_upgrade_request_status")
+}
+
+// ─── Tenant Upgrade Request — SCR-SUB-03 ──────────────────────────────────────
+
+model TenantUpgradeRequest {
+  id                  String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId            String                      @map("tenant_id") @db.Uuid
+  requestedPlanId     String?                     @map("requested_plan_id") @db.Uuid
+  requestedPlanKey    String?                     @map("requested_plan_key") @db.VarChar(80)
+  note                String?                     @db.Text
+  billingContactEmail String?                     @map("billing_contact_email") @db.VarChar(320)
+  status              TenantUpgradeRequestStatus  @default(PENDING)
+  createdAt           DateTime                    @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy           String?                     @map("created_by") @db.Uuid
+  updatedAt           DateTime                    @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy           String?                     @map("updated_by") @db.Uuid
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  plan   Plan?  @relation(fields: [requestedPlanId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, status])
+  @@index([tenantId, createdAt])
+  @@map("tenant_upgrade_request")
 }
 
 // ─── M01: Tenant Subscriptions ────────────────────────────────────────────────
@@ -519,14 +690,16 @@ model TenantFeatureFlag {
 // ─── M01: Tenant Usage Snapshots ──────────────────────────────────────────────
 
 model TenantUsageSnapshot {
-  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  tenantId         String   @db.Uuid
-  snapshotDate     DateTime @db.Date
-  activeEmployees  Int      @default(0)
-  totalEmployees   Int      @default(0)
-  storageUsedBytes BigInt   @default(0)
-  apiCallsMonth    Int      @default(0)
-  createdAt        DateTime @default(now()) @db.Timestamptz(6)
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId           String   @db.Uuid
+  snapshotDate       DateTime @db.Date
+  activeEmployees    Int      @default(0)
+  totalEmployees     Int      @default(0)
+  storageUsedBytes   BigInt   @default(0)
+  apiCallsMonth      Int      @default(0)
+  estimatedMrr       Decimal? @map("estimated_mrr") @db.Decimal(14, 2)
+  moduleAdoptionJson Json?    @map("module_adoption_json")
+  createdAt          DateTime @default(now()) @db.Timestamptz(6)
 
   tenant Tenant @relation(fields: [tenantId], references: [id])
 
@@ -597,6 +770,10 @@ model AppUser {
   // Cleanup prerequisite: all guards migrated to check status != 'DEACTIVATED'; M02 cleanup batch.
   isActive Boolean @default(true)
 
+  // Tenant Admin SCR-TEN-05 — admin-enforced security flags
+  requirePasswordReset Boolean @default(false) @map("require_password_reset")
+  requireMfa           Boolean @default(false) @map("require_mfa")
+
   // M02 Batch 1 back-relations — no column changes; Prisma relation metadata only.
   sessions                Session[]                @relation("UserSessions")
   impersonatedSessions    Session[]                @relation("ImpersonatedBySessions")
@@ -615,6 +792,16 @@ model AppUser {
 
   // M02 Batch 5 back-relations — no column changes; Prisma relation metadata only.
   passwordResetTokens PasswordResetToken[]
+
+  // ESS: optional 1:1 link to employee master (tenant-scoped employee.user_id)
+  employee Employee?
+
+  // M11 ESS notifications
+  notifications UserNotification[]
+
+  // Super Admin epic — platform inbox + preferences
+  platformNotifications PlatformNotification[]
+  userPreference        UserPreference?
 
   @@index([emailNormalised], map: "app_user_email_normalised_idx")
   @@index([status], map: "app_user_status_idx")
@@ -1087,6 +1274,7 @@ model LegalEntity {
   costCentres CostCentre[]
   positions   Position[]
   employees   Employee[]
+  employmentRecords EmploymentRecord[]
 
   // M05 back-relations
   onboardingTemplates OnboardingTemplate[]
@@ -1127,9 +1315,14 @@ model Branch {
   legalEntity LegalEntity  @relation(fields: [legalEntityId], references: [id], onDelete: Restrict)
   departments Department[]
   employees   Employee[]
+  employmentRecords EmploymentRecord[]
 
   // M06 Batch 2 back-relations
   attendancePolicies AttendancePolicy[]
+
+  // M07 Phase 2 — Branch is MVP Location for assignments
+  shiftAssignments  ShiftAssignment[]
+  rosterAssignments RosterAssignment[]
 
   @@unique([tenantId, legalEntityId, name], map: "branch_tenant_legal_entity_name_uq")
   @@unique([tenantId, code], map: "branch_tenant_code_uq")
@@ -1159,6 +1352,8 @@ model CostCentre {
   legalEntity LegalEntity  @relation(fields: [legalEntityId], references: [id], onDelete: Restrict)
   departments Department[]
   positions   Position[]
+  employees   Employee[]
+  employmentRecords EmploymentRecord[]
 
   @@unique([tenantId, code], map: "cost_centre_tenant_code_uq")
   @@unique([tenantId, legalEntityId, name], map: "cost_centre_tenant_legal_entity_name_uq")
@@ -1195,6 +1390,7 @@ model Department {
   children    Department[] @relation("DepartmentHierarchy")
   positions   Position[]
   employees   Employee[]
+  employmentRecords EmploymentRecord[]
 
   @@unique([tenantId, legalEntityId, name], map: "department_tenant_legal_entity_name_uq")
   @@unique([tenantId, code], map: "department_tenant_code_uq")
@@ -1230,6 +1426,7 @@ model Position {
   department  Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
   costCentre  CostCentre? @relation(fields: [costCentreId], references: [id], onDelete: SetNull)
   employees   Employee[]
+  employmentRecords EmploymentRecord[]
 
   @@unique([tenantId, code], map: "position_tenant_code_uq")
   @@unique([tenantId, legalEntityId, title], map: "position_tenant_legal_entity_title_uq")
@@ -1238,6 +1435,52 @@ model Position {
   @@index([tenantId, departmentId], map: "position_tenant_department_idx")
   @@index([tenantId, status], map: "position_tenant_status_idx")
   @@map("position")
+}
+
+// ─── M03: Grade (SCR-ORG-07) ─────────────────────────────────────────────────
+model Grade {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId    String   @map("tenant_id") @db.Uuid
+  code        String   @db.VarChar(40)
+  name        String   @db.VarChar(200)
+  description String?  @db.Text
+  sortOrder   Int      @default(0) @map("sort_order")
+  status      String   @default("ACTIVE") @db.VarChar(20)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy   String?  @map("created_by") @db.Uuid
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy   String?  @map("updated_by") @db.Uuid
+  rowVersion  BigInt   @default(1) @map("row_version")
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  employees         Employee[]
+  employmentRecords EmploymentRecord[]
+
+  @@unique([tenantId, code], map: "grade_tenant_code_uq")
+  @@index([tenantId], map: "grade_tenant_id_idx")
+  @@index([tenantId, status], map: "grade_tenant_status_idx")
+  @@map("grade")
+}
+
+// ─── M03: Organisation Change Event (SCR-ORG-08) ─────────────────────────────
+model OrganisationChangeEvent {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId     String   @map("tenant_id") @db.Uuid
+  entityType   String   @map("entity_type") @db.VarChar(40)
+  entityId     String   @map("entity_id") @db.Uuid
+  changeType   String   @map("change_type") @db.VarChar(40)
+  previousValue Json?   @map("previous_value")
+  newValue      Json?   @map("new_value")
+  effectiveDate DateTime @map("effective_date") @db.Date
+  changedBy     String?  @map("changed_by") @db.Uuid
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId], map: "org_change_event_tenant_id_idx")
+  @@index([tenantId, entityType, entityId], map: "org_change_event_entity_idx")
+  @@index([tenantId, effectiveDate], map: "org_change_event_effective_idx")
+  @@map("organisation_change_event")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1262,6 +1505,7 @@ model Employee {
   departmentId    String?   @map("department_id") @db.Uuid
   positionId      String?   @map("position_id") @db.Uuid
   managerId       String?   @map("manager_id") @db.Uuid
+  userId          String?   @unique @map("user_id") @db.Uuid
   employeeNumber  String    @map("employee_number") @db.VarChar(40)
   firstName       String    @map("first_name") @db.VarChar(100)
   lastName        String    @map("last_name") @db.VarChar(100)
@@ -1290,8 +1534,30 @@ model Employee {
   position      Position?   @relation(fields: [positionId], references: [id], onDelete: SetNull)
   manager       Employee?   @relation("EmployeeManager", fields: [managerId], references: [id], onDelete: SetNull)
   directReports Employee[]  @relation("EmployeeManager")
+  user          AppUser?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   personalDetail EmployeePersonalDetail?
+
+  // HR Console Scope A
+  gradeId            String?  @map("grade_id") @db.Uuid
+  costCentreId       String?  @map("cost_centre_id") @db.Uuid
+  attendancePolicyId String?  @map("attendance_policy_id") @db.Uuid
+  defaultShiftId     String?  @map("default_shift_id") @db.Uuid
+  preferredName      String?  @map("preferred_name") @db.VarChar(100)
+  statusReason       String?  @map("status_reason") @db.VarChar(500)
+  accessDisableDate  DateTime? @map("access_disable_date") @db.Date
+  lastWorkingDate    DateTime? @map("last_working_date") @db.Date
+
+  grade            Grade?            @relation(fields: [gradeId], references: [id], onDelete: SetNull)
+  costCentre       CostCentre?       @relation(fields: [costCentreId], references: [id], onDelete: SetNull)
+  attendancePolicy AttendancePolicy? @relation("EmployeeDefaultAttendancePolicy", fields: [attendancePolicyId], references: [id], onDelete: SetNull)
+  defaultShift     Shift?            @relation("EmployeeDefaultShift", fields: [defaultShiftId], references: [id], onDelete: SetNull)
+
+  employmentRecords      EmploymentRecord[]
+  compensationRecords    CompensationRecord[]
+  emergencyContacts      EmergencyContact[]
+  timelineEvents         EmployeeTimelineEvent[]
+  managedEmploymentRows  EmploymentRecord[] @relation("EmploymentManager")
 
   // M05 back-relations
   employeeDocuments   EmployeeDocument[]
@@ -1303,6 +1569,19 @@ model Employee {
   attendanceRecords    AttendanceRecord[]
   attendanceExceptions AttendanceException[]
 
+  // M07 Phase 2
+  shiftAssignments ShiftAssignment[]
+
+  // M07 Phase 4
+  rosterAssignments RosterAssignment[]
+
+  // M11 ESS
+  changeRequests           EmployeeChangeRequest[]
+  policyAcknowledgements   PolicyAcknowledgement[]
+  leaveLedgerEntries       LeaveLedgerEntry[]
+  leaveRequests            LeaveRequest[]
+  payslips                 Payslip[]
+
   @@unique([tenantId, legalEntityId, employeeNumber], map: "employee_tenant_legal_entity_number_uq")
   @@unique([tenantId, emailWork], map: "employee_tenant_email_work_uq")
   @@index([tenantId], map: "employee_tenant_id_idx")
@@ -1312,6 +1591,8 @@ model Employee {
   @@index([tenantId, managerId], map: "employee_tenant_manager_idx")
   @@index([tenantId, status], map: "employee_tenant_status_idx")
   @@index([tenantId, employmentType], map: "employee_tenant_employment_type_idx")
+  @@index([tenantId, gradeId], map: "employee_tenant_grade_idx")
+  @@index([tenantId, positionId], map: "employee_tenant_position_idx")
   @@map("employee")
 }
 
@@ -1347,6 +1628,158 @@ model EmployeePersonalDetail {
   @@index([tenantId], map: "employee_personal_detail_tenant_id_idx")
   @@index([tenantId, employeeId], map: "employee_personal_detail_tenant_employee_idx")
   @@map("employee_personal_detail")
+}
+
+// ─── M04: Employment Record (effective-dated assignment) ─────────────────────
+model EmploymentRecord {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId        String    @map("tenant_id") @db.Uuid
+  employeeId      String    @map("employee_id") @db.Uuid
+  legalEntityId   String    @map("legal_entity_id") @db.Uuid
+  branchId        String?   @map("branch_id") @db.Uuid
+  departmentId    String?   @map("department_id") @db.Uuid
+  positionId      String?   @map("position_id") @db.Uuid
+  managerId       String?   @map("manager_id") @db.Uuid
+  costCentreId    String?   @map("cost_centre_id") @db.Uuid
+  gradeId         String?   @map("grade_id") @db.Uuid
+  employmentType  String    @map("employment_type") @db.VarChar(20)
+  workArrangement String?   @map("work_arrangement") @db.VarChar(40)
+  probationEndDate DateTime? @map("probation_end_date") @db.Date
+  changeReason    String?   @map("change_reason") @db.VarChar(500)
+  changeType      String    @default("INITIAL") @map("change_type") @db.VarChar(40)
+  effectiveFrom   DateTime  @map("effective_from") @db.Date
+  effectiveTo     DateTime? @map("effective_to") @db.Date
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy       String?   @map("created_by") @db.Uuid
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy       String?   @map("updated_by") @db.Uuid
+
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  employee    Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  legalEntity LegalEntity  @relation(fields: [legalEntityId], references: [id], onDelete: Restrict)
+  branch      Branch?      @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  department  Department?  @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  position    Position?    @relation(fields: [positionId], references: [id], onDelete: SetNull)
+  manager     Employee?    @relation("EmploymentManager", fields: [managerId], references: [id], onDelete: SetNull)
+  costCentre  CostCentre?  @relation(fields: [costCentreId], references: [id], onDelete: SetNull)
+  grade       Grade?       @relation(fields: [gradeId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId], map: "employment_record_tenant_id_idx")
+  @@index([tenantId, employeeId], map: "employment_record_tenant_employee_idx")
+  @@index([tenantId, employeeId, effectiveFrom], map: "employment_record_effective_idx")
+  @@index([tenantId, effectiveTo], map: "employment_record_effective_to_idx")
+  @@map("employment_record")
+}
+
+// ─── M04: Compensation Record ────────────────────────────────────────────────
+model CompensationRecord {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId      String    @map("tenant_id") @db.Uuid
+  employeeId    String    @map("employee_id") @db.Uuid
+  amount        Decimal   @db.Decimal(18, 2)
+  currency      String    @db.Char(3)
+  payFrequency  String    @default("MONTHLY") @map("pay_frequency") @db.VarChar(20)
+  effectiveFrom DateTime  @map("effective_from") @db.Date
+  effectiveTo   DateTime? @map("effective_to") @db.Date
+  notes         String?   @db.VarChar(500)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?   @map("created_by") @db.Uuid
+  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?   @map("updated_by") @db.Uuid
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId], map: "compensation_record_tenant_id_idx")
+  @@index([tenantId, employeeId], map: "compensation_record_tenant_employee_idx")
+  @@index([tenantId, employeeId, effectiveFrom], map: "compensation_record_effective_idx")
+  @@map("compensation_record")
+}
+
+// ─── M04: Emergency Contact ──────────────────────────────────────────────────
+model EmergencyContact {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId     String   @map("tenant_id") @db.Uuid
+  employeeId   String   @map("employee_id") @db.Uuid
+  name         String   @db.VarChar(200)
+  relationship String   @db.VarChar(40)
+  phone        String   @db.VarChar(30)
+  email        String?  @db.VarChar(254)
+  isPrimary    Boolean  @default(false) @map("is_primary")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId], map: "emergency_contact_tenant_id_idx")
+  @@index([tenantId, employeeId], map: "emergency_contact_tenant_employee_idx")
+  @@map("emergency_contact")
+}
+
+// ─── M04: Employee Timeline Event ────────────────────────────────────────────
+model EmployeeTimelineEvent {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId    String   @map("tenant_id") @db.Uuid
+  employeeId  String   @map("employee_id") @db.Uuid
+  eventType   String   @map("event_type") @db.VarChar(60)
+  summary     String   @db.VarChar(500)
+  metadata    Json?
+  occurredAt  DateTime @map("occurred_at") @db.Timestamptz(6)
+  actorId     String?  @map("actor_id") @db.Uuid
+  visibility  String   @default("HR") @db.VarChar(20)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId], map: "employee_timeline_tenant_id_idx")
+  @@index([tenantId, employeeId, occurredAt], map: "employee_timeline_employee_idx")
+  @@map("employee_timeline_event")
+}
+
+// ─── M04: Employee Import Job ────────────────────────────────────────────────
+model EmployeeImportJob {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId        String    @map("tenant_id") @db.Uuid
+  status          String    @default("PENDING") @db.VarChar(30)
+  fileName        String?   @map("file_name") @db.VarChar(255)
+  totalRows       Int       @default(0) @map("total_rows")
+  validRows       Int       @default(0) @map("valid_rows")
+  warningRows     Int       @default(0) @map("warning_rows")
+  errorRows       Int       @default(0) @map("error_rows")
+  committedRows   Int       @default(0) @map("committed_rows")
+  errorReportKey  String?   @map("error_report_key") @db.VarChar(500)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy       String?   @map("created_by") @db.Uuid
+  validatedAt     DateTime? @map("validated_at") @db.Timestamptz(6)
+  committedAt     DateTime? @map("committed_at") @db.Timestamptz(6)
+
+  tenant Tenant              @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  rows   EmployeeImportRow[]
+
+  @@index([tenantId], map: "employee_import_job_tenant_id_idx")
+  @@index([tenantId, status], map: "employee_import_job_status_idx")
+  @@map("employee_import_job")
+}
+
+model EmployeeImportRow {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId     String   @map("tenant_id") @db.Uuid
+  importJobId  String   @map("import_job_id") @db.Uuid
+  rowNumber    Int      @map("row_number")
+  payload      Json
+  status       String   @default("PENDING") @db.VarChar(20)
+  errors       Json?
+  warnings     Json?
+  employeeId   String?  @map("employee_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tenant    Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  importJob EmployeeImportJob @relation(fields: [importJobId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, importJobId], map: "employee_import_row_job_idx")
+  @@map("employee_import_row")
 }
 
 // ─── M05: Document Template ───────────────────────────────────────────────────
@@ -1707,21 +2140,35 @@ model AttendanceRecord {
   periodLocked          Boolean   @default(false) @map("period_locked")
   calculationVersion    Int       @default(1) @map("calculation_version")
   calculatedAt          DateTime? @map("calculated_at") @db.Timestamptz(6)
+  // M07 Phase 3 — schedule provenance (nullable for legacy / policy-fallback rows)
+  scheduleSource        String?   @map("schedule_source") @db.VarChar(40)
+  resolvedShiftId       String?   @map("resolved_shift_id") @db.Uuid
+  shiftAssignmentId     String?   @map("shift_assignment_id") @db.Uuid
+  rosterAssignmentId    String?   @map("roster_assignment_id") @db.Uuid
+  attendancePolicyId    String?   @map("attendance_policy_id") @db.Uuid
   createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   createdBy             String?   @map("created_by") @db.Uuid
   updatedAt             DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
   updatedBy             String?   @map("updated_by") @db.Uuid
   rowVersion            BigInt    @default(1) @map("row_version")
 
-  tenant     Tenant                @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  employee   Employee              @relation(fields: [employeeId], references: [id], onDelete: Restrict)
-  exceptions AttendanceException[]
+  tenant           Tenant                @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  employee         Employee              @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  resolvedShift    Shift?                @relation(fields: [resolvedShiftId], references: [id], onDelete: Restrict)
+  shiftAssignment  ShiftAssignment?      @relation(fields: [shiftAssignmentId], references: [id], onDelete: Restrict)
+  rosterAssignment RosterAssignment?     @relation(fields: [rosterAssignmentId], references: [id], onDelete: Restrict)
+  attendancePolicy AttendancePolicy?     @relation(fields: [attendancePolicyId], references: [id], onDelete: Restrict)
+  exceptions       AttendanceException[]
 
   @@unique([tenantId, employeeId, attendanceDate], map: "attendance_record_tenant_emp_date_uq")
   @@index([tenantId])
   @@index([tenantId, employeeId])
   @@index([tenantId, attendanceDate])
   @@index([tenantId, status])
+  @@index([tenantId, resolvedShiftId], map: "attendance_record_tenant_resolved_shift_idx")
+  @@index([tenantId, shiftAssignmentId], map: "attendance_record_tenant_shift_assignment_idx")
+  @@index([tenantId, rosterAssignmentId], map: "attendance_record_tenant_roster_assignment_idx")
+  @@index([tenantId, attendancePolicyId], map: "attendance_record_tenant_policy_idx")
   @@map("attendance_record")
 }
 
@@ -1755,6 +2202,27 @@ model AttendanceException {
   @@index([tenantId, exceptionDate])
   @@index([tenantId, isResolved])
   @@map("attendance_exception")
+}
+
+// ─── M06: Attendance Period Lock (SCR-ATT-12) ─────────────────────────────────
+model AttendancePeriod {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId    String    @map("tenant_id") @db.Uuid
+  periodStart DateTime  @map("period_start") @db.Date
+  periodEnd   DateTime  @map("period_end") @db.Date
+  status      String    @default("OPEN") @db.VarChar(20)
+  lockedAt    DateTime? @map("locked_at") @db.Timestamptz(6)
+  lockedBy    String?   @map("locked_by") @db.Uuid
+  unlockReason String?  @map("unlock_reason") @db.VarChar(500)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, periodStart, periodEnd], map: "attendance_period_tenant_range_uq")
+  @@index([tenantId], map: "attendance_period_tenant_id_idx")
+  @@index([tenantId, status], map: "attendance_period_status_idx")
+  @@map("attendance_period")
 }
 
 // ─── M06 Batch 2: Attendance Policy ──────────────────────────────────────────
@@ -1796,13 +2264,817 @@ model AttendancePolicy {
   deletedAt                      DateTime? @map("deleted_at") @db.Timestamptz(6)
   rowVersion                     BigInt    @default(1) @map("row_version")
 
-  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  legalEntity LegalEntity? @relation(fields: [legalEntityId], references: [id], onDelete: Restrict)
-  branch      Branch?      @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  legalEntity       LegalEntity?       @relation(fields: [legalEntityId], references: [id], onDelete: Restrict)
+  branch            Branch?            @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  shifts            Shift[]
+  attendanceRecords AttendanceRecord[]
+  defaultEmployees  Employee[]         @relation("EmployeeDefaultAttendancePolicy")
 
   @@index([tenantId, isCurrent])
   @@index([tenantId, legalEntityId, isCurrent])
   @@index([tenantId, branchId, isCurrent])
   @@index([effectiveFrom])
   @@map("attendance_policy")
+}
+
+// ─── M06 Batch 3: Attendance Capture Models ──────────────────────────────────
+
+enum DeviceStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  DECOMMISSIONED
+
+  @@map("device_status")
+}
+
+enum CaptureSource {
+  BIOMETRIC
+  MOBILE
+  OFFLINE
+  GATEWAY
+
+  @@map("capture_source")
+}
+
+enum ValidationStatus {
+  PENDING
+  VALIDATED
+  REJECTED
+  PENDING_REVIEW
+
+  @@map("validation_status")
+}
+
+enum GeofenceShape {
+  CIRCLE
+  POLYGON
+
+  @@map("geofence_shape")
+}
+
+model AttendanceDevice {
+  id                   String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId             String       @map("tenant_id") @db.Uuid
+  name                 String       @db.VarChar(255)
+  deviceType           String       @map("device_type") @db.VarChar(64)
+  vendor               String?      @map("vendor") @db.VarChar(128)
+  model                String?      @map("model") @db.VarChar(128)
+  serialNumber         String?      @map("serial_number") @db.VarChar(128)
+  deviceFingerprint    String?      @map("device_fingerprint") @db.VarChar(128)
+  publicKeyFingerprint String?      @map("public_key_fingerprint") @db.VarChar(128)
+  timezone             String?      @map("timezone") @db.VarChar(50)
+  ipWhitelist          String[]     @default([]) @map("ip_whitelist")
+  lastSeenAt           DateTime?    @map("last_seen_at") @db.Timestamptz(6)
+  status               DeviceStatus @default(PENDING)
+  metadata             Json?
+  createdAt            DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant     Tenant                      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  tokens     AttendanceDeviceToken[]
+  heartbeats AttendanceDeviceHeartbeat[]
+  events     AttendanceDeviceEvent[]
+
+  @@index([tenantId, status], map: "attendance_device_tenant_status_idx")
+  @@index([tenantId, serialNumber], map: "attendance_device_tenant_serial_idx")
+  @@map("attendance_device")
+}
+
+model AttendanceDeviceToken {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId  String    @map("tenant_id") @db.Uuid
+  deviceId  String    @map("device_id") @db.Uuid
+  tokenHash String    @map("token_hash") @db.VarChar(255)
+  issuedAt  DateTime  @default(now()) @map("issued_at") @db.Timestamptz(6)
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(6)
+  rotatedAt DateTime? @map("rotated_at") @db.Timestamptz(6)
+  revokedAt DateTime? @map("revoked_at") @db.Timestamptz(6)
+  createdBy String?   @map("created_by") @db.Uuid
+
+  device AttendanceDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  tenant Tenant           @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@index([deviceId], map: "attendance_device_token_device_idx")
+  @@index([expiresAt], map: "attendance_device_token_expires_idx")
+  @@map("attendance_device_token")
+}
+
+model AttendanceDeviceHeartbeat {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId        String    @map("tenant_id") @db.Uuid
+  deviceId        String    @map("device_id") @db.Uuid
+  occurredAt      DateTime  @map("occurred_at") @db.Timestamptz(6)
+  ipAddress       String?   @map("ip_address") @db.VarChar(45)
+  cpu             Int?
+  memory          Int?
+  disk            Int?
+  queueLength     Int?      @map("queue_length")
+  firmwareVersion String?   @map("firmware_version") @db.VarChar(128)
+  clockOffsetMs   Int?      @map("clock_offset_ms")
+  lastSyncAt      DateTime? @map("last_sync_at") @db.Timestamptz(6)
+  metrics         Json?
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  device AttendanceDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  tenant Tenant           @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@index([deviceId, occurredAt], map: "attendance_device_heartbeat_device_time_idx")
+  @@map("attendance_device_heartbeat")
+}
+
+model AttendanceCaptureSession {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId         String    @map("tenant_id") @db.Uuid
+  deviceId         String?   @map("device_id") @db.Uuid
+  mobileDeviceId   String?   @map("mobile_device_id") @db.Uuid
+  sessionTokenHash String?   @map("session_token_hash") @db.VarChar(255)
+  startedAt        DateTime  @default(now()) @map("started_at") @db.Timestamptz(6)
+  endedAt          DateTime? @map("ended_at") @db.Timestamptz(6)
+  clientTimezone   String?   @map("client_timezone") @db.VarChar(50)
+  ipAddress        String?   @map("ip_address") @db.VarChar(45)
+  status           String?   @map("status") @db.VarChar(32)
+  metadata         Json?
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, deviceId], map: "attendance_capture_session_tenant_device_idx")
+  @@map("attendance_capture_session")
+}
+
+model AttendanceMobileDevice {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId         String    @map("tenant_id") @db.Uuid
+  userId           String?   @map("user_id") @db.Uuid
+  deviceIdentifier String    @map("device_identifier") @db.VarChar(255)
+  platform         String    @map("platform") @db.VarChar(32)
+  pushTokenHash    String?   @map("push_token_hash") @db.VarChar(255)
+  lastSeenAt       DateTime? @map("last_seen_at") @db.Timestamptz(6)
+  clientAppVersion String?   @map("client_app_version") @db.VarChar(64)
+  metadata         Json?
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, userId], map: "attendance_mobile_device_tenant_user_idx")
+  @@index([tenantId, deviceIdentifier], map: "attendance_mobile_device_tenant_identifier_idx")
+  @@map("attendance_mobile_device")
+}
+
+model AttendanceGeofence {
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId      String        @map("tenant_id") @db.Uuid
+  name          String        @db.VarChar(200)
+  legalEntityId String?       @map("legal_entity_id") @db.Uuid
+  branchId      String?       @map("branch_id") @db.Uuid
+  shape         GeofenceShape @default(CIRCLE)
+  centerLat     Float?        @map("center_lat")
+  centerLng     Float?        @map("center_lng")
+  radiusMeters  Int?          @map("radius_meters")
+  polygon       Json?
+  activeFrom    DateTime?     @map("active_from") @db.Date
+  activeTo      DateTime?     @map("active_to") @db.Date
+  metadata      Json?
+  rowVersion    BigInt        @default(1) @map("row_version")
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId], map: "attendance_geofence_tenant_idx")
+  @@index([tenantId, branchId], map: "attendance_geofence_tenant_branch_idx")
+  @@map("attendance_geofence")
+}
+
+model AttendanceOfflineQueue {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId       String    @map("tenant_id") @db.Uuid
+  sessionId      String?   @map("session_id") @db.Uuid
+  source         String    @db.VarChar(32)
+  payload        Json
+  sequenceNumber BigInt    @map("sequence_number")
+  payloadHash    String    @map("payload_hash") @db.VarChar(128)
+  uploadedAt     DateTime  @default(now()) @map("uploaded_at") @db.Timestamptz(6)
+  replayedAt     DateTime? @map("replayed_at") @db.Timestamptz(6)
+  status         String    @default("pending") @db.VarChar(32)
+  attempts       Int       @default(0)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, status], map: "attendance_offline_queue_tenant_status_idx")
+  @@index([sessionId, sequenceNumber], map: "attendance_offline_queue_session_sequence_idx")
+  @@map("attendance_offline_queue")
+}
+
+model AttendanceDeviceEvent {
+  id               String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId         String           @map("tenant_id") @db.Uuid
+  captureSessionId String?          @map("capture_session_id") @db.Uuid
+  source           CaptureSource
+  sourceEventId    String           @map("source_event_id") @db.VarChar(255)
+  idempotencyKey   String?          @map("idempotency_key") @db.VarChar(255)
+  occurredAt       DateTime         @map("occurred_at") @db.Timestamptz(6)
+  receivedAt       DateTime         @default(now()) @map("received_at") @db.Timestamptz(6)
+  employeeId       String?          @map("employee_id") @db.Uuid
+  deviceId         String?          @map("device_id") @db.Uuid
+  mobileDeviceId   String?          @map("mobile_device_id") @db.Uuid
+  eventType        String           @map("event_type") @db.VarChar(64)
+  geoLat           Float?           @map("geo_lat")
+  geoLng           Float?           @map("geo_lng")
+  geoAccuracyM     Int?             @map("geo_accuracy_m")
+  ipAddress        String?          @map("ip_address") @db.VarChar(45)
+  validationStatus ValidationStatus @default(PENDING) @map("validation_status")
+  validationReason String?          @map("validation_reason") @db.Text
+  payload          Json
+  checksum         String           @db.VarChar(128)
+
+  tenant Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  device AttendanceDevice? @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, receivedAt], map: "attendance_device_event_tenant_received_idx")
+  @@index([tenantId, checksum], map: "attendance_device_event_tenant_checksum_idx")
+  @@index([idempotencyKey], map: "attendance_device_event_idempotency_idx")
+  @@map("attendance_device_event")
+}
+
+model AttendanceCaptureLog {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId      String   @map("tenant_id") @db.Uuid
+  deviceEventId String?  @map("device_event_id") @db.Uuid
+  actor         String?  @map("actor") @db.VarChar(160)
+  action        String   @db.VarChar(80)
+  message       String?  @db.Text
+  metadata      Json?
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, deviceEventId], map: "attendance_capture_log_tenant_event_idx")
+  @@map("attendance_capture_log")
+}
+
+model AttendanceCaptureAudit {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  actorId   String?  @map("actor_id") @db.Uuid
+  auditType String   @map("audit_type") @db.VarChar(80)
+  targetId  String?  @map("target_id") @db.VarChar(128)
+  details   Json?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, createdAt], map: "attendance_capture_audit_tenant_created_idx")
+  @@map("attendance_capture_audit")
+}
+
+// ─── M07 Phase 1: Shift Foundation ───────────────────────────────────────────
+// Versioned working-time definition. Schedule timing lives here; attendance
+// evaluation rules live on AttendancePolicy (grace/OT/rounding). Status ACTIVE|INACTIVE.
+// Local times stored as HH:MM strings (live AttendancePolicy convention).
+
+model Shift {
+  id                         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId                   String    @map("tenant_id") @db.Uuid
+  code                       String    @db.VarChar(60)
+  name                       String    @db.VarChar(160)
+  version                    Int       @default(1)
+  status                     String    @default("ACTIVE") @db.VarChar(20)
+  startLocalTime             String    @map("start_local_time") @db.VarChar(5)
+  endLocalTime               String    @map("end_local_time") @db.VarChar(5)
+  crossesMidnight            Boolean   @default(false) @map("crosses_midnight")
+  requiredMinutes            Int       @map("required_minutes")
+  breakMinutes               Int       @default(0) @map("break_minutes")
+  breakPaid                  Boolean   @default(false) @map("break_paid")
+  checkInWindowBeforeMinutes Int       @default(0) @map("check_in_window_before")
+  checkInWindowAfterMinutes  Int       @default(0) @map("check_in_window_after")
+  checkOutWindowAfterMinutes Int       @default(0) @map("check_out_window_after")
+  attendancePolicyId         String    @map("attendance_policy_id") @db.Uuid
+  effectiveFrom              DateTime  @map("effective_from") @db.Date
+  effectiveTo                DateTime? @map("effective_to") @db.Date
+  createdBy                  String?   @map("created_by") @db.Uuid
+  updatedBy                  String?   @map("updated_by") @db.Uuid
+  createdAt                  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                  DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  rowVersion                 BigInt    @default(1) @map("row_version")
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  attendancePolicy  AttendancePolicy   @relation(fields: [attendancePolicyId], references: [id], onDelete: Restrict)
+  assignments       ShiftAssignment[]
+  attendanceRecords AttendanceRecord[]
+  rosterAssignments RosterAssignment[]
+  defaultEmployees  Employee[]         @relation("EmployeeDefaultShift")
+
+  @@unique([tenantId, code, version], map: "shift_tenant_code_version_key")
+  @@index([tenantId, status, effectiveFrom], map: "shift_tenant_status_effective_idx")
+  @@index([tenantId, code], map: "shift_tenant_code_idx")
+  @@index([tenantId, attendancePolicyId], map: "shift_tenant_policy_idx")
+  @@map("shift")
+}
+
+// ─── M07 Phase 2: Default Shift Assignment ───────────────────────────────────
+// Effective-dated DEFAULT working-pattern assignment (not a roster override).
+// effectiveFrom inclusive / effectiveTo exclusive (null = open-ended).
+// Department bulk = SNAPSHOT expansion to individual employee rows.
+// assignmentSource: INDIVIDUAL | DEPARTMENT | DEFAULT. TEAM deferred.
+
+model ShiftAssignment {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId          String    @map("tenant_id") @db.Uuid
+  employeeId        String    @map("employee_id") @db.Uuid
+  shiftId           String    @map("shift_id") @db.Uuid
+  branchId          String?   @map("branch_id") @db.Uuid
+  effectiveFrom     DateTime  @map("effective_from") @db.Date
+  effectiveTo       DateTime? @map("effective_to") @db.Date
+  assignmentSource  String    @map("assignment_source") @db.VarChar(40)
+  sourceReferenceId String?   @map("source_reference_id") @db.Uuid
+  createdBy         String?   @map("created_by") @db.Uuid
+  updatedBy         String?   @map("updated_by") @db.Uuid
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  rowVersion        BigInt    @default(1) @map("row_version")
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  employee          Employee           @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  shift             Shift              @relation(fields: [shiftId], references: [id], onDelete: Restrict)
+  branch            Branch?            @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  attendanceRecords AttendanceRecord[]
+
+  @@index([tenantId, employeeId, effectiveFrom], map: "shift_assignment_tenant_employee_effective_idx")
+  @@index([tenantId, shiftId], map: "shift_assignment_tenant_shift_idx")
+  @@index([tenantId, assignmentSource, sourceReferenceId], map: "shift_assignment_tenant_source_idx")
+  @@index([tenantId, branchId], map: "shift_assignment_tenant_branch_idx")
+  @@map("shift_assignment")
+}
+
+// ─── M07 Phase 4: Roster Assignment ──────────────────────────────────────────
+// Dated DRAFT/PUBLISHED roster override. Dual-tip markers support PD-5:
+// isDraftTip = current correction/new draft tip (attendance-invisible)
+// isEffectivePublished = attendance-authoritative published row
+// Partial unique indexes enforced in migration SQL.
+
+model RosterAssignment {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId             String    @map("tenant_id") @db.Uuid
+  employeeId           String    @map("employee_id") @db.Uuid
+  workDate             DateTime  @map("work_date") @db.Date
+  shiftId              String?   @map("shift_id") @db.Uuid
+  branchId             String?   @map("branch_id") @db.Uuid
+  rosterStatus         String    @default("DRAFT") @map("roster_status") @db.VarChar(20)
+  isRestDay            Boolean   @default(false) @map("is_rest_day")
+  isDraftTip           Boolean   @default(false) @map("is_draft_tip")
+  isEffectivePublished Boolean   @default(false) @map("is_effective_published")
+  publishedAt          DateTime? @map("published_at") @db.Timestamptz(6)
+  publishedBy          String?   @map("published_by") @db.Uuid
+  supersedesId         String?   @map("supersedes_id") @db.Uuid
+  assignmentSource     String    @map("assignment_source") @db.VarChar(40)
+  sourceReferenceId    String?   @map("source_reference_id") @db.Uuid
+  createdBy            String?   @map("created_by") @db.Uuid
+  updatedBy            String?   @map("updated_by") @db.Uuid
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  rowVersion           BigInt    @default(1) @map("row_version")
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  employee          Employee           @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  shift             Shift?             @relation(fields: [shiftId], references: [id], onDelete: Restrict)
+  branch            Branch?            @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  supersedes        RosterAssignment?  @relation("RosterSupersession", fields: [supersedesId], references: [id], onDelete: Restrict)
+  supersededBy      RosterAssignment[] @relation("RosterSupersession")
+  attendanceRecords AttendanceRecord[]
+
+  @@index([tenantId, workDate, rosterStatus], map: "roster_assignment_tenant_work_date_status_idx")
+  @@index([tenantId, employeeId, workDate], map: "roster_assignment_tenant_employee_work_date_idx")
+  @@index([tenantId, shiftId], map: "roster_assignment_tenant_shift_idx")
+  @@index([tenantId, branchId], map: "roster_assignment_tenant_branch_idx")
+  @@index([tenantId, assignmentSource, sourceReferenceId], map: "roster_assignment_tenant_source_idx")
+  @@index([tenantId, supersedesId], map: "roster_assignment_tenant_supersedes_idx")
+  @@map("roster_assignment")
+}
+
+// ─── M11: Employee Self-Service — profile / attendance / document change requests ──
+// requestType: PROFILE_CHANGE | ATTENDANCE_CORRECTION | DOCUMENT | OTHER
+// status: DRAFT | SUBMITTED | PENDING | APPROVED | REJECTED | CANCELLED | RETURNED
+
+model EmployeeChangeRequest {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId         String    @map("tenant_id") @db.Uuid
+  employeeId       String    @map("employee_id") @db.Uuid
+  requestType      String    @map("request_type") @db.VarChar(40)
+  section          String?   @db.VarChar(80)
+  fieldPath        String?   @map("field_path") @db.VarChar(120)
+  currentValue     String?   @map("current_value") @db.Text
+  requestedValue   String?   @map("requested_value") @db.Text
+  reason           String?   @db.Text
+  evidenceFileKey  String?   @map("evidence_file_key") @db.VarChar(500)
+  status           String    @default("DRAFT") @db.VarChar(20)
+  submittedAt      DateTime? @map("submitted_at") @db.Timestamptz(6)
+  decidedAt        DateTime? @map("decided_at") @db.Timestamptz(6)
+  decidedBy        String?   @map("decided_by") @db.Uuid
+  decisionNote     String?   @map("decision_note") @db.Text
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy        String?   @map("created_by") @db.Uuid
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy        String?   @map("updated_by") @db.Uuid
+  rowVersion       BigInt    @default(1) @map("row_version")
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, employeeId], map: "employee_change_request_tenant_employee_idx")
+  @@index([tenantId, status], map: "employee_change_request_tenant_status_idx")
+  @@index([tenantId, requestType], map: "employee_change_request_tenant_type_idx")
+  @@map("employee_change_request")
+}
+
+// Policy acknowledgement (SCR-ESS-07) — stores policy version + acknowledgement time
+
+model PolicyAcknowledgement {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId             String    @map("tenant_id") @db.Uuid
+  employeeId           String    @map("employee_id") @db.Uuid
+  policyKey            String    @map("policy_key") @db.VarChar(120)
+  policyTitle          String    @map("policy_title") @db.VarChar(200)
+  policyVersion        String    @map("policy_version") @db.VarChar(40)
+  effectiveDate        DateTime? @map("effective_date") @db.Date
+  summary              String?   @db.Text
+  employeeDocumentId   String?   @map("employee_document_id") @db.Uuid
+  acknowledgedAt       DateTime  @map("acknowledged_at") @db.Timestamptz(6)
+  acknowledgedByUserId String    @map("acknowledged_by_user_id") @db.Uuid
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, employeeId, policyKey, policyVersion], map: "policy_acknowledgement_uq")
+  @@index([tenantId, employeeId], map: "policy_acknowledgement_tenant_employee_idx")
+  @@map("policy_acknowledgement")
+}
+
+// In-app notifications for ESS (M11-FR-012)
+
+model UserNotification {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId  String    @map("tenant_id") @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  title     String    @db.VarChar(200)
+  body      String?   @db.Text
+  category  String?   @db.VarChar(40)
+  linkPath  String?   @map("link_path") @db.VarChar(500)
+  readAt    DateTime? @map("read_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tenant Tenant  @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  user   AppUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, userId, createdAt], map: "user_notification_tenant_user_created_idx")
+  @@index([tenantId, userId, readAt], map: "user_notification_tenant_user_read_idx")
+  @@map("user_notification")
+}
+
+// ─── Super Admin epic: platform settings, notifications, integrations ─────────
+
+model PlatformSetting {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  domain     String   @unique @db.VarChar(40)
+  value      Json
+  rowVersion BigInt   @default(1) @map("row_version")
+  updatedBy  String?  @map("updated_by") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("platform_setting")
+}
+
+model PlatformNotification {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  title     String    @db.VarChar(200)
+  body      String?   @db.Text
+  category  String?   @db.VarChar(40)
+  linkPath  String?   @map("link_path") @db.VarChar(500)
+  severity  String    @default("INFO") @db.VarChar(20)
+  readAt    DateTime? @map("read_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user AppUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt], map: "platform_notification_user_created_idx")
+  @@index([userId, readAt], map: "platform_notification_user_read_idx")
+  @@map("platform_notification")
+}
+
+model UserPreference {
+  id                     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                 String   @unique @map("user_id") @db.Uuid
+  locale                 String   @default("en") @db.VarChar(16)
+  notificationEmail      Boolean  @default(true) @map("notification_email")
+  notificationInApp      Boolean  @default(true) @map("notification_in_app")
+  notificationSecurity   Boolean  @default(true) @map("notification_security")
+  createdAt              DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user AppUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preference")
+}
+
+model IntegrationConnection {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code            String    @unique @db.VarChar(80)
+  name            String    @db.VarChar(160)
+  category        String    @db.VarChar(40)
+  provider        String?   @db.VarChar(80)
+  status          String    @default("UNKNOWN") @db.VarChar(20)
+  enabled         Boolean   @default(true)
+  lastSyncAt      DateTime? @map("last_sync_at") @db.Timestamptz(6)
+  lastSuccessAt   DateTime? @map("last_success_at") @db.Timestamptz(6)
+  lastFailureAt   DateTime? @map("last_failure_at") @db.Timestamptz(6)
+  errorCount24h   Int       @default(0) @map("error_count_24h")
+  itemsProcessed  Int       @default(0) @map("items_processed")
+  successRatePct  Decimal?  @map("success_rate_pct") @db.Decimal(5, 2)
+  configJson      Json?     @map("config_json")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  healthChecks IntegrationHealthCheck[]
+  syncRuns     IntegrationSyncRun[]
+  reconciliationItems IntegrationReconciliationItem[]
+
+  @@index([category, status])
+  @@map("integration_connection")
+}
+
+model IntegrationHealthCheck {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  connectionId String   @map("connection_id") @db.Uuid
+  status       String   @db.VarChar(20)
+  latencyMs    Int?     @map("latency_ms")
+  message      String?  @db.Text
+  checkedAt    DateTime @default(now()) @map("checked_at") @db.Timestamptz(6)
+
+  connection IntegrationConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@index([connectionId, checkedAt])
+  @@map("integration_health_check")
+}
+
+model IntegrationSyncRun {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  connectionId   String    @map("connection_id") @db.Uuid
+  status         String    @db.VarChar(20)
+  itemsProcessed Int       @default(0) @map("items_processed")
+  errorCount     Int       @default(0) @map("error_count")
+  startedAt      DateTime  @default(now()) @map("started_at") @db.Timestamptz(6)
+  finishedAt     DateTime? @map("finished_at") @db.Timestamptz(6)
+  durationMs     Int?      @map("duration_ms")
+  message        String?   @db.Text
+
+  connection IntegrationConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@index([connectionId, startedAt])
+  @@map("integration_sync_run")
+}
+
+model IntegrationReconciliationItem {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  connectionId String    @map("connection_id") @db.Uuid
+  externalId   String    @map("external_id") @db.VarChar(200)
+  itemType     String    @map("item_type") @db.VarChar(40)
+  status       String    @default("UNMAPPED") @db.VarChar(20)
+  payload      Json?
+  resolvedAt   DateTime? @map("resolved_at") @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  connection IntegrationConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@index([connectionId, status])
+  @@map("integration_reconciliation_item")
+}
+
+model AuditExportJob {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  requestedBy String    @map("requested_by") @db.Uuid
+  status      String    @default("PENDING") @db.VarChar(20)
+  format      String    @default("CSV") @db.VarChar(20)
+  filtersJson Json?     @map("filters_json")
+  reason      String?   @db.Text
+  filePath    String?   @map("file_path") @db.VarChar(500)
+  rowCount    Int?      @map("row_count")
+  errorMessage String?  @map("error_message") @db.Text
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  completedAt DateTime? @map("completed_at") @db.Timestamptz(6)
+
+  @@index([requestedBy, createdAt])
+  @@map("audit_export_job")
+}
+
+enum LeavePaidStatus {
+  PAID
+  UNPAID
+  MIXED
+
+  @@map("leave_paid_status")
+}
+
+enum LeaveUnit {
+  DAY
+  HOUR
+
+  @@map("leave_unit")
+}
+
+enum LeaveTypeStatus {
+  ACTIVE
+  INACTIVE
+
+  @@map("leave_type_status")
+}
+
+enum LeaveLedgerEntryType {
+  GRANT
+  ACCRUAL
+  RESERVATION
+  CONSUMPTION
+  RELEASE
+  ADJUSTMENT
+  EXPIRY
+  CARRY_FORWARD
+
+  @@map("leave_ledger_entry_type")
+}
+
+enum LeaveLedgerSourceType {
+  LEAVE_REQUEST
+  POLICY_JOB
+  MANUAL_ADJUSTMENT
+  MIGRATION
+  SEED
+
+  @@map("leave_ledger_source_type")
+}
+
+enum LeaveRequestStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+  RETURNED
+  CANCELLED
+  COMPLETED
+
+  @@map("leave_request_status")
+}
+
+enum LeaveDayPart {
+  FULL
+  FIRST_HALF
+  SECOND_HALF
+
+  @@map("leave_day_part")
+}
+
+enum LeavePayrollImpact {
+  NONE
+  PAID
+  UNPAID
+
+  @@map("leave_payroll_impact")
+}
+
+enum PayslipStatus {
+  GENERATED
+  PUBLISHED
+  WITHDRAWN
+  REPLACED
+
+  @@map("payslip_status")
+}
+
+model LeaveType {
+  id             String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId       String          @map("tenant_id") @db.Uuid
+  code           String          @db.VarChar(40)
+  name           String          @db.VarChar(120)
+  paidStatus     LeavePaidStatus @map("paid_status")
+  unit           LeaveUnit
+  halfDayAllowed Boolean         @default(false) @map("half_day_allowed")
+  status         LeaveTypeStatus @default(ACTIVE)
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+  rowVersion     BigInt          @default(1) @map("row_version")
+
+  tenant        Tenant             @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  ledgerEntries LeaveLedgerEntry[]
+  requests      LeaveRequest[]
+
+  @@unique([tenantId, code], map: "leave_type_tenant_code_uq")
+  @@index([tenantId, status], map: "leave_type_tenant_status_idx")
+  @@map("leave_type")
+}
+
+model LeaveLedgerEntry {
+  id            String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId      String                @map("tenant_id") @db.Uuid
+  employeeId    String                @map("employee_id") @db.Uuid
+  leaveTypeId   String                @map("leave_type_id") @db.Uuid
+  policyId      String?               @map("policy_id") @db.Uuid
+  entryType     LeaveLedgerEntryType  @map("entry_type")
+  quantity      Decimal               @db.Decimal(10, 4)
+  effectiveDate DateTime              @map("effective_date") @db.Date
+  expiresOn     DateTime?             @map("expires_on") @db.Date
+  sourceType    LeaveLedgerSourceType @map("source_type")
+  sourceId      String?               @map("source_id") @db.Uuid
+  description   String?               @db.Text
+  createdAt     DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  employee  Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveType LeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, employeeId, leaveTypeId, effectiveDate], map: "leave_ledger_entry_tenant_employee_type_effective_idx")
+  @@index([tenantId, sourceType, sourceId], map: "leave_ledger_entry_tenant_source_idx")
+  @@map("leave_ledger_entry")
+}
+
+model LeaveRequest {
+  id                String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId          String             @map("tenant_id") @db.Uuid
+  employeeId        String             @map("employee_id") @db.Uuid
+  leaveTypeId       String             @map("leave_type_id") @db.Uuid
+  policyId          String?            @map("policy_id") @db.Uuid
+  startsOn          DateTime           @map("starts_on") @db.Date
+  endsOn            DateTime           @map("ends_on") @db.Date
+  requestedQuantity Decimal            @map("requested_quantity") @db.Decimal(10, 4)
+  reason            String?            @db.Text
+  evidenceFileKey   String?            @map("evidence_file_key") @db.VarChar(500)
+  emergency         Boolean            @default(false)
+  status            LeaveRequestStatus @default(DRAFT)
+  submittedAt       DateTime?          @map("submitted_at") @db.Timestamptz(6)
+  decidedAt         DateTime?          @map("decided_at") @db.Timestamptz(6)
+  decidedBy         String?            @map("decided_by") @db.Uuid
+  balanceSnapshot   Json?              @map("balance_snapshot")
+  createdBy         String?            @map("created_by") @db.Uuid
+  updatedBy         String?            @map("updated_by") @db.Uuid
+  createdAt         DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+  rowVersion        BigInt             @default(1) @map("row_version")
+
+  tenant    Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  employee  Employee          @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveType LeaveType         @relation(fields: [leaveTypeId], references: [id], onDelete: Restrict)
+  days      LeaveRequestDay[]
+
+  @@index([tenantId, employeeId, startsOn], map: "leave_request_tenant_employee_starts_idx")
+  @@index([tenantId, employeeId, status], map: "leave_request_tenant_employee_status_idx")
+  @@index([tenantId, status], map: "leave_request_tenant_status_idx")
+  @@map("leave_request")
+}
+
+model LeaveRequestDay {
+  id             String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId       String             @map("tenant_id") @db.Uuid
+  leaveRequestId String             @map("leave_request_id") @db.Uuid
+  leaveDate      DateTime           @map("leave_date") @db.Date
+  quantity       Decimal            @db.Decimal(10, 4)
+  dayPart        LeaveDayPart       @map("day_part")
+  holiday        Boolean            @default(false)
+  restDay        Boolean            @default(false) @map("rest_day")
+  payrollImpact  LeavePayrollImpact @default(NONE) @map("payroll_impact")
+
+  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  leaveRequest LeaveRequest @relation(fields: [leaveRequestId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, leaveRequestId, leaveDate, dayPart], map: "leave_request_day_uq")
+  @@index([tenantId, leaveDate], map: "leave_request_day_tenant_date_idx")
+  @@map("leave_request_day")
+}
+
+model Payslip {
+  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId         String        @map("tenant_id") @db.Uuid
+  employeeId       String        @map("employee_id") @db.Uuid
+  payrollVersionId String?       @map("payroll_version_id") @db.Uuid
+  periodLabel      String        @map("period_label") @db.VarChar(120)
+  periodStart      DateTime      @map("period_start") @db.Date
+  periodEnd        DateTime      @map("period_end") @db.Date
+  currency         String        @db.Char(3)
+  grossAmount      Decimal       @map("gross_amount") @db.Decimal(14, 2)
+  netAmount        Decimal       @map("net_amount") @db.Decimal(14, 2)
+  earnings         Json
+  deductions       Json
+  status           PayslipStatus @default(GENERATED)
+  publishedAt      DateTime?     @map("published_at") @db.Timestamptz(6)
+  documentFileKey  String?       @map("document_file_key") @db.VarChar(500)
+  createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  rowVersion       BigInt        @default(1) @map("row_version")
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, employeeId, publishedAt], map: "payslip_tenant_employee_published_idx")
+  @@index([tenantId, status], map: "payslip_tenant_status_idx")
+  @@map("payslip")
 }

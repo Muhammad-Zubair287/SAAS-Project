@@ -1,0 +1,24 @@
+---
+description: React 19, Next.js App Router, Tailwind CSS, and UI component standards
+globs: "src/{components,app,hooks,stores}/**/*.{ts,tsx,css}"
+alwaysApply: false
+---
+
+# Component Architecture
+- React Server Components (RSC) by default. Use `'use client'` strictly for browser APIs, event handlers, state, effects, or context.
+- Props interfaces must be explicit. Avoid `...rest` without validation.
+- Use slots pattern over heavy configuration props.
+- Use Tailwind CSS with `cn()` utility for variant class merging.
+- WCAG 2.1 AA compliant: explicit `aria-labels`, focus traps, and full keyboard navigation.
+
+# State Management
+- **Server State:** TanStack Query / SWR with explicit `staleTime` & `gcTime`.
+- **Client State:** Zustand atomic stores (no deeply nested state proxies).
+- **URL State:** Use query parameters for shareable filters and sorting.
+- No prop-drilling beyond 2 levels; use composition.
+
+# Performance
+- Code-split by route; lazy-load components below the fold.
+- WebP/AVIF images with `srcset` and blur placeholders.
+- Wrap inline renders in `useMemo`/`useCallback` when operations exceed 50ms execution.
+- Virtualize lists exceeding 100 items using `@tanstack/react-virtual`.

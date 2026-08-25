@@ -1,0 +1,402 @@
+{
+  "info": {
+    "name": "Workforce Cloud OS — Employee Self-Service (M11 Scope A)",
+    "description": "ESS /me/* APIs + employee-change-requests. Auth: Employee role JWT. Ownership via employee.user_id.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3001/api/v1" },
+    { "key": "accessToken", "value": "" },
+    { "key": "requestId", "value": "" },
+    { "key": "leaveTypeId", "value": "" },
+    { "key": "leaveRequestId", "value": "" },
+    { "key": "payslipId", "value": "" },
+    { "key": "documentId", "value": "" },
+    { "key": "notificationId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "GET Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/me/dashboard"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "item": [
+        {
+          "name": "GET Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/me/profile"
+          }
+        },
+        {
+          "name": "PATCH Profile (direct fields)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneMobile\": \"+971500000000\",\n  \"preferredName\": \"Alex\"\n}"
+            },
+            "url": "{{baseUrl}}/me/profile"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Attendance",
+      "item": [
+        {
+          "name": "GET Today",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/me/attendance/today"
+          }
+        },
+        {
+          "name": "GET Records",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/me/attendance/records?page=1&pageSize=20"
+          }
+        },
+        {
+          "name": "POST Check-in",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/me/attendance/check-in"
+          }
+        },
+        {
+          "name": "POST Check-out",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/me/attendance/check-out"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Documents & Policies",
+      "item": [
+        {
+          "name": "GET My Documents",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/me/documents"
+          }
+        },
+        {
+          "name": "GET Document by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/me/documents/{{documentId}}"
+          }
+        },
+        {
+          "name": "GET Policies",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/me/policies"
+          }
+        },
+        {
+          "name": "POST Acknowledge Policy",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"policyKey\": \"code-of-conduct\",\n  \"policyTitle\": \"Code of Conduct\",\n  \"policyVersion\": \"1.0\",\n  \"summary\": \"I have read and agree.\"\n}"
+            },
+            "url": "{{baseUrl}}/me/policies/acknowledge"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Requests",
+      "item": [
+        {
+          "name": "GET My Requests",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/me/requests"
+          }
+        },
+        {
+          "name": "POST Create Change Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requestType\": \"PROFILE_CHANGE\",\n  \"section\": \"contact\",\n  \"fieldPath\": \"emailPersonal\",\n  \"currentValue\": \"old@example.com\",\n  \"requestedValue\": \"new@example.com\",\n  \"reason\": \"Personal email update\",\n  \"status\": \"SUBMITTED\"\n}"
+            },
+            "url": "{{baseUrl}}/me/requests"
+          }
+        },
+        {
+          "name": "GET Request Detail",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/me/requests/{{requestId}}"
+          }
+        },
+        {
+          "name": "POST Submit Request",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/me/requests/{{requestId}}/submit"
+          }
+        },
+        {
+          "name": "POST Cancel Request",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/me/requests/{{requestId}}/cancel"
+          }
+        },
+        {
+          "name": "POST employee-change-requests (spec)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requestType\": \"ATTENDANCE_CORRECTION\",\n  \"reason\": \"Missed check-out\",\n  \"requestedValue\": \"{\\\"date\\\":\\\"2026-08-22\\\",\\\"checkOut\\\":\\\"18:00\\\"}\",\n  \"status\": \"SUBMITTED\"\n}"
+            },
+            "url": "{{baseUrl}}/employee-change-requests"
+          }
+        },
+        {
+          "name": "GET employee-change-requests (approver)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/employee-change-requests?status=SUBMITTED"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "GET Notifications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/me/notifications"
+          }
+        },
+        {
+          "name": "GET Unread Count",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/me/notifications/unread-count"
+          }
+        },
+        {
+          "name": "POST Mark Read",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/me/notifications/{{notificationId}}/read"
+          }
+        },
+        {
+          "name": "POST Mark All Read",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/me/notifications/read-all"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Roster",
+      "item": [
+        {
+          "name": "GET My Roster",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/me/roster"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Leave",
+      "item": [
+        {
+          "name": "GET Leave Balances",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/me/leave/balances"
+          }
+        },
+        {
+          "name": "GET Leave Types",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/me/leave/types"
+          }
+        },
+        {
+          "name": "GET Leave Requests",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/me/leave/requests?page=1&pageSize=20"
+          }
+        },
+        {
+          "name": "POST Create Leave Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leaveTypeId\": \"{{leaveTypeId}}\",\n  \"startsOn\": \"2026-09-01\",\n  \"endsOn\": \"2026-09-01\",\n  \"dayPart\": \"FULL\",\n  \"reason\": \"Family appointment\",\n  \"status\": \"SUBMITTED\"\n}"
+            },
+            "url": "{{baseUrl}}/me/leave/requests"
+          }
+        },
+        {
+          "name": "GET Leave Request Detail",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/me/leave/requests/{{leaveRequestId}}"
+          }
+        },
+        {
+          "name": "POST Submit Leave Request",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/me/leave/requests/{{leaveRequestId}}/submit"
+          }
+        },
+        {
+          "name": "POST Cancel Leave Request",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/me/leave/requests/{{leaveRequestId}}/cancel"
+          }
+        },
+        {
+          "name": "POST Grant Leave Balance (HR)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeId\": \"{{employeeId}}\",\n  \"leaveTypeId\": \"{{leaveTypeId}}\",\n  \"quantity\": 21,\n  \"effectiveDate\": \"2026-01-01\",\n  \"reason\": \"Annual entitlement grant\"\n}"
+            },
+            "url": "{{baseUrl}}/leave/balances/grants"
+          }
+        },
+        {
+          "name": "POST Approve Leave Request (HR)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/leave-requests/{{leaveRequestId}}/approve"
+          }
+        },
+        {
+          "name": "POST Reject Leave Request (HR)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/leave-requests/{{leaveRequestId}}/reject"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payslips",
+      "item": [
+        {
+          "name": "GET Payslips",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/me/payslips"
+          }
+        },
+        {
+          "name": "GET Payslip Detail",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/me/payslips/{{payslipId}}"
+          }
+        },
+        {
+          "name": "POST Publish Payslip",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeId\": \"00000000-0000-0000-0000-000000000000\",\n  \"periodLabel\": \"August 2026\",\n  \"periodStart\": \"2026-08-01\",\n  \"periodEnd\": \"2026-08-31\",\n  \"currency\": \"PKR\",\n  \"grossAmount\": 150000,\n  \"netAmount\": 132500,\n  \"earnings\": [{ \"label\": \"Basic\", \"amount\": 150000 }],\n  \"deductions\": [{ \"label\": \"Tax\", \"amount\": 17500 }]\n}"
+            },
+            "url": "{{baseUrl}}/payslips"
+          }
+        }
+      ]
+    }
+  ]
+}

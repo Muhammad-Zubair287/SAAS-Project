@@ -45,7 +45,7 @@ export function StatCard({
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <p className="text-label-md text-text-secondary truncate">{title}</p>
+          <p className="text-label-md leading-snug text-text-secondary">{title}</p>
           <p className="mt-1 text-metric-lg font-bold text-text-primary tabular-nums">
             {typeof value === 'number' ? value.toLocaleString() : value}
           </p>

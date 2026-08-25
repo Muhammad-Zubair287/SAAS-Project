@@ -46,7 +46,7 @@ export function RecordsPageClient({ title, description }: Props) {
         ]}
       />
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <select
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
@@ -107,7 +107,7 @@ export function RecordsPageClient({ title, description }: Props) {
             type="button"
             onClick={() => setPage(Math.max(1, page - 1))}
             disabled={page <= 1}
-            className="rounded-md border border-border-default px-3 py-1.5 text-body-sm disabled:opacity-40"
+            className="flex h-11 min-w-11 items-center justify-center rounded-md border border-border-default px-3 text-body-sm disabled:opacity-40"
             aria-label={t('pagination.previousPage')}
           >
             ←
@@ -117,7 +117,7 @@ export function RecordsPageClient({ title, description }: Props) {
             type="button"
             onClick={() => setPage(Math.min(totalPages, page + 1))}
             disabled={page >= totalPages}
-            className="rounded-md border border-border-default px-3 py-1.5 text-body-sm disabled:opacity-40"
+            className="flex h-11 min-w-11 items-center justify-center rounded-md border border-border-default px-3 text-body-sm disabled:opacity-40"
             aria-label={t('pagination.nextPage')}
           >
             →

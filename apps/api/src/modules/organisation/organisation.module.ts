@@ -17,10 +17,14 @@ import { BranchController } from './controllers/branch.controller';
 import { DepartmentController } from './controllers/department.controller';
 import { CostCentreController } from './controllers/cost-centre.controller';
 import { PositionController } from './controllers/position.controller';
+import { GradeAndOverviewController } from './controllers/grade-and-overview.controller';
+import { GradeService } from './services/grade.service';
+import { OrganisationOverviewService } from './services/organisation-overview.service';
 
 @Module({
   imports: [PrismaModule, AuthenticationModule],
   controllers: [
+    GradeAndOverviewController,
     LegalEntityController,
     BranchController,
     DepartmentController,
@@ -39,6 +43,8 @@ import { PositionController } from './controllers/position.controller';
     DepartmentService,
     CostCentreService,
     PositionService,
+    GradeService,
+    OrganisationOverviewService,
   ],
   exports: [
     LegalEntityRepository,
@@ -51,6 +57,7 @@ import { PositionController } from './controllers/position.controller';
     DepartmentService,
     CostCentreService,
     PositionService,
+    GradeService,
   ],
 })
 export class OrganisationModule {}

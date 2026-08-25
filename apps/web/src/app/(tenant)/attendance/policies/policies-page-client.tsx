@@ -13,8 +13,8 @@ export function PoliciesPageClient() {
   const policies = (data as { data: AttendancePolicy[] } | undefined)?.data ?? [];
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-gray-900">{t('list.title')}</h1>
         <Link
           href="/attendance/policies/new"

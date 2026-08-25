@@ -7,28 +7,14 @@ import { ERROR_CODES } from '../../../common/constants/error-codes.constants';
 import { PrismaService } from '../../../database/prisma/prisma.service';
 import type { JwtPayload } from '../interfaces/jwt-payload.interface';
 import type { CurrentUserContext } from '../interfaces/current-user-context.interface';
-
-// JwtStrategy validates every request that carries a Bearer token.
-// It is invoked by JwtAuthGuard when applied to a route.
-//
-// Responsibilities:
-//   1. Verify JWT signature and expiry (handled by Passport/passport-jwt).
-//   2. Load the AppUser from the database using the 'sub' claim.
-//   3. Assert user status is ACTIVE.
-//   4. Assert tenant status is not SUSPENDED/CLOSED/ARCHIVED (when tenantId present).
-//   5. Return a CurrentUserContext that becomes request.user.
-//
-// This strategy does NOT:
-//   - Issue tokens  (Batch 4 — AuthService)
-//   - Check passwords (Batch 4 — PasswordService)
-//   - Enforce MFA    (Batch 6 — MfaService)
-//   - Resolve permissions (Batch 7 — RbacService; permissions: [] placeholder here)
+import { SessionService } from '../services/session.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(
     private readonly config: ConfigService,
     private readonly prisma: PrismaService,
+    private readonly sessionService: SessionService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -38,7 +24,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(payload: JwtPayload): Promise<CurrentUserContext> {
-    // ── 1. Load user ─────────────────────────────────────────────────────────
     const user = await this.prisma.appUser.findUnique({
       where: { id: payload.sub },
       select: {
@@ -59,7 +44,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       });
     }
 
-    // ── 2. Assert user is active ──────────────────────────────────────────────
     if (user.status === 'LOCKED') {
       throw new AppException({
         code: ERROR_CODES.ACCOUNT_LOCKED,
@@ -77,7 +61,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     }
 
     if (user.status !== 'ACTIVE') {
-      // INVITED or unknown status — treat as not yet active
       throw new AppException({
         code: ERROR_CODES.AUTHENTICATION_REQUIRED,
         message: 'Account is not active.',
@@ -85,7 +68,13 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       });
     }
 
-    // ── 3. Assert tenant is accessible (only when token carries a tenantId) ──
+    // Revoked / expired sessions must not be trusted merely because the JWT signature is valid.
+    await this.sessionService.assertSessionActive(
+      payload.sessionId ?? '',
+      user.id,
+      payload.tenantId ?? null,
+    );
+
     if (payload.tenantId) {
       const tenant = await this.prisma.tenant.findUnique({
         where: { id: payload.tenantId },
@@ -100,7 +89,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         });
       }
 
-      // SUSPENDED, CLOSED, and ARCHIVED tenants cannot process authenticated requests.
       if (
         tenant.status === 'SUSPENDED' ||
         tenant.status === 'CLOSED' ||
@@ -114,9 +102,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       }
     }
 
-    // ── 4. Build and return the request-scoped context ────────────────────────
-    // effectivePermissions and resolvedRoles are populated lazily by PermissionGuard
-    // when @RequirePermissions() is present on the route handler.
     return {
       userId: user.id,
       tenantId: payload.tenantId ?? null,

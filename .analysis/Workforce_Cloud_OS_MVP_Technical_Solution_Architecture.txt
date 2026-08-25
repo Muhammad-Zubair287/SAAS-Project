@@ -1,0 +1,1466 @@
+--- Page 1 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 1
+WORKFORCE CLOUD OS
+MVP Technical Solution 
+Architecture
+System design, multi-tenancy, data, APIs, security, Kubernetes, DevOps and 
+implementation blueprint
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Document control Value
+Document version 1.0
+Status Architecture baseline for review
+Primary launch Pakistan SaaS; GCC and global-ready foundation
+Reference deployment AWS reference architecture with Azure and GCP mappings
+Architecture style Modular monolith with event-driven integration
+Prepared for Product, architecture, engineering, DevOps, security, QA 
+and implementation teams
+Architecture outcome
+The engineering team should be able to create repositories, environments, database schemas, APIs, deployment 
+pipelines and module backlogs without inventing foundational architecture decisions.
+One employee identity. One policy foundation. One secure workforce operating 
+environment.
+
+--- Page 2 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 2
+1. Document Purpose and Architecture Scope
+A build-ready technical blueprint for the approved MVP.
+This document defines how Workforce Cloud OS should be implemented as a secure, scalable, multi-tenant 
+workforce SaaS platform. It follows the approved BRD, module-by-module PRD, screen-level UX specification and 
+enterprise design system. The architecture supports the Phase-One product scope: tenant administration, 
+identity, organisation, Core HR, onboarding, attendance, shifts, leave, approvals, payroll, employee and manager 
+self-service, notifications, reporting, imports, integrations, subscriptions and audit controls.
+The document explains technology responsibilities, data ownership, security boundaries, integration patterns, 
+deployment topology, delivery controls and operational requirements. It deliberately separates the MVP 
+architecture from later product capabilities such as TaskOps, advanced assets, benefits, predictive AI and full 
+global payroll.
+Audience How to use this document
+Product leadership Confirm architectural scope, service levels, cost trade-offs and 
+staged capability.
+Solution architects Own architecture decisions, domain boundaries, quality 
+attributes and technical governance.
+Engineering Create modules, schemas, APIs, jobs and integrations according 
+to defined contracts.
+DevOps / SRE Implement Kubernetes, CI/CD, observability, resilience, backup 
+and incident response.
+Security / privacy Validate identity, tenant isolation, encryption, audit, retention 
+and threat controls.
+QA Derive tenant-isolation, payroll, attendance, integration, 
+performance and recovery test coverage.
+Implementation team Plan data migration, tenant configuration, connector setup and 
+production readiness.
+Scope boundary
+This is a solution architecture document, not a detailed low-level design for every class or database table. Detailed 
+ERDs, OpenAPI contracts, threat models and infrastructure-as-code repositories should follow this baseline.
+2. Source Baseline and Approved Constraints
+Area Approved direction
+Product Multi-tenant SaaS workforce operating system for Pakistan with 
+global expansion readiness.
+Frontend React and Next.js multilingual responsive web application.
+Backend Node.js with NestJS.
+Database PostgreSQL with tenant-aware design and row-level security.
+Authentication OAuth 2.0, OpenID Connect, JWT and enterprise SSO.
+Infrastructure Kubernetes on AWS, Azure or Google Cloud.
+Interfaces REST APIs first; GraphQL only where a validated use case 
+benefits from it.
+
+--- Page 3 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 3
+Area Approved direction
+Architecture style MVP modular monolith with clean domain boundaries and 
+future service extraction.
+UX Enterprise blue-and-teal design system, responsive 
+administration and mobile-first employee flows.
+Compliance Configurable policy packs; jurisdiction claims require qualified 
+legal, payroll and tax review.
+3. Executive Architecture Summary
+Workforce Cloud OS should launch as a modular monolith deployed on Kubernetes. The application is separated 
+into domain modules that own their business rules and data. Modules communicate through explicit 
+application-service interfaces and domain events. This approach avoids premature distributed-system 
+complexity while preserving a clear path to extract independently scaling services later.
+ Next.js provides the server-rendered and client-interactive web experience for platform, tenant, HR, payroll, 
+manager and employee users.
+ NestJS provides REST APIs, application services, background jobs and integration endpoints.
+ PostgreSQL is the authoritative transactional database. Every tenant-owned row includes tenant_id and is 
+protected by PostgreSQL row-level security.
+ Redis supports caching, distributed locks, rate-limiting counters and background job queues. Redis is not the 
+system of record.
+ Object storage holds employee documents, exports and generated payslips through secure, time-limited 
+access links.
+ A transactional outbox publishes reliable domain events after database commits, allowing modules and 
+integrations to react without unsafe dual writes.
+ OpenTelemetry provides consistent logs, metrics and traces across web, API, workers and connectors.
+ The reference cloud implementation uses AWS services, with a mapping to equivalent Azure and GCP 
+services.
+Primary architecture decision
+Build one deployable application with independently testable domain modules. Extract services only when a domain 
+needs independent scaling, release cadence, data isolation or operational ownership.
+
+--- Page 4 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 4
+4. Architecture Goals and Quality Attributes
+Quality attribute MVP target / design response
+Tenant isolation No cross-tenant read or write through UI, API, jobs, reports, 
+exports or support tooling. Enforced at token, service and 
+database levels.
+Availability Target 99.9% monthly production availability, excluding 
+approved maintenance.
+Performance Standard pages within 3 seconds; attendance acknowledgement 
+within 2 seconds; large exports asynchronous.
+Scalability Scale from design partners to hundreds of thousands of 
+employee seats without replacing core architecture.
+Payroll correctness Versioned formulas, source snapshots, deterministic calculation 
+and parallel-payroll regression tests.
+Auditability Trace critical data changes, approvals, exports, support access, 
+payroll versions and policy versions.
+Security Zero-trust service access, least privilege, encryption, secure 
+secrets and defence-in-depth tenant enforcement.
+Localisation English first with Urdu/RTL readiness; support currencies, time 
+zones, date formats and jurisdiction policy packs.
+Operability Observable jobs, integration queues, business SLIs, runbooks, 
+safe deployment and tested recovery.
+Cost control Use managed services and autoscaling; avoid unnecessary 
+microservices and duplicated data platforms in MVP.
+5. Architecture Principles
+Principle Engineering implication
+Tenant context is mandatory Every request, job, event, database transaction and export 
+carries an explicit tenant context.
+One authoritative source PostgreSQL owns transactional state; caches, indexes and 
+exports are derived.
+Configuration before customisation Tenant differences use policy, workflow, field and entitlement 
+configuration rather than code forks.
+Secure by default Access is denied unless explicitly authorised; sensitive data is 
+masked and support access is controlled.
+Effective-dated and versioned Organisation, employment, policy, salary and payroll 
+calculations retain history.
+Asynchronous where appropriate Large imports, reports, notifications and connector processing 
+do not block interactive requests.
+Idempotent integration Attendance, webhooks, imports and background jobs can retry 
+without creating duplicate business effects.
+Human control for high impact Payroll approval, employment status, sensitive data changes 
+and future AI outputs require authorised people.
+Observability is a product feature Business process state, technical health and audit correlation 
+are designed, not added after launch.
+Evolution without rewrite Domain boundaries and event contracts support later 
+extraction into independent services.
+
+--- Page 5 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 5
+6. Key Architecture Decisions
+ADR Decision Rationale
+ADR-001 Modular monolith for MVP Minimises distributed transactions and 
+operating cost while keeping domain 
+boundaries explicit.
+ADR-002 Shared PostgreSQL database and shared 
+schema with tenant_id + RLS
+Efficient SaaS operations and reporting; 
+database policy provides additional 
+isolation.
+ADR-003 REST-first APIs Clear workflow endpoints, broad 
+integration compatibility and simpler 
+governance. GraphQL remains optional for 
+validated composite read use cases.
+ADR-004 Transactional outbox for domain events Prevents database/event dual-write 
+inconsistency and supports reliable 
+asynchronous processing.
+ADR-005 Redis-backed job queues Supports notifications, imports, exports and 
+calculations without introducing a full 
+streaming platform in MVP.
+ADR-006 Object storage for binary documents Scalable, encrypted and lifecycle-managed 
+storage; application stores only metadata 
+and access policy.
+ADR-007 Kubernetes-managed runtime Consistent deployment, autoscaling, 
+isolation, health checks and cloud 
+portability.
+ADR-008 OpenTelemetry standard Vendor-neutral traces, metrics and log 
+correlation.
+ADR-009 AWS reference deployment Provides concrete implementation while 
+preserving mappings to Azure and GCP.
+ADR-010 Database migrations use expand-contract Supports backward-compatible releases and 
+safe rollback.
+
+--- Page 6 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 6
+7. System Context
+Figure 1 - Workforce Cloud OS system context and external actors.
+Workforce Cloud OS is the primary system of record for employee, attendance, leave, payroll and workflow data. 
+Identity providers, biometric systems, finance applications and communication providers remain external 
+systems. Their data enters or leaves the product through authenticated connectors, APIs, scheduled files or event 
+webhooks.
+Actor / system Primary interaction
+Employees Attendance, leave, profile, documents, payslips and requests.
+Managers Team visibility, approvals, rosters and exceptions.
+HR and payroll Configuration, employee lifecycle, attendance, payroll and 
+reports.
+Platform operations Tenant lifecycle, plans, support access, health and usage.
+Identity providers OIDC / SAML authentication and enterprise SSO.
+Biometric devices Raw attendance-event transfer and employee identifier 
+mapping.
+ERP / finance Approved payroll and expense exports; future journal and 
+master-data integration.
+Notification providers Email, push and optional SMS delivery.
+Auditors Read-only access to approved records and immutable audit 
+evidence.
+
+--- Page 7 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 7
+8. Logical Architecture
+Figure 2 - Layered logical architecture.
+The architecture separates user channels, edge controls, application domains, shared platform services and data 
+services. This prevents business modules from directly depending on deployment-specific infrastructure and 
+keeps high-impact concerns such as tenant context, audit and authorisation consistent.
+
+--- Page 8 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 8
+9. Domain Module Boundaries
+Figure 3 - Modular monolith domain boundaries.
+Domain module Owned responsibilities Key outbound events
+Tenant and Subscription Tenant lifecycle, plans, entitlements, limits, 
+branding and hosting metadata.
+TenantActivated, PlanChanged, 
+TenantSuspended
+Identity and Access Users, roles, permissions, invitations, 
+sessions, SSO links and MFA policy.
+UserActivated, RoleChanged, 
+UserDeactivated
+Organisation and People Legal entities, departments, positions, 
+employee profiles, employment history and 
+onboarding.
+EmployeeCreated, EmployeeActivated, 
+EmployeeTransferred, EmployeeExited
+Attendance and Shifts Shift definitions, roster assignments, raw 
+events, calculated days, corrections and 
+locks.
+AttendanceCalculated, 
+AttendanceCorrected, 
+AttendancePeriodLocked
+Leave Leave policies, balances, requests, 
+adjustments and calendars.
+LeaveSubmitted, LeaveApproved, 
+LeaveCancelled
+Payroll Salary structures, payroll periods, 
+calculations, exceptions, approvals, payslips 
+and exports.
+PayrollCalculated, PayrollApproved, 
+PayslipsPublished
+Workflow Reusable approval definitions, stages, 
+delegation, escalation and action history.
+ApprovalAssigned, ApprovalCompleted, 
+ApprovalEscalated
+Notifications Templates, channel preferences, deliveries, 
+retries and user notification centre.
+NotificationDelivered, NotificationFailed
+Documents File metadata, classification, retention, 
+malware state and secure access.
+DocumentUploaded, DocumentApproved, 
+DocumentExpired
+Reporting and Export Read models, report jobs, export generation 
+and secure download.
+ExportReady, ExportExpired
+Integrations Connector configuration, mappings, sync 
+jobs, webhooks and reconciliation.
+IntegrationFailed, ExternalEventAccepted
+Audit Security and business audit events, 
+protected archive and investigation views.
+AuditRecorded
+
+--- Page 9 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 9
+10. Frontend Architecture
+The web application should use Next.js with TypeScript and a component library aligned with the approved 
+Figma design system. The application must support distinct platform, tenant-administrator, HR, payroll, 
+manager and employee experiences without separate codebases.
+Area Architecture requirement
+Application structure Route groups by experience and domain; shared shell, 
+component primitives and permission-aware navigation.
+Rendering Server rendering for initial shell and authorised data where 
+beneficial; client components for complex forms, tables, 
+calendars and payroll workspaces.
+State management Server state managed through a query/cache library; local UI 
+state remains component scoped; avoid a single global mutable 
+store.
+Forms Schema-driven validation shared with API contracts where 
+practical; autosave only for safe drafts, never for high-impact 
+approvals.
+Design system Figma tokens mapped to CSS variables and typed component 
+properties. Components include all required states, RTL and 
+accessibility behaviour.
+Permissions Navigation and controls hide unauthorised actions, but the API 
+remains the authoritative permission boundary.
+Internationalisation Locale-aware message catalogues, date/time and currency 
+formatting, direction-aware layout and 30% text expansion 
+allowance.
+Error handling Global error boundary, structured API error mapping, 
+correlation ID and persistent errors for payroll or data-loss 
+risks.
+Analytics Privacy-safe product events for activation, attendance, requests, 
+payroll and reports.
+Security Content Security Policy, secure cookies, CSRF protection where 
+applicable, no sensitive tokens in browser storage.
+apps/web/
+  app/(platform)/...
+  app/(tenant)/...
+  app/(employee)/...
+  features/people | attendance | leave | payroll | approvals
+  components/primitives | workforce | charts
+  lib/api | auth | i18n | permissions | telemetry
+  styles/tokens.css
+
+--- Page 10 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 10
+11. Backend Architecture
+NestJS should be organised by business domain rather than by technical layer alone. Each module exposes 
+controllers or message handlers, application services, domain models, repositories and event contracts. Direct 
+cross-module database writes are prohibited.
+Layer Responsibility
+API / controller Authenticate, validate transport input, establish tenant context 
+and call application services.
+Application service Coordinate use cases, authorisation, transactions, domain 
+services and event creation.
+Domain model Business rules, invariants, calculations and state transitions.
+Repository Tenant-safe persistence behind domain-specific interfaces.
+Worker / job handler Process asynchronous events, imports, exports, calculations and 
+notifications idempotently.
+Integration adapter Translate external protocols and formats into internal 
+commands or events.
+Policy service Resolve effective-dated tenant policies and calculation rules.
+Audit interceptor Record relevant security and business actions with correlation 
+IDs.
+apps/api/src/
+  modules/tenant
+  modules/identity
+  modules/organisation
+  modules/people
+  modules/attendance
+  modules/leave
+  modules/payroll
+  modules/workflow
+  modules/notifications
+  modules/documents
+  modules/reporting
+  modules/integrations
+  platform/tenant-context | audit | jobs | config | telemetry
+12. Service Extraction Strategy
+A domain should only be extracted from the modular monolith when there is measurable value. Extraction is 
+not a roadmap milestone by itself.
+Candidate Extraction trigger
+Attendance ingestion Sustained high event volume, independent connector 
+ownership or separate scaling requirement.
+Payroll calculation Long-running workloads require dedicated compute, isolated 
+release controls or regulatory separation.
+Notification delivery High channel volume or dedicated provider failover requires 
+independent operations.
+Reporting and export Analytical load affects transactional performance or requires 
+an independent read platform.
+
+--- Page 11 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 11
+Candidate Extraction trigger
+Document processing Malware scanning and OCR require specialised workers and 
+security boundary.
+Integration connectors Partner-specific release cycles and network access justify 
+independent deployment.
+AI analytics Separate model governance, data-access boundary and compute 
+lifecycle are required.
+13. Multi-Tenant Architecture
+Figure 4 - Tenant-isolated request flow and defence in depth.
+The MVP uses a shared PostgreSQL database and shared schema. Every tenant-owned table contains a non-null 
+tenant_id. Tenant isolation is enforced at multiple layers so that a defect in one control does not automatically 
+create cross-tenant exposure.
+Control layer Requirement
+Request entry Tenant is resolved from the authenticated host, organisation 
+selection or signed token claim.
+JWT claims Token contains user identity, tenant membership, session and 
+role references. Claims are verified, not trusted blindly.
+Application authorisation Every use case checks permission and business scope such as 
+legal entity, department or manager hierarchy.
+Database transaction Application opens a transaction and sets the current tenant 
+using a transaction-local database setting.
+PostgreSQL RLS Policies compare row tenant_id with the database tenant 
+context. Queries without valid context return no tenant data.
+Jobs and events Queue messages contain tenant_id and correlation_id; workers 
+re-establish tenant context before data access.
+
+--- Page 12 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 12
+Control layer Requirement
+Object storage Keys are tenant-prefixed; signed access is generated only after 
+permission checks.
+Reports and exports Every query and export job is tenant scoped; files expire and 
+downloads are audited.
+Support access Time-limited, reason-based and fully audited. No silent 
+impersonation.
+Testing Automated negative tests attempt cross-tenant API, SQL, job, 
+export and object access.
+-- Conceptual PostgreSQL RLS pattern
+ALTER TABLE employee ENABLE ROW LEVEL SECURITY;
+CREATE POLICY employee_tenant_policy ON employee
+USING (tenant_id = current_setting('app.tenant_id')::uuid)
+WITH CHECK (tenant_id = current_setting('app.tenant_id')::uuid);
+Enterprise isolation option
+The architecture should allow selected enterprise tenants to move to a dedicated database or dedicated regional 
+environment later. The application must obtain connections through a tenant-aware data-source router rather than 
+embedding one connection globally.
+14. Identity and Access Architecture
+Capability Design
+Authentication OIDC/OAuth 2.0. Password authentication is supported through 
+a secure identity service; enterprise SSO uses Entra ID, Google 
+Workspace or compatible providers.
+Session Short-lived access token and secure refresh/session mechanism. 
+Web sessions use HttpOnly, Secure and SameSite cookies.
+MFA Required for platform administrators and configurable for 
+payroll approvers, tenant administrators and high-risk actions.
+RBAC Roles contain permissions; assignments are tenant scoped and 
+optionally legal-entity or department scoped.
+Manager scope Derived from effective-dated reporting hierarchy, not manually 
+duplicated access lists.
+Segregation of duties Configurable controls prevent self-approval and separate 
+payroll preparation, review and approval.
+Service identity Workloads use cloud workload identity rather than static cloud 
+keys.
+API clients OAuth client credentials or signed API keys with explicit scopes, 
+expiry, rotation and usage audit.
+Break-glass Emergency access is rare, MFA protected, time limited, 
+approved and reviewed after use.
+Deprovisioning Employee exit or administrator action revokes sessions and 
+scheduled access at effective time.
+
+--- Page 13 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 13
+15. Permission Model
+Permissions should combine action, resource and scope. A role name alone is not sufficient for enterprise access 
+control.
+Permission = action + resource + scope
+Example: payroll.read + PayrollRun + legal_entity:PK-LAHORE
+Example: employee.approve_change + Employee + manager_hierarchy:self
+Example: report.export + PayrollRegister + tenant:current
+Scope type Example
+Tenant Tenant administrator may configure company-wide settings.
+Legal entity Payroll user may run payroll only for one legal entity.
+Branch / location HR officer may manage employees in assigned locations.
+Department Manager may view authorised team and department 
+information.
+Manager hierarchy Manager access follows direct and indirect reports according to 
+tenant policy.
+Self Employee may access only their own payslips, requests and 
+personal documents.
+Record assignment Approver may act on requests currently assigned to them.
+Support grant Platform support may access only granted tenant areas for a 
+limited period.
+
+--- Page 14 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 14
+16. Data Architecture
+Figure 5 - Core data domains and relationships.
+PostgreSQL is the authoritative data platform for the MVP. Domain tables remain normalised for transactional 
+correctness, with selective read models or materialised views for dashboards and reporting. The design must 
+prevent reports from bypassing tenant isolation or effective-dated business rules.
+Data class Storage and controls
+Transactional records PostgreSQL; ACID transactions; tenant_id; timestamps; actor 
+and version columns where required.
+Effective-dated records Organisation assignments, employment, salary, policy and 
+roster records use effective_from and effective_to.
+Append-only events Raw attendance events, audit events and outbox events are 
+append-only with correction through new records.
+Binary documents Encrypted object storage; PostgreSQL metadata, checksum, 
+classification, retention and access state.
+Cache Redis stores derived or short-lived values with tenant-prefixed 
+keys and explicit TTL.
+Job state Queue and job metadata in Redis, with durable business state in 
+PostgreSQL.
+Exports Object storage with expiry, authorisation and download audit.
+Telemetry External telemetry platform with tenant-safe attributes and no 
+unnecessary sensitive fields.
+Analytics Product analytics uses pseudonymous identifiers and excludes 
+payroll values, IDs and document content.
+
+--- Page 15 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 15
+17. Core Entity Groups
+Domain Representative entities
+Tenant tenant, tenant_region, plan, entitlement, usage_limit, feature_flag, 
+tenant_branding
+Identity user, identity_link, session, role, permission, role_assignment, 
+api_client, support_grant
+Organisation legal_entity, location, department, position, grade, cost_centre, 
+reporting_assignment
+People employee, employment, contact, bank_account, identifier, 
+custom_field_value, employee_status_history
+Onboarding onboarding_template, onboarding_task, employee_task, 
+policy_acknowledgement
+Attendance shift, shift_assignment, raw_attendance_event, attendance_day, 
+attendance_exception, correction_request, period_lock
+Leave leave_type, leave_policy, leave_ledger, leave_request, 
+leave_adjustment, holiday_calendar
+Workflow workflow_definition, workflow_version, workflow_instance, 
+approval_step, delegation, escalation
+Payroll payroll_group, salary_component, salary_structure, payroll_period, 
+payroll_run, payroll_version, payroll_line, adjustment, payslip, 
+export
+Documents document, document_version, file_object, document_access, 
+retention_rule
+Notification template, preference, notification, delivery_attempt
+Integration integration, credential_reference, mapping, sync_run, 
+external_event, reconciliation_issue
+Audit audit_event, security_event, data_export_event, 
+support_access_event
+18. Data Integrity and Versioning Rules
+ Use UUID or time-sortable unique identifiers for externally referenced records; never expose sequential 
+database IDs as security controls.
+ All tenant-owned primary and unique indexes include tenant_id where uniqueness is tenant scoped.
+ Use optimistic concurrency or version columns for high-conflict administrative records.
+ Do not delete approved payroll, attendance corrections, policy acknowledgements or audit evidence. Create 
+reversals, adjustments or later versions.
+ Payroll calculation stores the formula version and snapshots the source values used for the run.
+ Policy changes create new versions and effective dates; in-flight requests keep the workflow and policy 
+version selected at submission.
+ Timestamps are stored in UTC. Business dates and time zones are retained separately for attendance and 
+payroll interpretation.
+ Money uses fixed-precision decimal types and an explicit currency code; floating-point types are prohibited 
+for payroll amounts.
+ Document objects use checksums and versioning to detect replacement or corruption.
+ Schema constraints enforce required ownership and state transitions where practical, not only application 
+validation.
+
+--- Page 16 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 16
+19. Database Performance Strategy
+Area Strategy
+Indexes Composite indexes begin with tenant_id for tenant-scoped 
+queries. Add date and status columns based on measured access 
+patterns.
+Attendance volume Partition raw attendance events by time only when volume 
+justifies it; retain tenant_id indexes and idempotency key.
+Payroll Batch load source data; avoid per-employee query loops; 
+calculate in bounded chunks and persist a versioned result.
+Reporting Use read-optimised views, replicas or a separate analytical store 
+only after measured transactional impact.
+Connection pooling Use a managed pool and cap connections per pod. Tenant 
+context is transaction local and must be reset safely.
+Slow queries Capture query fingerprints, tenant-safe diagnostics and 
+execution plans in non-production or controlled production 
+tooling.
+Archival Move expired exports and eligible historical blobs through 
+lifecycle policies; retain required transactional evidence.
+
+--- Page 17 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 17
+20. API Architecture
+The product should expose versioned REST APIs for web and external integrations. APIs represent business 
+actions, not generic table access. The same application services are used by UI controllers, connectors and 
+background jobs.
+API concern Requirement
+Versioning Use a stable /api/v1 prefix and explicit deprecation policy. Avoid 
+breaking field semantics.
+Resource naming Use tenant-neutral routes because tenant comes from trusted 
+context; do not allow callers to select arbitrary tenant_id.
+Validation Validate syntax, business preconditions and authorisation. 
+Return field-level errors suitable for the UX.
+Idempotency Require idempotency keys for attendance ingestion, 
+payment/export triggers and external write operations.
+Pagination Cursor or stable keyset pagination for large lists; offset 
+pagination only for bounded administrative data.
+Filtering Allow approved filter fields; reject unbounded arbitrary query 
+construction.
+Errors Structured error code, user-safe message, correlation ID and 
+field details. Never expose stack traces.
+Rate limiting Apply by tenant, user, client and endpoint risk. Attendance 
+ingestion receives separate limits.
+Webhooks Signed payloads, event IDs, retry with backoff, delivery history 
+and endpoint disablement after repeated failure.
+Documentation Generate OpenAPI; publish partner-specific scopes and 
+examples; contracts participate in CI tests.
+POST /api/v1/attendance/events
+Idempotency-Key: <source-event-id>
+Authorization: Bearer <token>
+{
+  "employeeExternalId": "BIO-1288",
+  "occurredAt": "2026-07-25T08:02:14+05:00",
+  "eventType": "CHECK_IN",
+  "source": "BIOMETRIC",
+  "deviceId": "LHR-HQ-01"
+}
+21. Asynchronous Processing and Domain Events
+Background processing is required for imports, exports, notification delivery, attendance normalisation, payroll 
+calculation, report generation and connector synchronisation. The MVP uses Redis-backed queues combined 
+with a PostgreSQL transactional outbox.
+
+--- Page 18 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 18
+Pattern Implementation rule
+Transactional outbox Application transaction writes business state and outbox event 
+together. Publisher job sends committed events.
+At-least-once delivery Handlers are idempotent and use event ID or business key to 
+prevent duplicate effects.
+Dead-letter handling Jobs exceeding retry policy enter a visible failure queue with 
+owner, reason and recovery action.
+Backoff External provider failures use exponential backoff and jitter; 
+business validation errors are not retried indefinitely.
+Job isolation Payroll, export and connector queues have independent 
+concurrency and priority limits.
+Tenant fairness Workers limit concurrent heavy jobs per tenant so one 
+customer cannot consume the entire platform.
+Cancellation Long jobs support cancellation only at safe checkpoints and 
+record partial-output state.
+Observability Every job has tenant, correlation, attempt, duration, result and 
+error classification.
+22. Attendance Architecture
+Figure 6 - Attendance ingestion, normalisation, calculation and exception processing.
+Attendance is modelled as raw source events plus derived attendance-day calculations. Raw events are never 
+silently rewritten. Corrected or superseded values remain traceable to their original source.
+Step Technical behaviour
+Ingest Authenticate source, validate payload, assign tenant and check 
+idempotency.
+
+--- Page 19 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 19
+Step Technical behaviour
+Persist raw event Store immutable source event with UTC time, source timezone, 
+device, mapping and receipt time.
+Map Resolve employee and location; unmapped records enter an 
+exception queue.
+Normalise Convert event semantics into check-in, check-out or break 
+types.
+Calculate Resolve effective shift and attendance policy; calculate status, 
+hours, late, early and overtime.
+Exception Create explicit exceptions for missing events, duplicates, 
+conflicts, outside location or excessive duration.
+Correction Workflow approval creates a correction record and recalculates 
+the affected day.
+Lock Locked attendance becomes the approved payroll input; 
+reopening requires elevated permission and audit.
+Publish Emit AttendanceCalculated or AttendanceCorrected events for 
+payroll readiness and reporting.
+23. Leave and Policy Architecture
+ Leave balances are represented as a ledger of grants, accruals, reservations, approvals, cancellations, 
+adjustments and expiries.
+ A leave request reserves entitlement during approval where tenant policy requires it; final approval posts 
+the consumption entry.
+ Policy resolution uses employee, legal entity, employment type, grade, service date and effective date.
+ The request stores the selected policy version and calculated day breakdown so later policy changes do not 
+rewrite history.
+ Approved unpaid leave emits a payroll-impact event with effective dates and quantity.
+ Private attachments and medical details use document classifications and need-to-know permissions.
+ Calendar views use read models and never expose private reasons to managers without permission.
+24. Workflow Engine Architecture
+Capability Design
+Definition Versioned workflow definition with applicability conditions, 
+stages, approver source, SLA and escalation.
+Instance Created at request submission and bound to the selected 
+definition version.
+Approver resolution Manager hierarchy, named role, specific user, department head 
+or future amount-based rule.
+Actions Approve, reject, return, request information and add internal 
+note.
+Delegation Time-bound and request-type scoped; delegation does not grant 
+unrestricted employee visibility.
+Escalation Reminder and escalation jobs create explicit history; no 
+automatic approval unless specifically permitted.
+Segregation Rule can prohibit requestor, data preparer or payroll calculator 
+from final approval.
+
+--- Page 20 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 20
+Capability Design
+Integration Source modules receive an ApprovalCompleted event and apply 
+the authorised state transition transactionally.
+Audit Every assignment, view, comment and decision includes actor 
+and timestamp.
+
+--- Page 21 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 21
+25. Payroll Architecture
+Figure 7 - Payroll calculation, review, approval and immutable version lifecycle.
+Payroll is the highest-risk MVP domain. The architecture must favour reproducibility, review and audit over 
+real-time convenience. A payroll run is a controlled batch process that snapshots source inputs and produces 
+one or more calculation versions before approval.
+Component Responsibility
+Payroll calendar Defines periods, cut-offs, payment date and applicable payroll 
+group.
+Salary structure Effective-dated employee components, amounts, formulas and 
+currency.
+Input snapshot Copies eligible employee, salary, attendance, leave, adjustment 
+and policy references into the run version.
+Calculation engine Executes deterministic ordered components using fixed-
+precision decimal arithmetic.
+Validation engine Produces blocking errors and review warnings before approval.
+Variance service Compares employee and aggregate results with prior period 
+and configured thresholds.
+Review workflow Separates preparation, review and approval where configured.
+Locking Approved version becomes immutable. Reopening creates a 
+new controlled version with reason and approval.
+Payslip generator Produces secure HTML/PDF representation from the approved 
+version.
+Export generator Creates bank or finance files from approved values; download 
+and transmission are audited.
+
+--- Page 22 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 22
+Legal and payroll boundary
+Country-specific tax, social-security, gratuity and final-settlement rules must be configured as reviewed rule packs. 
+Architecture enables these rules but does not itself establish legal correctness.
+26. Payroll Calculation Controls
+ Use a formula registry with unique version, effective dates, component order and test fixtures.
+ Use decimal arithmetic with defined rounding at component and net-pay levels.
+ Persist the raw source inputs and calculated outputs for every employee in the payroll version.
+ Prevent approval while blocking errors exist. Overrides require permission, reason and audit.
+ Run payroll calculation as bounded background jobs with per-tenant concurrency controls.
+ Calculate chunk results independently but finalise aggregate totals only after all chunks succeed.
+ Use database advisory or distributed locks so the same payroll period is not calculated or approved 
+concurrently.
+ Generate payslips and exports only from the approved locked version.
+ Parallel-payroll comparison is a release gate for new customers and rule-pack changes.
+ Maintain a payroll regression suite covering full month, joiner, exit, unpaid leave, overtime, adjustment and 
+reopening scenarios.
+27. Notifications Architecture
+Area Design
+Event intake Business events create notification intents through templates 
+and recipient rules.
+Template Tenant-branded, versioned, multilingual templates with 
+approved variables.
+Channels In-app and email in MVP; push and SMS through provider 
+adapters as enabled.
+Sensitive content Email and mobile notifications avoid salary, ID, bank or private 
+leave details.
+Delivery Queued delivery with retry, provider response and failure 
+classification.
+Preferences User preferences apply to optional notifications; security and 
+payroll-critical notifications remain mandatory.
+In-app centre Notification is persisted for authorised user with deep link to 
+the source record.
+Provider portability Channel interfaces allow provider replacement without 
+changing business modules.
+28. Documents and File Security
+ Upload requests create a server-authorised object key and short-lived signed upload URL.
+ Files are placed in a quarantine prefix until malware scanning and type validation complete.
+
+--- Page 23 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 23
+ Document metadata stores tenant, employee, category, confidentiality, checksum, version, retention and 
+scan state.
+ Downloads use a permission check followed by a short-lived signed URL; sensitive downloads are audit 
+logged.
+ Object storage uses encryption, versioning, blocked public access and lifecycle policies.
+ Document preview is isolated and does not execute active content.
+ Deletion follows retention and legal-hold policy; expired objects are removed through controlled lifecycle 
+jobs.
+ Payslips are generated as protected document versions bound to an approved payroll version.
+29. Reporting and Export Architecture
+Operational dashboards use optimised queries or read views within PostgreSQL. Large or sensitive reports run 
+asynchronously and produce expiring export files. A separate analytical warehouse should not be introduced 
+until measured workload or product analytics needs justify it.
+Report type Execution model
+Dashboard KPI Cached tenant-scoped query with clear freshness timestamp.
+Operational list Direct paginated query using approved filters and indexes.
+Formatted report Background job renders structured PDF or spreadsheet from a 
+consistent snapshot.
+Large payroll export Background job, encrypted object, limited retention and audited 
+download.
+Scheduled report Future controlled schedule with approved recipients; avoid 
+email attachment of sensitive data.
+Analytical trend Materialised view or replica query, refreshed at defined 
+intervals.
+Audit report Query append-only audit store with masking based on security 
+role.
+
+--- Page 24 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 24
+30. Integration Architecture
+Integration type Pattern
+Biometric devices Connector polls vendor API, receives file or accepts webhook; 
+maps external employee IDs and posts idempotent raw 
+attendance events.
+Identity providers OIDC or SAML federation with tenant-specific configuration and 
+domain verification.
+Finance / ERP Approved REST API, secure file export or webhook. 
+Reconciliation state is stored.
+Bank payroll Versioned export adapter for approved payroll; direct payment 
+integration is a later controlled capability.
+Email / SMS / push Provider adapters behind a notification interface; delivery 
+events normalised.
+Partner APIs Scoped OAuth client, rate limit, OpenAPI contract, sandbox and 
+audit.
+Webhooks Signed outbound events with delivery retries, endpoint health 
+and replay support.
+On-prem connector Outbound-only secure connector for restricted customer 
+networks; no inbound public port required.
+31. Connector Runtime
+ Connectors run in isolated worker deployments with separate network policies and credentials.
+ Connector configuration references secrets; credentials are never returned to the browser after saving.
+ Each sync run records source window, item counts, errors, retries and last successful checkpoint.
+ External identifiers are mapped through explicit mapping tables and cannot silently create employees.
+ Incoming records are validated and normalised before domain commands are accepted.
+ Reconciliation queues surface unmapped, duplicate or conflicting records to administrators.
+ Connector software versions and configuration changes are audit logged.
+ On-prem connectors initiate outbound mutually authenticated TLS connections or polling to avoid customer 
+firewall exposure.
+32. Security Architecture
+Security domain Controls
+Edge CDN, WAF, DDoS protection, TLS, secure headers, bot and rate 
+controls.
+Application Input validation, permission checks, CSRF/XSS protections, safe 
+error handling and dependency controls.
+Tenant JWT membership, tenant context, application scope, PostgreSQL 
+RLS, object-prefix isolation and cross-tenant tests.
+Data Encryption in transit and at rest, field masking, protected 
+backups, key management and retention.
+Secrets Cloud secret manager, workload identity, rotation and no 
+plaintext secrets in repositories or images.
+
+--- Page 25 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 25
+Security domain Controls
+Supply chain Signed images, SBOM, dependency scanning, secret scanning, 
+provenance and controlled base images.
+Runtime Non-root containers, read-only filesystem where possible, 
+resource limits, network policies and pod security standards.
+Operations MFA, least privilege, just-in-time support access, security 
+monitoring and incident runbooks.
+Audit Protected audit events for identity, payroll, exports, support 
+access, permissions and sensitive data.
+Testing SAST, DAST, dependency scan, penetration testing and tenant-
+isolation security suite.
+33. Threat Model Summary
+Threat Primary mitigation
+Cross-tenant data access RLS, tenant context, permission scope, test suite and audit.
+Broken object-level authorisation Every record access uses authorised application service; IDs are 
+not access grants.
+Payroll tampering Segregation of duties, versioning, approval, immutable lock, 
+variance and audit.
+Credential theft MFA, secure sessions, SSO, rate limits, anomaly monitoring and 
+session revocation.
+Malicious document Quarantine, malware scan, safe preview and restricted content 
+types.
+Webhook spoofing or replay Signature, timestamp, event ID, idempotency and secret 
+rotation.
+Biometric duplicate or manipulation Source authentication, idempotency, device mapping and 
+exception review.
+Insider data export Export permission, masking, approval where required, expiry 
+and download audit.
+Supply-chain compromise Signed images, SBOM, scans, protected branches and limited 
+deployment permissions.
+Service outage or data loss Multi-AZ, health checks, backups, tested restore and incident 
+response.
+34. Privacy and Compliance Architecture
+ Collect only fields required for defined workforce purposes and tenant configuration.
+ Display sensitive data according to role, scope and explicit record access; list pages use masking by default.
+ Location attendance stores verification evidence rather than continuous employee movement tracking.
+ Data retention is configured by data class, tenant and jurisdiction pack; deletion jobs preserve legal holds 
+and required audit evidence.
+ Support data export, correction and controlled erasure workflows where legally applicable.
+ Regional hosting metadata is assigned to the tenant and influences database, object and backup placement.
+ Policy packs include version, source, reviewer, effective date and legal disclaimer.
+ Future AI capabilities require separate data governance, bias review, explainability and human decision 
+controls.
+
+--- Page 26 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 26
+35. Reference Cloud Deployment
+Figure 8 - AWS reference deployment with portable service boundaries.
+Capability AWS reference Azure equivalent GCP equivalent
+Kubernetes Amazon EKS Azure Kubernetes Service Google Kubernetes Engine
+PostgreSQL Amazon RDS / Aurora PostgreSQL Azure Database for PostgreSQL Cloud SQL for PostgreSQL
+Redis Amazon ElastiCache Azure Managed Redis / Cache Memorystore
+Object storage Amazon S3 Azure Blob Storage Cloud Storage
+Container registry Amazon ECR Azure Container Registry Artifact Registry
+Secrets / keys Secrets Manager + KMS Key Vault Secret Manager + Cloud KMS
+Edge / WAF CloudFront + AWS WAF Front Door + WAF Cloud CDN + Cloud Armor
+DNS Route 53 Azure DNS Cloud DNS
+Telemetry Managed or vendor platform via 
+OTel
+Managed or vendor platform via 
+OTel
+Managed or vendor platform via 
+OTel
+Cloud portability rule
+Application code depends on standard PostgreSQL, Redis, object-storage interfaces, OIDC and OpenTelemetry. Cloud-
+specific infrastructure remains behind deployment modules and adapters.
+
+--- Page 27 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 27
+36. Kubernetes Architecture
+Workload Deployment approach
+Web Stateless Next.js deployment, horizontal autoscaling, readiness 
+and liveness probes.
+API Stateless NestJS deployment, autoscaling based on CPU, memory 
+and request metrics.
+Workers Separate deployments by queue class: notifications, imports, 
+exports, attendance, payroll and integrations.
+Scheduled jobs Kubernetes CronJobs only for platform schedules; business 
+schedules enqueue durable jobs.
+Ingress TLS termination, routing, request limits and WAF integration.
+Configuration ConfigMaps for non-sensitive environment config; secret 
+manager and workload identity for secrets.
+Network Private nodes, restricted egress, namespace and network 
+policies, no public database.
+Resources Requests and limits for every container; payroll workers have 
+bounded memory and concurrency.
+Availability Minimum replicas across availability zones for web and API; 
+pod disruption budgets.
+Security Non-root, minimal image, read-only filesystem where practical, 
+dropped capabilities and approved registries.
+Migrations Dedicated pre-deployment job with lock and backward-
+compatible migration policy.
+Autoscaling HPA for interactive services; queue-depth autoscaling for 
+workers where supported.
+37. Environment Strategy
+Environment Purpose Data policy
+Local Developer feedback and isolated tests. Synthetic data only.
+Development Shared integration of active branches and 
+feature flags.
+Synthetic or masked fixtures.
+QA Automated integration, security, tenant 
+isolation and regression tests.
+Synthetic representative tenants.
+UAT / Staging Design-partner validation, migration 
+rehearsal and production-like release.
+Approved masked or customer test data.
+Production Live tenant operations. Real data with full controls.
+Recovery Restore validation and regional recovery 
+exercise.
+Encrypted restored copy under restricted 
+access.
+ Production and non-production use separate cloud accounts or subscriptions and separate credentials.
+ No production database copy enters development. Masking is mandatory for approved UAT copies.
+ Each environment has its own identity clients, domains, object buckets and encryption keys.
+ Configuration changes are version controlled and promoted through the delivery pipeline.
+
+--- Page 28 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 28
+38. Infrastructure as Code and Configuration
+ Use Terraform or the organisation-approved equivalent for network, Kubernetes, data services, object 
+storage, IAM, keys and observability integration.
+ Use Helm or Kustomize for Kubernetes application manifests, with environment-specific values stored 
+outside images.
+ Apply policy-as-code checks for public access, encryption, network exposure and required tags.
+ Infrastructure plans require review and are attached to change records for production.
+ Use GitOps or controlled pipeline deployment; manual kubectl changes in production are prohibited except 
+approved emergency actions.
+ Tenant business configuration lives in product data and is not mixed with infrastructure configuration.
+ Feature flags support controlled rollout and tenant-specific enablement, but do not replace permissions.
+
+--- Page 29 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 29
+39. CI/CD and Release Engineering
+Figure 9 - CI/CD quality gates and environment promotion.
+Pipeline stage Required controls
+Pull request Branch policy, review, issue reference, lint, type check and unit 
+tests.
+Build Reproducible build, locked dependencies, container build and 
+SBOM.
+Test Unit, API contract, migration, integration, tenant isolation and 
+selected UI tests.
+Security scan SAST, dependency, container, IaC and secret scanning.
+Package Signed immutable container image and versioned deployment 
+chart.
+Development deploy Automatic deployment and smoke tests.
+QA deploy Integration, performance subset, payroll regression and 
+security tests.
+UAT deploy Release candidate, migration rehearsal and business 
+acceptance.
+Production approval Change evidence, release notes, backup health and rollback 
+plan.
+Progressive rollout Canary or blue-green release, health observation and feature 
+flag control.
+Post-deploy Smoke test, SLO observation, migration verification and release 
+record.
+
+--- Page 30 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 30
+40. Database Migration and Release Compatibility
+ Use expand-contract migrations: add new columns or tables first, deploy compatible code, backfill, then 
+remove obsolete structures in a later release.
+ Every migration is repeatable in ephemeral test databases and measured against production-scale 
+representative data.
+ Long-running backfills run as controlled jobs rather than blocking startup.
+ Migration jobs acquire an advisory lock and produce auditable output.
+ Application release remains compatible with the previous schema during progressive rollout.
+ Rollback may revert application code without requiring destructive schema reversal.
+ High-risk payroll or tenant-isolation migrations require explicit architecture and QA sign-off.
+41. Observability Architecture
+Figure 10 - Unified telemetry and operational feedback loop.
+Signal Examples
+Technical metrics Request rate, latency, errors, saturation, pod health, queue 
+depth, database connections and cache performance.
+Business process metrics Attendance ingestion lag, unresolved exceptions, payroll 
+calculation duration, approval ageing, failed exports and 
+connector backlog.
+Logs Structured event with timestamp, level, service, tenant 
+pseudonym, user pseudonym, correlation ID and safe context.
+Traces Web -> API -> database -> queue -> worker -> provider path 
+using OpenTelemetry context propagation.
+Audit Separate protected business/security audit stream; not 
+dependent only on application logs.
+
+--- Page 31 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 31
+Signal Examples
+Alerts SLO burn rate, payroll job failure, cross-tenant control failure, 
+integration backlog, backup failure and security anomaly.
+Dashboards Platform health, tenant health, payroll operations, attendance 
+pipeline, integrations and release performance.
+42. Service Level Indicators and Objectives
+Service area Proposed SLI / target
+Interactive availability 99.9% successful authorised requests per month, excluding 
+approved maintenance.
+Interactive latency 95th percentile standard API response within 800 ms, excluding 
+background report and payroll operations.
+Attendance acknowledgement 95th percentile within 2 seconds for accepted web/mobile event.
+Attendance ingestion freshness 95% of valid external events normalised within 5 minutes 
+under normal conditions.
+Notification delivery 95% of accepted email notifications handed to provider within 2 
+minutes.
+Payroll calculation Defined tenant-size performance benchmark; calculation does 
+not block employee self-service.
+Export generation Standard reports within 30 seconds; large exports complete 
+asynchronously with status notification.
+Backup Successful scheduled backup and cross-region copy monitored 
+daily.
+Recovery test Quarterly restore validation with evidence and issue tracking.
+These are proposed engineering targets. Final commercial service-level commitments require cost modelling and customer-segment 
+approval.
+
+--- Page 32 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 32
+43. Performance and Scaling Model
+The following workload tiers are management assumptions for architecture testing, not current product usage.
+Tier Tenants Employee seats Key design focus
+Design partner 10-15 Up to 5,000 Correctness, onboarding, 
+parallel payroll and operational 
+learning.
+Early commercial 40-180 5,000-30,000 Tenant isolation, automated 
+implementation, connector 
+reliability and autoscaling.
+Growth Up to 600 Up to 150,000 Attendance bursts, payroll 
+worker scaling, reporting read 
+models and support tooling.
+Scale target Up to 3,000 Up to 1.2 million Regional deployment, database 
+routing, service extraction and 
+dedicated enterprise isolation 
+options.
+ Attendance peaks are bursty around shift starts; ingest remains stateless and queues normalisation work.
+ Payroll is a planned batch workload; scale workers per run while enforcing tenant fairness and memory 
+limits.
+ Reports use background processing and replicas/read models before introducing a warehouse.
+ Cache only data with a clear invalidation or TTL policy; do not cache authorisation decisions beyond safe 
+session context.
+ Load testing includes mixed interactive, attendance, payroll and export workloads, not isolated endpoint 
+tests only.
+44. Availability and Resilience
+Failure scenario Design response
+Web or API pod failure Kubernetes restarts; multiple replicas; readiness removes 
+unhealthy pod.
+Availability-zone failure Workloads and managed data replicas span zones; ingress 
+routes to healthy capacity.
+Redis interruption Interactive source-of-truth operations continue where safe; 
+queues recover from managed persistence; jobs remain 
+idempotent.
+Database primary failure Managed PostgreSQL automatic failover; connection retry with 
+bounded backoff.
+Notification provider failure Queue retry, alternate provider option and visible failure 
+status.
+Biometric connector outage Checkpointed sync resumes; lag and unmapped events are 
+visible.
+Payroll worker failure Chunk retries idempotently; incomplete version cannot proceed 
+to approval.
+Object storage issue Uploads/downloads fail safely; metadata does not mark 
+completion until object confirmation.
+Bad release Progressive rollout, health gates, feature flags and rollback to 
+previous image.
+
+--- Page 33 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 33
+Failure scenario Design response
+Regional disaster Restore from protected cross-region backups using tested 
+runbook.
+45. Backup and Disaster Recovery
+Figure 11 - Backup protection, recovery region and proposed objectives.
+Data / component Protection
+PostgreSQL Point-in-time recovery, encrypted automated backups, snapshot 
+retention and cross-region copy.
+Object storage Versioning, encryption, lifecycle, replication for critical classes 
+and blocked public access.
+Redis Managed replication and persistence as appropriate; business 
+source data remains in PostgreSQL.
+Kubernetes configuration Version-controlled IaC and deployment manifests; cluster 
+rebuilt rather than restored manually.
+Secrets and keys Managed service backup/replication policy and documented 
+recovery ownership.
+Audit archive Protected retention and separate access controls; included in 
+recovery validation.
+Operational evidence Backup status, restore results, incident records and unresolved 
+findings retained.
+Proposed recovery targets
+MVP planning target: RPO 15 minutes and RTO 4 hours. Enterprise option: RPO 5 minutes and RTO 1 hour. These 
+targets require budget, provider capability and customer-contract approval.
+
+--- Page 34 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 34
+46. Testing Architecture
+Test layer Required coverage
+Unit Domain rules, policy resolution, payroll formulas, attendance 
+calculation and workflow transitions.
+Repository RLS, effective dates, unique constraints, transaction behaviour 
+and migration compatibility.
+API Authorisation, validation, idempotency, errors, pagination and 
+contracts.
+Integration Database, Redis, object storage, identity provider, notification 
+and connectors.
+Tenant isolation Cross-tenant access attempts through API, direct repository, 
+jobs, exports, object keys and support grants.
+Payroll regression Golden scenarios and parallel-payroll comparison for every 
+rule-pack release.
+Attendance edge cases Overnight shifts, duplicate events, time zones, DST-ready 
+design, missing events and correction locking.
+Security SAST, DAST, dependency, secret, container and penetration 
+testing.
+Performance Burst attendance, concurrent employee use, payroll batches, 
+imports and exports.
+Resilience Pod termination, provider failure, queue retry, database 
+failover and recovery exercise.
+Accessibility Keyboard, focus, screen reader, contrast and responsive states.
+UAT Customer configuration, migration, end-to-end payroll and user 
+acceptance.
+47. Data Migration Architecture
+Customer migration is a controlled import pipeline, not direct database loading. Every migration run is tenant 
+scoped, validated, previewed and reconciled.
+1. Create approved template and field mapping for organisation, employees, salary structures, leave balances 
+and attendance history.
+2. Upload file to quarantine storage and validate file type, size and malware state.
+3. Parse into a staging area associated with tenant and import job.
+4. Validate required fields, duplicates, references, dates, currencies and policy assignments.
+5. Present error and warning counts; allow downloadable error file and corrected re-upload.
+6. Preview the records and expected creates or updates before commitment.
+7. Commit valid records through domain application services in controlled batches.
+8. Generate import summary, unresolved issues and reconciliation report.
+9. Retain import source checksum, actor, mappings and audit record.
+10. For payroll customers, complete parallel payroll before production activation.
+
+--- Page 35 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 35
+48. Tenant Implementation and Go-Live Architecture
+Stage Technical exit criteria
+Tenant provisioned Region, plan, entitlements, administrator and security baseline 
+created.
+Configuration Organisation, policies, workflows, payroll groups, roles and 
+notifications validated.
+Migration rehearsal Data imported in UAT; errors resolved; reconciliation signed off.
+Integration test Identity, biometric, email and export connections tested.
+Security validation Roles, manager scope, SSO/MFA and tenant isolation checks 
+completed.
+Parallel payroll Customer-approved comparison completed within agreed 
+tolerance.
+Performance readiness Expected employee and attendance volume validated.
+Production cutover Final migration, access activation, monitoring and support 
+bridge ready.
+Hypercare Daily health, exception and adoption review for agreed period.
+Operational handover Customer success, support and runbooks accepted.
+49. Release and Rollback Strategy
+ Use semantic product versions and immutable container tags tied to source commit.
+ Release notes identify module impact, tenant-visible changes, migrations and rollback constraints.
+ Feature flags separate code deployment from tenant activation.
+ Use canary or blue-green rollout for production; observe SLO and business-process metrics before full 
+promotion.
+ Rollback application images when safe; database changes follow expand-contract so rollback does not 
+require destructive schema reversal.
+ Payroll formula and policy changes are versioned and may be enabled for selected tenants after regression 
+and parallel validation.
+ Emergency releases follow a shortened but recorded approval and post-implementation review.
+
+--- Page 36 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 36
+50. Operational Model and Incident Response
+Operational area Required practice
+Monitoring 24x7 platform alerts for availability, security, backups and 
+critical job failure; business-hours review for non-critical 
+exceptions.
+Runbooks Payroll calculation failure, attendance backlog, provider outage, 
+database failover, bad release, support access and restore.
+Incident severity Critical, high, medium and low with defined response 
+ownership and communication.
+Correlation Customer-facing support reference maps to logs, traces, job and 
+audit records.
+Status communication Tenant-specific or platform incident communication without 
+exposing other tenant information.
+Post-incident Root-cause analysis, corrective actions, architecture decision 
+updates and customer communication where required.
+Capacity review Monthly queue, database, storage, latency and tenant-growth 
+review.
+Security review Regular access review, vulnerability remediation, dependency 
+updates and audit review.
+Backup review Daily success check and scheduled restore testing.
+Change review Release success, rollback, defect escape and migration 
+performance tracked.
+51. Architecture Governance
+ Record material decisions as Architecture Decision Records with context, options, decision, consequences 
+and review date.
+ Domain owners approve changes to owned data and public contracts.
+ Security reviews identity, tenant isolation, sensitive data, external access and new providers.
+ Payroll changes require product, payroll specialist, QA and architecture approval.
+ API and event contracts use compatibility tests and ownership metadata.
+ Schema changes are reviewed for tenant isolation, effective dates, indexes and migration cost.
+ Architecture review is required before introducing a new database, broker, service or cloud-managed 
+platform.
+ Exceptions are time limited and include remediation owner and target date.
+52. Team and Responsibility Model
+Responsibility Primary owner Contributors
+Product scope and business rules Product Manager Business analyst, HR/payroll specialists
+Solution architecture Solution Architect Tech leads, security, DevOps
+Domain architecture Backend Tech Lead Module engineers, QA
+Frontend architecture and design system Frontend Lead UX/UI, accessibility, QA
+Cloud and Kubernetes DevOps / SRE Lead Security, backend, cloud team
+Security and privacy Security Lead Architecture, DevOps, product, legal
+
+--- Page 37 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 37
+Responsibility Primary owner Contributors
+Data model and migrations Data / Backend Lead Domain engineers, implementation
+Payroll correctness Payroll Product Owner Payroll specialist, backend, QA
+Quality engineering QA Lead All engineering leads
+Customer implementation Implementation Lead Product, support, data migration
+Production operations SRE / Operations Engineering, security, support
+53. Proposed Implementation Sequence
+Stage Architecture and engineering outcome
+0. Foundations Repositories, coding standards, design-system package, IaC 
+baseline, environments, CI/CD and telemetry.
+1. Platform core Tenant, identity, roles, permissions, audit, configuration and 
+application shell.
+2. Organisation and People Legal entities, hierarchy, employee records, effective dates, 
+onboarding and documents.
+3. Attendance and Shifts Event ingestion, shift rules, day calculation, corrections, 
+exceptions and locks.
+4. Leave and Workflow Leave ledger, policy engine, workflow definitions, approvals, 
+delegation and escalation.
+5. Payroll Salary structures, input snapshots, calculation, validation, 
+review, approval, payslips and exports.
+6. Self-service and Reporting Employee/manager experiences, notifications, dashboards, 
+reports and exports.
+7. Integrations Biometric, SSO, email, finance export, webhooks and on-prem 
+connector foundation.
+8. Hardening Security, performance, DR, accessibility, payroll regression and 
+operational runbooks.
+9. Pilot and launch Migration rehearsal, parallel payroll, UAT, cutover, hypercare 
+and commercial readiness.
+
+--- Page 38 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 38
+54. Architecture Risks and Mitigations
+Risk Impact Mitigation
+Premature microservices Delivery and operational complexity. Modular monolith; extraction only with 
+measured trigger.
+Cross-tenant defect Severe privacy and trust impact. Defence in depth, RLS, negative tests, 
+support controls and security review.
+Payroll rule error Financial and reputational impact. Versioned formulas, specialist review, 
+golden tests and parallel payroll.
+Biometric vendor variation Implementation delays and inconsistent 
+data.
+Connector adapter framework, canonical 
+event model and exception queue.
+Heavy reports affect transactions Slow employee and payroll operations. Asynchronous reports, read models, replicas 
+and later warehouse when justified.
+Excessive tenant customisation Code forks and poor SaaS margins. Configuration-first policy and extension 
+governance.
+Cloud lock-in Cost or regional limitations. Portable application interfaces and service 
+mapping; accept managed-service trade-offs 
+intentionally.
+Poor source data Migration and payroll failures. Staging validation, reconciliation, data-
+quality dashboard and customer sign-off.
+Queue duplicate processing Duplicate notifications or events. Idempotency keys, deduplication and 
+transactional business state.
+Support over-privilege Sensitive data exposure. Just-in-time support grants, masking, 
+approval and audit.
+Uncontrolled policy claims Legal exposure. Reviewed jurisdiction packs and explicit 
+compliance boundaries.
+Insufficient observability Slow incident recovery. OpenTelemetry, business metrics, 
+correlation IDs and runbooks from initial 
+release.
+55. Architecture Acceptance Criteria
+1. A new tenant can be provisioned and isolated without code changes.
+2. Automated tests prove that one tenant cannot access another tenant through APIs, jobs, exports or object 
+storage.
+3. Every MVP module has a defined owner, data boundary and public application interface.
+4. Next.js and NestJS repositories build, test, scan and deploy through the approved CI/CD pipeline.
+5. PostgreSQL RLS is enabled and tested for all tenant-owned tables.
+6. Authentication, SSO readiness, RBAC, scope, MFA and session controls are implemented.
+7. Attendance events are idempotent, traceable and calculated against effective shifts and policies.
+8. Leave balances use a traceable ledger and approved leave updates attendance and payroll inputs.
+9. Workflow instances retain the definition version selected at submission.
+10. Payroll versions snapshot source data, calculate deterministically, show exceptions and lock after approval.
+11. Payslips and exports are generated only from approved payroll data.
+12. Sensitive documents are scanned, encrypted and served through authorised time-limited access.
+13. Critical actions create protected audit records with correlation information.
+14. Web, API, workers, integrations and data services emit useful logs, metrics and traces.
+
+--- Page 39 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 39
+15. Backup, restore, failover and rollback procedures are tested before production launch.
+16. Performance testing covers employee traffic, attendance bursts, payroll and large exports together.
+17. Data migration, parallel payroll and customer UAT are completed for the design-partner launch.
+18. Architecture, security, product, payroll, QA and operations teams sign off the production baseline.
+56. Required Follow-On Technical Deliverables
+Priority Deliverable Purpose
+1 Detailed database ERD and data dictionary Define tables, keys, tenant ownership, 
+effective dates, indexes and retention.
+2 API and event contract specification OpenAPI endpoints, schemas, errors, scopes, 
+webhooks and domain events.
+3 Security architecture and threat model Detailed data flows, STRIDE review, 
+controls, testing and incident requirements.
+4 Kubernetes and cloud infrastructure design Network, cluster, managed services, sizing, 
+IAM, IaC and cost baseline.
+5 CI/CD and branching standard Repositories, pipelines, environments, 
+release, migrations and rollback.
+6 Permissions matrix Role, action, resource and scope rules for 
+every MVP screen and API.
+7 Payroll calculation specification Formula model, components, rounding, 
+validation and Pakistan rule-pack review.
+8 Integration specifications Biometric, SSO, email, finance export, 
+webhooks and on-prem connector.
+9 QA and performance test plan Coverage, test data, tenant isolation, payroll 
+regression and load models.
+10 Engineering backlog and estimation Epics, stories, dependencies, ownership, 
+releases and resource plan.
+57. Open Architecture Decisions
+Decision Options / required input
+Primary cloud region and provider Select AWS, Azure or GCP reference production region based on 
+customers, cost and residency.
+Identity implementation Managed B2B identity platform versus self-managed identity 
+broker; confirm pricing and regulated deployment needs.
+CI/CD platform GitHub Actions, Azure DevOps or GitLab based on engineering 
+operating model.
+Infrastructure-as-code standard Terraform or approved organisation alternative.
+Queue technology Redis/BullMQ for MVP; confirm managed persistence and 
+operational guarantees.
+PostgreSQL service RDS PostgreSQL versus Aurora PostgreSQL or cloud equivalent.
+Document malware scanning Managed scanning service, containerised scanner or security 
+platform integration.
+Payroll PDF generation Server-side HTML/PDF engine and digital-signature 
+requirements.
+Pakistan payroll rule scope Tax, EOBI, social security, gratuity and bank formats to include 
+at launch.
+Recovery commitments Approve RPO/RTO and whether warm recovery region is 
+funded for MVP.
+
+--- Page 40 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 40
+Decision Options / required input
+Urdu launch timing MVP launch or first post-launch release.
+Enterprise isolation tier When to offer dedicated database or dedicated regional 
+environment.
+58. Final Architecture Recommendation
+Workforce Cloud OS should proceed with a modular-monolith MVP built on Next.js, NestJS, PostgreSQL, Redis, 
+object storage and Kubernetes. The product should enforce tenant isolation at every layer, keep payroll and 
+attendance reproducible, use asynchronous jobs for heavy work, and make observability and recovery part of 
+the first production baseline.
+The architecture should resist two common failures: turning every module into a microservice before the 
+product has scale, and allowing customer-specific requests to create separate code paths. Clear domain 
+ownership, versioned policies, explicit events and configuration-first product design provide a stronger 
+foundation for Pakistan launch and later GCC and global expansion.
+Architecture statement
+One deployable platform, clearly owned domains, tenant isolation by design, deterministic payroll, auditable 
+workflows and cloud-portable operations.
+The next recommended technical document is the detailed Database ERD and Data Dictionary, 
+followed immediately by the API and Event Contract Specification.
+
+--- Page 41 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 41
+Appendix A - Architecture Review Checklist
+1. Every table and object is classified as global, tenant owned or derived.
+2. Every tenant-owned table includes tenant_id and tested RLS.
+3. Every endpoint declares authentication, permission, scope and idempotency behaviour.
+4. Every background job declares tenant context, retry, idempotency and failure handling.
+5. Every external integration declares credentials, mapping, checkpoint, reconciliation and audit.
+6. Every high-impact action declares review, confirmation, versioning and rollback behaviour.
+7. Every sensitive field declares masking, access, export and retention behaviour.
+8. Every module declares logs, metrics, traces and business alerts.
+9. Every deployment change declares migration compatibility and rollback.
+10. Every service-level target has an owner, measurement and operational response.
+Appendix B - Suggested Repository Structure
+workforce-cloud-os/
+  apps/
+    web/                 # Next.js
+    api/                 # NestJS modular monolith
+    worker/              # Queue consumers (may share packages with API)
+    connector-runtime/   # Integration adapters
+  packages/
+    design-system/
+    contracts/
+    domain-events/
+    validation/
+    observability/
+    test-fixtures/
+  infrastructure/
+    terraform/
+    kubernetes/
+    policies/
+  docs/
+    adr/
+    api/
+    runbooks/
+    data-dictionary/
+  tests/
+    tenant-isolation/
+    payroll-regression/
+    performance/
+    resilience/
+
+--- Page 42 ---
+WORKFORCE CLOUD OS  |  MVP TECHNICAL SOLUTION ARCHITECTURE
+Architecture baseline - July 2026          Page 42
+Appendix C - Glossary
+Term Meaning
+ADR Architecture Decision Record.
+RLS PostgreSQL Row-Level Security.
+OIDC OpenID Connect authentication protocol.
+RPO Maximum acceptable data-loss window after a disaster.
+RTO Target time to restore service after a disaster.
+Outbox Database table used to publish reliable events after a 
+transaction commits.
+Idempotency Ability to retry an operation without creating duplicate 
+business effects.
+Effective-dated Record whose validity is defined by start and end dates.
+Read model Derived data structure optimised for a query or dashboard.
+Modular monolith One deployable application with explicit internal domain 
+boundaries.
+SLO Service Level Objective measured using one or more service 
+indicators.
+PITR Point-in-time recovery for a database.

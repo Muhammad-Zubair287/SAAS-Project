@@ -1,0 +1,2702 @@
+
+===== PAGE 2 =====
+Customer-success teams.
+Enterprise stakeholders.
+2. UX Product Vision
+The experience must make workforce operations feel like one connected system rather than a collection
+of separate HR, attendance and payroll tools.
+A user should be able to move naturally through the following connected lifecycle:
+Employee created → onboarding completed → shift assigned → attendance recorded →
+leave managed → payroll calculated → payslip published → reports updated.
+The interface must provide a different experience for each role while using a shared design language
+and data model.
+3. UX Objectives
+UX-001: Reduce Operational Complexity
+Users should complete common workforce actions with the fewest practical steps.
+UX-002: Make Status Visible
+Every request, calculation, approval and process must clearly display its current status.
+UX-003: Prevent Errors Before Submission
+The interface should validate data early and explain how to resolve an issue.
+UX-004: Support High-Frequency Mobile Usage
+Employee attendance, leave, requests, notifications and payslips must be practical on mobile screens.
+UX-005: Protect Sensitive Information
+Payroll, banking, identification and private employee data must only appear to authorised users.
+UX-006: Support Different Organisational Models
+Navigation and workflows must adapt to tenant modules, permissions, departments, locations and
+policies.
+• 
+• 
+2
+
+===== PAGE 3 =====
+UX-007: Provide Audit Confidence
+Users should understand who performed an action, when it happened and what changed.
+UX-008: Enable English and Urdu
+Layouts, components and content structures must support left-to-right and future right-to-left
+interfaces.
+4. Supported User Roles
+Role Primary Experience
+Platform Super AdministratorTenant, plans, usage and platform control
+Platform Support AdministratorControlled customer support and diagnostics
+Tenant Administrator Company configuration, roles, modules and integrations
+HR Administrator Employees, onboarding, attendance, leave and HR reports
+Payroll Administrator Salary structures, payroll processing and payslips
+Payroll Reviewer Payroll validation and comparison
+Payroll Approver Final payroll authorisation
+Manager Team attendance, leave, approvals and roster visibility
+Employee Attendance, leave, profile, payslips and requests
+Auditor Read-only reports, audit history and approved records
+Finance User Payroll summaries, exports and authorised finance information
+A user may hold more than one role. The system must combine permissions without showing duplicate
+navigation items.
+5. UX Platforms
+5.1 Desktop Web
+Primary for:
+Platform administration.
+Tenant setup.
+HR administration.
+Payroll processing.
+Configuration.
+Reporting.
+• 
+• 
+• 
+• 
+• 
+• 
+3
+
+===== PAGE 5 =====
+Collapsed mode.
+Help and support access.
+Top Header
+Page title or breadcrumb.
+Global search where enabled.
+Quick-create button.
+Notifications.
+Language selector .
+User profile.
+Tenant switcher for authorised platform or multi-tenant users.
+Main Content Area
+Page heading.
+Contextual actions.
+Filters.
+Content cards or tables.
+Pagination or infinite loading where approved.
+Help text.
+Audit or update information where relevant.
+Optional Right Panel
+Used for:
+Record details.
+Approval activity.
+Comments.
+Help guidance.
+Quick editing.
+Audit history.
+6.2 Mobile Application Shell
+The employee mobile experience should use a bottom navigation bar:
+Home.
+Attendance.
+Requests.
+Payslips.
+More.
+Manager users may see:
+Home.
+Team.
+Approvals.
+Notifications.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+1. 
+2. 
+3. 
+4. 
+5. 
+1. 
+2. 
+3. 
+4. 
+5
+
+===== PAGE 6 =====
+More.
+The bottom navigation should contain no more than five primary destinations.
+6.3 Global Header Actions
+Depending on role and page:
+Search.
+Create employee.
+Add request.
+Run payroll.
+Export.
+Import.
+Help.
+Notifications.
+Profile.
+Language.
+Actions must not appear when the user lacks permission.
+7. Global Navigation by Role
+7.1 Platform Administrator Navigation
+Platform Overview.
+Tenants.
+Plans and Entitlements.
+Usage.
+Support Access.
+Platform Audit.
+System Configuration.
+Integration Health.
+7.2 Tenant Administrator Navigation
+Home.
+Organisation.
+People.
+Attendance.
+Leave.
+Payroll.
+Approvals.
+Reports.
+Integrations.
+Settings.
+5. 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+6
+
+===== PAGE 8 =====
+7.7 Auditor Navigation
+Audit Dashboard.
+Employees.
+Attendance Records.
+Leave Records.
+Payroll History.
+Approval History.
+System Audit.
+Reports.
+Auditor screens must remain read-only unless a separate permission is granted.
+8. Global UX Components
+8.1 Page Header
+Every page header should include:
+Page title.
+One-line purpose where clarification is useful.
+Breadcrumb for administration screens.
+Primary action.
+Optional secondary actions.
+Last-updated information where relevant.
+8.2 Data Table
+Desktop tables may include:
+Select checkbox.
+Primary identifier .
+Supporting fields.
+Status.
+Updated date.
+Row actions.
+Sort.
+Filters.
+Column selection.
+Pagination.
+Export.
+Rules:
+Keep the primary record name fixed or visually prominent.
+Use horizontal scrolling only when necessary.
+Sticky headers should be used for long tables.
+Sensitive columns must be permission controlled.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+8
+
+===== PAGE 11 =====
+8.10 Loading States
+Use:
+Skeleton loaders for page content.
+Progress indicators for imports and payroll.
+Disabled action states during submission.
+Background-process status for large exports.
+8.11 Error States
+Every error should provide:
+What failed.
+Whether data was saved.
+Recommended next action.
+Support reference code for system failures.
+9. Common Authentication Screens
+SCR-AUTH-01 — Sign-In
+Purpose
+Allow users to securely access Workforce Cloud OS.
+Users
+All roles.
+Entry Points
+Tenant-specific login URL.
+Platform login URL.
+Session-expiry redirect.
+Invitation completion.
+Screen Components
+Tenant or Workforce Cloud OS logo.
+Email field.
+Password field.
+Show-password control.
+Remember-device checkbox where allowed.
+Sign-in button.
+Forgot-password link.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+11
+
+===== PAGE 12 =====
+SSO buttons where configured.
+Language selector .
+Privacy and terms links.
+Support link.
+Validations
+Email is mandatory.
+Password is mandatory.
+Invalid credentials must use a general message without identifying which field is incorrect.
+Suspended accounts must display a controlled support message.
+Excessive failed attempts must trigger security controls.
+States
+Default.
+Invalid credentials.
+Account locked.
+Tenant suspended.
+SSO only.
+Maintenance.
+Session expired.
+Success Outcome
+User is redirected to the role-appropriate dashboard.
+SCR-AUTH-02 — Account Invitation
+Purpose
+Allow a newly invited user to activate their account.
+Components
+Invitation summary.
+Email address.
+Employee or administrator name.
+Password creation.
+Password confirmation.
+Terms acknowledgement.
+Activate button.
+Validations
+Invitation must be valid and unexpired.
+Password must meet policy.
+Passwords must match.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+12
+
+===== PAGE 13 =====
+Required terms must be accepted.
+Success Outcome
+Account becomes active and user enters the onboarding or dashboard flow.
+SCR-AUTH-03 — Forgot Password
+Components
+Email field.
+Submit button.
+Back to sign-in.
+Generic confirmation message.
+The result must not disclose whether an account exists.
+SCR-AUTH-04 — Reset Password
+Components
+New password.
+Confirm password.
+Password requirements.
+Reset button.
+States
+Valid token.
+Expired token.
+Already-used token.
+Successful reset.
+SCR-AUTH-05 — Multi-Factor Authentication
+Components
+Verification-code input.
+Authenticator or delivery method.
+Resend where appropriate.
+Trust-device option where permitted.
+Recovery method.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+13
+
+===== PAGE 14 =====
+Validations
+Code expiration.
+Maximum retry.
+Controlled lockout.
+SCR-AUTH-06 — Session Expired
+Purpose
+Inform the user that the session ended securely.
+Actions
+Sign in again.
+Return to login.
+Preserve safe redirect to the previous page where possible.
+Unsaved sensitive data must not remain accessible.
+10. Platform Administration Screens
+SCR-PLT-01 — Platform Overview
+Purpose
+Give internal administrators a summary of platform health and commercial usage.
+Key Widgets
+Total tenants.
+Active tenants.
+Trial tenants.
+Suspended tenants.
+Total employee seats.
+Seat utilisation.
+Recent tenant activity.
+Integration incidents.
+Subscription alerts.
+Support issues.
+Primary Actions
+Create tenant.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+14
+
+===== PAGE 16 =====
+Country.
+Currency.
+Time zone.
+Primary language.
+Commercial Setup
+Plan.
+Billing cycle.
+Seat limit.
+Storage limit.
+Trial or paid status.
+Trial expiry.
+Product Setup
+Enabled modules.
+Hosting region.
+SSO entitlement.
+API entitlement.
+Support tier .
+Primary Administrator
+Name.
+Email.
+Phone where required.
+Role.
+Actions
+Save draft.
+Create and send invitation.
+Cancel.
+Confirmation
+A review screen must appear before activation.
+SCR-PLT-04 — Tenant Detail
+Tabs
+Overview.
+Usage.
+Subscription.
+Modules.
+Administrators.
+Support.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+16
+
+===== PAGE 17 =====
+Audit.
+Summary
+Tenant status.
+Plan.
+Employee usage.
+Last activity.
+Hosting region.
+Primary contact.
+Payment or trial status.
+SCR-PLT-05 — Tenant Suspension
+Purpose
+Suspend access without deleting data.
+Modal Content
+Tenant name.
+Reason.
+Effective date.
+User-facing message.
+Data-access behaviour .
+Confirmation text.
+This is a high-impact action and requires explicit confirmation.
+SCR-PLT-06 — Controlled Support Access
+Purpose
+Allow authorised platform support staff to troubleshoot a tenant.
+Requirements
+Business reason.
+Time-limited access.
+Scope selection.
+Approval where required.
+Tenant notification where contractually required.
+Visible support-access banner .
+Full audit log.
+Support access must never silently impersonate a customer user .
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+17
+
+===== PAGE 18 =====
+11. Tenant Setup and Administration Screens
+SCR-TEN-01 — Tenant Setup Checklist
+Purpose
+Guide a new customer through initial configuration.
+Checklist Items
+Company profile.
+Organisation structure.
+Locations.
+Roles and administrators.
+Attendance policy.
+Leave policy.
+Payroll settings.
+Employee import.
+Notifications.
+Integration setup.
+Validation.
+Go-live readiness.
+UX Behaviour
+Show percentage completion.
+Show required versus optional steps.
+Allow authorised users to resume later .
+Link directly to configuration screens.
+Mark blocked steps with reasons.
+SCR-TEN-02 — Company Profile
+Fields
+Company name.
+Display name.
+Registration information.
+Industry.
+Employee size.
+Address.
+Contact details.
+Country.
+Currency.
+Time zone.
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+18
+
+===== PAGE 19 =====
+Financial year .
+Payroll month configuration.
+Logo.
+Actions
+Save.
+Preview branding.
+Cancel changes.
+SCR-TEN-03 — Branding Settings
+Components
+Logo uploader .
+Login logo.
+Primary brand colour .
+Secondary colour .
+Email header preview.
+Payslip header preview.
+Application-name override within allowed limits.
+Validation
+File type.
+File size.
+Image dimensions.
+Contrast warning for selected colours.
+SCR-TEN-04 — Language and Regional Settings
+Fields
+Default language.
+Enabled languages.
+Date format.
+Number format.
+Currency display.
+Time zone.
+Week start.
+Working-week pattern.
+Right-to-left preview for future Urdu or Arabic support.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+19
+
+===== PAGE 20 =====
+SCR-TEN-05 — Tenant Administrators
+Table
+Name.
+Email.
+Role.
+Status.
+Last login.
+MFA status.
+Actions.
+Actions
+Invite administrator .
+Change role.
+Resend invitation.
+Deactivate.
+Require password reset.
+Require MFA.
+SCR-TEN-06 — Module Settings
+Purpose
+Show active, inactive and unavailable modules.
+Module Card
+Module name.
+Description.
+Status.
+Plan requirement.
+Dependencies.
+Configure button.
+Request upgrade button.
+Disabled modules must not expose operational data or actions.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+20
+
+===== PAGE 24 =====
+Edit.
+Deactivate.
+View assigned employees.
+Salary values must only appear to authorised users.
+SCR-ORG-08 — Organisation History
+Purpose
+Display effective-dated structure changes.
+Timeline Fields
+Change type.
+Previous value.
+New value.
+Effective date.
+Changed by.
+Approval reference.
+13. Employee Core HR Screens
+SCR-EMP-01 — Employee Directory
+Layout
+Data table on desktop; employee cards on mobile.
+Columns
+Employee.
+Employee number .
+Position.
+Department.
+Manager .
+Location.
+Employment type.
+Status.
+Joining date.
+Filters
+Legal entity.
+Department.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+24
+
+===== PAGE 26 =====
+Step 4: Sensitive Information
+Identification.
+Bank information.
+Tax information.
+Emergency contact.
+Sensitive steps must only be visible to authorised users.
+Step 5: Review
+Show:
+Missing required information.
+Policy assignments.
+Invitation option.
+Onboarding-template option.
+Actions
+Save draft.
+Create employee.
+Create and invite.
+Cancel.
+SCR-EMP-03 — Employee Profile Overview
+Header
+Employee photo.
+Name.
+Employee number .
+Position.
+Department.
+Status.
+Manager .
+Primary actions.
+Tabs
+Overview.
+Employment.
+Personal.
+Attendance.
+Leave.
+Payroll.
+Documents.
+Onboarding.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+26
+
+===== PAGE 27 =====
+Activity.
+Tabs must be hidden where permission is unavailable.
+Overview Cards
+Contact.
+Employment summary.
+Current shift.
+Leave balances.
+Attendance status.
+Payroll status.
+Documents due.
+Pending requests.
+SCR-EMP-04 — Personal Information
+Sections
+Personal details.
+Contact details.
+Address.
+Emergency contacts.
+Identification.
+Demographic fields where lawful and configured.
+Actions
+Edit.
+Request employee confirmation.
+View history.
+SCR-EMP-05 — Employment Information
+Sections
+Employment status.
+Joining date.
+Contract.
+Legal entity.
+Department.
+Position.
+Grade.
+Manager .
+Location.
+Probation.
+9. 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+27
+
+===== PAGE 29 =====
+Inactive.
+Fields
+Effective date.
+Reason.
+Last working date where relevant.
+Access-disable date.
+Payroll notification.
+Notes.
+Supporting document.
+High-impact statuses require review and confirmation.
+SCR-EMP-08 — Employee Timeline
+Events
+Created.
+Activated.
+Department change.
+Position change.
+Manager change.
+Salary change.
+Leave event.
+Attendance correction.
+Payroll publication.
+Document upload.
+Status change.
+Users see only events they have permission to access.
+SCR-EMP-09 — Bulk Employee Import
+Steps
+Download template.
+Upload file.
+Validate.
+Review errors.
+Preview valid records.
+Confirm.
+View summary.
+UX Requirements
+Show valid, warning and error counts.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+• 
+29
+
+===== PAGE 35 =====
+Outcomes
+Successful.
+Outside geo-fence.
+Location unavailable.
+Device not authorised.
+Already checked in.
+No assigned shift.
+Attendance policy unavailable.
+The failure message must tell the employee what action is available.
+SCR-ATT-03 — Check-Out Confirmation
+Components
+Check-in time.
+Current worked duration.
+Break duration.
+Current time.
+Optional note.
+Check-out button.
+Warning States
+Before shift end.
+Minimum-hours not completed.
+Already checked out.
+Missing check-in.
+Overtime threshold reached.
+SCR-ATT-04 — My Attendance History
+Calendar/List Toggle
+Display:
+Date.
+Shift.
+Check-in.
+Check-out.
+Worked hours.
+Status.
+Correction status.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+35
+
+===== PAGE 44 =====
+Cancel.
+Edit draft.
+Resubmit returned request.
+SCR-LVE-05 — Leave Request Detail
+Content
+Request summary.
+Balance impact.
+Reason.
+Attachment.
+Approval timeline.
+Comments.
+Policy reference.
+SCR-LVE-06 — Manager Team Leave Calendar
+Views
+Calendar .
+Timeline.
+List.
+Display
+Approved leave.
+Pending leave where permission allows.
+Team coverage.
+Department conflicts.
+Public holidays.
+Managers should not see private medical details.
+SCR-LVE-07 — Leave Approval
+Layout
+Employee.
+Leave type.
+Dates.
+Requested days.
+Current balance.
+Team calendar .
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+44
+
+===== PAGE 49 =====
+Escalated.
+Completed.
+19. Payroll Screens
+SCR-PAY-01 — Payroll Dashboard
+Widgets
+Current payroll period.
+Employees included.
+Payroll status.
+Gross payroll.
+Net payroll.
+Outstanding exceptions.
+Attendance readiness.
+Pending adjustments.
+Approval status.
+Charts
+Payroll cost trend.
+Overtime cost.
+Payroll variance.
+Department cost distribution.
+Sensitive monetary widgets must be permission restricted.
+SCR-PAY-02 — Payroll Period List
+Columns
+Payroll period.
+Payroll group.
+Employee count.
+Gross amount.
+Net amount.
+Status.
+Last calculated.
+Approved by.
+Actions
+Open period.
+Create period.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+49
+
+===== PAGE 53 =====
+SCR-PAY-09 — Payroll Employee Detail
+Tabs
+Summary.
+Earnings.
+Deductions.
+Attendance inputs.
+Leave inputs.
+Adjustments.
+Previous-period comparison.
+Audit.
+Actions
+Add authorised adjustment.
+Add note.
+Resolve warning.
+Open source attendance.
+SCR-PAY-10 — Payroll Exception Centre
+Categories
+Blocking errors.
+Warnings.
+Missing data.
+Attendance.
+Leave.
+Salary structure.
+Bank information.
+Variance.
+Actions
+Open employee.
+Open source record.
+Assign.
+Resolve.
+Add approved override.
+Export.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+53
+
+===== PAGE 54 =====
+SCR-PAY-11 — Add Payroll Adjustment
+Fields
+Employee.
+Component.
+Amount.
+Earning or deduction.
+Effective period.
+Reason.
+Attachment.
+Approval requirement.
+Validation
+Amount range.
+Currency.
+Duplicate adjustment.
+Closed period.
+Permission.
+SCR-PAY-12 — Payroll Review
+Purpose
+Allow payroll reviewer to compare and validate the calculated period.
+Content
+Current period summary.
+Previous-period comparison.
+Department variance.
+Employee variance.
+Errors and warnings.
+Adjustment summary.
+Attendance summary.
+Actions
+Return to payroll administrator .
+Mark reviewed.
+Submit for approval.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+54
+
+===== PAGE 55 =====
+SCR-PAY-13 — Payroll Approval
+Content
+Financial summary.
+Employee count.
+Variance.
+Blocking-error status.
+Reviewer .
+Review date.
+Supporting reports.
+Approval statement.
+Actions
+Approve and lock.
+Reject.
+Return.
+Add approval comment.
+This is a high-impact action requiring confirmation and potentially MFA.
+SCR-PAY-14 — Payroll Locked Summary
+State
+Read-only.
+Actions
+Publish payslips.
+Generate bank export.
+Generate finance export.
+View audit.
+Request reopening.
+SCR-PAY-15 — Reopen Payroll
+Fields
+Period.
+Reason.
+Required approval.
+Expected changes.
+Users to notify.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+55
+
+===== PAGE 57 =====
+Included employees.
+File name.
+Authorised recipient.
+Actions
+Validate.
+Generate.
+Download.
+Mark transmitted.
+Downloads must be audit logged.
+20. Employee Self-Service Screens
+SCR-ESS-01 — Employee Home
+Top Section
+Greeting.
+Date.
+Attendance status.
+Check-in or check-out action.
+Cards
+Today’s shift.
+Leave balances.
+Pending requests.
+Latest payslip.
+Onboarding task.
+Announcement.
+Document reminder .
+Quick Actions
+Check in.
+Request leave.
+Correct attendance.
+View payslip.
+Open notifications.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+57
+
+===== PAGE 58 =====
+SCR-ESS-02 — My Requests
+Categories
+Leave.
+Attendance correction.
+Profile change.
+Document.
+Future requests.
+Filters
+Type.
+Status.
+Date.
+SCR-ESS-03 — Request Detail
+Content
+Request summary.
+Current status.
+Approval path.
+Comments.
+Timeline.
+Attachments.
+Cancellation availability.
+SCR-ESS-04 — My Profile
+Sections
+Personal.
+Contact.
+Employment.
+Manager .
+Location.
+Emergency contacts.
+Bank details where authorised.
+Documents.
+Fields should show whether the employee can edit directly or must request a change.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+58
+
+===== PAGE 60 =====
+21. Manager Self-Service Screens
+SCR-MGR-01 — Manager Dashboard
+Widgets
+Team members.
+Present today.
+Absent.
+On leave.
+Late.
+Pending approvals.
+Missing attendance.
+Upcoming shifts.
+Probation due.
+Actions
+Review approvals.
+View team attendance.
+Open leave calendar .
+View team roster .
+SCR-MGR-02 — My Team
+Columns/Cards
+Employee.
+Position.
+Attendance today.
+Leave status.
+Shift.
+Pending issue.
+Actions
+Open employee summary.
+View attendance.
+View leave.
+Contact.
+Private employee and payroll fields remain hidden unless separately authorised.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+60
+
+===== PAGE 61 =====
+SCR-MGR-03 — Team Member Summary
+Sections
+Employment summary.
+Attendance summary.
+Leave summary.
+Shift.
+Pending approvals.
+Recent requests.
+The screen should not become a full HR profile unless the manager has HR permissions.
+SCR-MGR-04 — Team Attendance
+Views
+Today.
+Week.
+Exceptions.
+Employee detail.
+Actions
+Open exception.
+Request clarification.
+Review correction.
+Export authorised summary.
+SCR-MGR-05 — Team Leave Calendar
+Covered under leave screens but accessible from manager navigation.
+SCR-MGR-06 — Team Roster
+Views
+Weekly roster .
+Employee list.
+Coverage summary.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+61
+
+===== PAGE 64 =====
+23. Reports and Dashboard Screens
+SCR-RPT-01 — Report Centre
+Categories
+HR.
+Attendance.
+Leave.
+Payroll.
+Workflow.
+Audit.
+Usage.
+Report Card
+Report name.
+Description.
+Required permission.
+Last run.
+Favourite.
+Run button.
+SCR-RPT-02 — Report Viewer
+Components
+Report title.
+Applied filters.
+Generated date.
+Summary metrics.
+Table or chart.
+Column selector .
+Export.
+Save filter preset.
+SCR-RPT-03 — Report Filters
+Interaction
+Desktop: expandable filter panel.
+Mobile: full-screen filter sheet.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+64
+
+===== PAGE 65 =====
+Behaviour
+Applied-filter count.
+Reset.
+Apply.
+Saved presets.
+Required-filter indication.
+SCR-RPT-04 — Export Centre
+Purpose
+Show background export jobs.
+Columns
+Report.
+Requested by.
+Requested time.
+Status.
+Expiry.
+Download.
+Statuses
+Queued.
+Processing.
+Ready.
+Failed.
+Expired.
+SCR-RPT-05 — Dashboard Configuration
+Where permitted, users may:
+Reorder widgets.
+Hide optional widgets.
+Select date range.
+Save personal configuration.
+Restore default.
+Users cannot add widgets exposing unauthorised data.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+65
+
+===== PAGE 66 =====
+24. Integration and Import Screens
+SCR-INT-01 — Integration Directory
+Integration Cards
+Biometric.
+Identity.
+Payroll export.
+Finance.
+Email.
+SMS.
+Webhook.
+API.
+Each card displays:
+Status.
+Last sync.
+Errors.
+Configure.
+View logs.
+SCR-INT-02 — Integration Setup
+General Sections
+Connection information.
+Authentication.
+Mapping.
+Sync frequency.
+Scope.
+Error handling.
+Test connection.
+Activate.
+Credentials must be masked after saving.
+SCR-INT-03 — Biometric Connector Setup
+Fields
+Connector name.
+Vendor or format.
+Device or endpoint.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+66
+
+===== PAGE 67 =====
+Authentication.
+Employee-ID mapping.
+Time zone.
+Sync frequency.
+Duplicate handling.
+Location mapping.
+SCR-INT-04 — Biometric Mapping
+Columns
+External employee ID.
+External name.
+Workforce Cloud OS employee.
+Status.
+Last event.
+Actions
+Map.
+Unmap.
+Bulk map.
+Ignore with reason.
+SCR-INT-05 — Integration Health
+Widgets
+Active connections.
+Failed syncs.
+Unmapped events.
+Last successful sync.
+Error trend.
+Actions
+Retry.
+Open error .
+Disable integration.
+Download logs.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+67
+
+===== PAGE 69 =====
+SCR-SUB-02 — Plan Comparison
+Rows
+Employee limit.
+Core HR.
+Attendance.
+Leave.
+Payroll.
+Workflows.
+Reports.
+SSO.
+API.
+Support.
+Hosting options.
+Clearly distinguish included, limited, optional and unavailable features.
+SCR-SUB-03 — Upgrade Request
+Fields
+Requested plan.
+Additional seats.
+Additional modules.
+Business reason.
+Requested effective date.
+Contact person.
+SCR-SUB-04 — Usage Details
+Metrics
+Active employees.
+Invited users.
+Storage.
+API usage.
+Integration volume.
+Export volume.
+Warnings
+Approaching limit.
+Limit reached.
+Overage policy.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+69
+
+===== PAGE 70 =====
+26. Audit and Security Screens
+SCR-AUD-01 — Audit Dashboard
+Widgets
+Recent sensitive changes.
+Role changes.
+Payroll actions.
+Attendance changes.
+Failed logins.
+Support access.
+Data exports.
+SCR-AUD-02 — Audit Log
+Columns
+Date and time.
+User .
+Role.
+Action.
+Module.
+Record.
+Source.
+Result.
+Filters
+User .
+Module.
+Action.
+Date.
+Record.
+Severity.
+Result.
+SCR-AUD-03 — Audit Event Detail
+Content
+User .
+Tenant.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+70
+
+===== PAGE 71 =====
+Timestamp.
+Source device or IP where appropriate.
+Action.
+Record.
+Previous value.
+New value.
+Reason.
+Approval.
+Related events.
+Sensitive values may be masked.
+SCR-AUD-04 — Role and Permission Matrix
+Layout
+Rows:
+Permissions.
+Columns:
+Roles.
+Interactions
+View.
+Compare.
+Edit controlled custom role.
+Export.
+View affected users.
+Changes require review and audit.
+SCR-AUD-05 — Security Settings
+Sections
+Password policy.
+MFA.
+Session duration.
+Login attempts.
+SSO.
+Trusted domains.
+Support access.
+Export controls.
+Data retention.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+71
+
+===== PAGE 72 =====
+SCR-AUD-06 — Active Sessions
+Columns
+User .
+Device.
+Browser .
+Location approximation where permitted.
+Sign-in time.
+Last activity.
+Actions
+End session.
+End all user sessions.
+Require sign-in again.
+27. Settings Screens
+SCR-SET-01 — Settings Home
+Categories
+Company.
+Organisation.
+Users and roles.
+Attendance.
+Leave.
+Payroll.
+Workflows.
+Notifications.
+Integrations.
+Security.
+Regional.
+Subscription.
+Each category shows configuration completion and warnings.
+SCR-SET-02 — Custom Fields
+Capabilities
+Add controlled fields to employee profile.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+72
+
+===== PAGE 73 =====
+Select field type.
+Set required status.
+Set visibility.
+Set edit permission.
+Define options.
+Set applicability.
+Custom fields must have tenant limits and must not replace standard required data.
+SCR-SET-03 — Holiday Calendar
+Fields
+Holiday name.
+Date.
+Full or partial day.
+Applicable locations.
+Paid status.
+Recurring rule.
+Description.
+Views
+Calendar .
+List.
+Import.
+SCR-SET-04 — Payroll Calendar
+Fields
+Payroll group.
+Period dates.
+Attendance cut-off.
+Adjustment cut-off.
+Approval date.
+Payment date.
+28. Complete Cross-Module User Flows
+FLOW-01 — New Tenant Implementation
+Platform administrator creates tenant.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+1. 
+73
+
+===== PAGE 74 =====
+Primary administrator activates account.
+Setup checklist opens.
+Company profile is completed.
+Legal entities are created.
+Departments and locations are configured.
+Roles are assigned.
+Attendance policy is created.
+Shifts are configured.
+Leave policies are created.
+Payroll groups and components are configured.
+Employees are imported.
+Data-quality issues are resolved.
+Integration connections are tested.
+UAT checklist is completed.
+Tenant is marked production ready.
+Employees receive invitations.
+Go-live dashboard tracks adoption.
+UX Success Criteria
+The administrator always knows the next required step.
+Blocked setup tasks explain the dependency.
+Progress is saved.
+The customer can revisit any completed step.
+FLOW-02 — Employee Onboarding
+HR selects Add Employee.
+Core information is entered.
+Organisation, manager and shift are assigned.
+Leave and payroll settings are assigned.
+Onboarding template is selected.
+Employee invitation is sent.
+Employee activates account.
+Employee completes personal information.
+Employee uploads documents.
+Employee acknowledges policies.
+Manager completes assigned tasks.
+HR reviews submissions.
+Missing tasks are resolved.
+HR activates employee.
+Employee appears in attendance and payroll readiness.
+FLOW-03 — Mobile Check-In
+Employee opens Home or Attendance.
+Current attendance state is displayed.
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+• 
+• 
+• 
+• 
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+1. 
+2. 
+74
+
+===== PAGE 75 =====
+Employee selects Check In.
+Device and location validation begins.
+System shows trusted time and location.
+Employee confirms.
+Event is submitted.
+Success state displays check-in time.
+Dashboard changes to checked-in state.
+Manager and attendance dashboards update.
+Failure Branches
+Location denied.
+Outside authorised area.
+No shift assigned.
+Device restricted.
+Duplicate event.
+Network failure.
+The system should preserve a clear retry path without creating duplicate events.
+FLOW-04 — Attendance Correction
+Employee opens attendance history.
+Employee selects affected date.
+Employee chooses Request Correction.
+Existing attendance appears.
+Requested values and reason are entered.
+Payroll impact warning is shown.
+Request is submitted.
+Manager receives approval notification.
+Manager compares original and requested values.
+Manager approves, rejects or returns.
+Employee receives result.
+Approved record updates attendance.
+Payroll readiness updates.
+Audit records retain both versions.
+FLOW-05 — Leave Request
+Employee opens Leave.
+Balances are displayed.
+Employee selects Request Leave.
+Leave type and dates are entered.
+System calculates requested days.
+Policy validations run.
+Balance-after-request is displayed.
+Employee submits.
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+• 
+• 
+• 
+• 
+• 
+• 
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+75
+
+===== PAGE 77 =====
+FLOW-08 — Employee Transfer
+HR opens employee profile.
+HR selects Transfer .
+New structure assignment is entered.
+Effective date is selected.
+System displays impacts.
+HR reviews shift, manager , payroll and leave changes.
+Approval is completed where configured.
+Future assignment is scheduled.
+On effective date, permissions and reporting lines update.
+Historical assignment remains available.
+FLOW-09 — Employee Exit
+HR selects Change Status.
+Resignation or termination details are entered.
+Last working date is confirmed.
+Manager and payroll are notified.
+Future shift assignments are ended.
+Leave eligibility is adjusted.
+Payroll receives final-period information.
+Access-disable timing is scheduled.
+Final payroll is completed.
+User account is deactivated.
+Employee remains in historical reports.
+Future asset and clearance modules can subscribe to the exit event.
+FLOW-10 — Report Export
+User opens Report Centre.
+Report is selected.
+Filters are applied.
+Report preview loads.
+User chooses export format.
+Permission and sensitive-data rules are checked.
+Small export downloads immediately or large export enters background processing.
+User receives notification when ready.
+User downloads from Export Centre.
+Sensitive export is audit logged.
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+77
+
+===== PAGE 78 =====
+29. Responsive Behaviour
+29.1 Desktop to Tablet
+Sidebar collapses.
+Multi-column cards reduce to two columns.
+Filters move into a drawer .
+Table columns reduce according to priority.
+Secondary actions move into overflow menus.
+29.2 Tablet to Mobile
+Tables become record cards.
+Multi-step forms become one section per step.
+Right drawers become full-screen pages.
+Sticky bottom action bars should be used for primary actions.
+Summary information appears before detailed sections.
+Charts simplify and provide accessible data tables.
+29.3 Mobile Attendance
+The attendance action must remain visible without scrolling on common mobile screens.
+29.4 Mobile Payroll
+Full payroll administration is not expected to be optimised for small mobile screens. Mobile payroll
+users may view summary and approve where security policy allows, but calculation and complex
+exception handling should direct users to desktop or tablet.
+30. Urdu and Right-to-Left UX Requirements
+The design system must support:
+English and Urdu text expansion.
+Right-to-left page layout.
+Mirrored navigation.
+Correct icon direction.
+Urdu-compatible typography.
+Mixed Urdu and English numbers.
+Dates and payroll values that remain readable.
+Form labels above inputs on mobile.
+Avoidance of fixed-width text containers.
+Localised error messages.
+Language selection at login and within profile settings.
+Business terms should use an approved terminology glossary to avoid inconsistent translations.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+78
+
+===== PAGE 79 =====
+31. Accessibility Requirements
+The MVP should target WCAG 2.1 AA principles.
+Requirements
+All fields have visible labels.
+Error messages are connected to fields.
+Keyboard navigation is supported.
+Focus order follows visual order .
+Focus indicators are visible.
+Colour is not the only status indicator .
+Icons have accessible labels.
+Buttons use descriptive names.
+Modal focus is trapped correctly.
+Tables include headers.
+Charts provide text summaries or tabular alternatives.
+Touch targets are large enough for mobile use.
+Screen-reader announcements are used for important status changes.
+Language attributes update when language changes.
+32. Privacy UX Requirements
+32.1 Sensitive Data
+The interface must protect:
+Salary.
+Bank details.
+Identification numbers.
+Tax data.
+Medical attachments.
+Private leave information.
+Location information.
+Security events.
+32.2 Masking
+Examples:
+Bank account: show only final digits.
+Identification: partially mask.
+Salary: hide unless authorised.
+Documents: require explicit open action.
+Mobile notifications: avoid exposing salary or sensitive details.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+79
+
+===== PAGE 80 =====
+32.3 Consent and Transparency
+Where location attendance is enabled, employees should see:
+Why location is requested.
+When it is collected.
+What happens if access is denied.
+Where to review the organisation’s attendance policy.
+33. UX Content Standards
+Button Labels
+Use specific actions:
+“Create Employee.”
+“Submit Leave Request.”
+“Approve Payroll.”
+“Publish Payslips.”
+“Lock Attendance Period.”
+Avoid vague labels such as:
+“Proceed.”
+“Execute.”
+“Process.”
+Error Messages
+Poor:
+Invalid value.
+Better:
+Check-out time must be later than check-in time.
+Confirmation Messages
+High-impact actions should state the outcome.
+Example:
+Approving payroll will lock this payroll version for 428 employees. Changes will require an
+authorised reopening.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+80
+
+===== PAGE 81 =====
+Empty-State Language
+Explain both the situation and the next action.
+34. Figma File Structure
+The Figma project should use the following page structure:
+Cover and documentation.
+Product foundations.
+Design tokens.
+Components.
+Desktop navigation.
+Mobile navigation.
+Authentication.
+Platform administration.
+Tenant setup.
+Organisation.
+Employee Core HR.
+Onboarding and documents.
+Attendance.
+Shifts and rosters.
+Leave.
+Approvals.
+Payroll.
+Employee self-service.
+Manager self-service.
+Reports.
+Integrations.
+Subscription.
+Audit and security.
+Responsive variants.
+Urdu and RTL.
+Prototype flows.
+Archived concepts.
+35. Required Figma Component Families
+Buttons.
+Icon buttons.
+Inputs.
+Selects.
+Date pickers.
+Time pickers.
+Checkboxes.
+Radio buttons.
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+81
+
+===== PAGE 83 =====
+Prototype 1 — Employee Onboarding
+Tenant setup → employee creation → invitation → employee onboarding → document submission →
+HR approval → activation.
+Prototype 2 — Attendance
+Employee check-in → geo-validation → successful attendance → missing check-out → correction
+request → manager approval.
+Prototype 3 — Leave
+Employee balance → leave request → policy validation → manager team calendar → approval →
+employee confirmation.
+Prototype 4 — Payroll
+Payroll readiness → calculation → exception resolution → variance review → approval → payslip
+publication.
+Prototype 5 — Employee Self-Service
+Employee dashboard → attendance history → leave → payslip → profile-change request.
+Prototype 6 — Tenant Setup
+Tenant invitation → company setup → organisation → policy setup → employee import → go-live
+checklist.
+37. Screen-Level Analytics
+Important screens should emit usage events.
+Examples:
+Event Screen
+login_completed Sign-In
+employee_created Add Employee
+employee_import_completedBulk Import
+onboarding_task_completedEmployee Onboarding
+attendance_check_in_completedAttendance Home
+attendance_correction_submittedCorrection Form
+83
+
+===== PAGE 84 =====
+Event Screen
+leave_request_submitted Leave Request
+approval_completed Approval Detail
+payroll_calculation_started Payroll Workspace
+payroll_approved Payroll Approval
+payslip_viewed Payslip Detail
+report_export_requested Report Viewer
+integration_error_opened Integration Health
+Analytics must not contain unnecessary sensitive employee information.
+38. UX Acceptance Criteria
+The UX design shall be considered ready for development when:
+Every MVP module has an approved navigation path.
+Every primary user role has an approved dashboard.
+All critical screens have desktop layouts.
+Employee high-frequency screens have mobile layouts.
+All critical user journeys have clickable prototypes.
+Required, optional and sensitive fields are identified.
+Validation behaviour is documented.
+Empty, loading and error states are designed.
+Approval status and history are visible.
+High-impact actions contain confirmations.
+Permission-based variations are documented.
+Attendance and payroll exception states are designed.
+Responsive behaviour is documented.
+English and Urdu layout requirements are addressed.
+Accessibility review is completed.
+Security and privacy review is completed.
+Figma components use reusable variants.
+Product and engineering teams approve the design.
+QA can derive test cases from the flows.
+No unresolved critical workflow ambiguity remains.
+39. Recommended UX Delivery Sequence
+UX Stage Deliverable
+Stage 1 Information architecture and navigation
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+84

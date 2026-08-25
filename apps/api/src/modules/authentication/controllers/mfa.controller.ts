@@ -5,27 +5,33 @@ import {
   HttpStatus,
   Post,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import type { Request } from 'express';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import type { Request, Response } from 'express';
 import { randomUUID } from 'crypto';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import type { CurrentUserContext } from '../interfaces/current-user-context.interface';
 import { MfaService, type EnrollMfaResponse } from '../services/mfa.service';
-import type { AuthResponseDto } from '../dto/auth-response.dto';
+import { RefreshCookieService } from '../services/refresh-cookie.service';
+import { AuthResponseDto } from '../dto/auth-response.dto';
 import { VerifyMfaDto } from '../dto/verify-mfa.dto';
 import { DisableMfaDto } from '../dto/disable-mfa.dto';
 import { ChallengeMfaDto } from '../dto/challenge-mfa.dto';
 import type { RequestContext } from '../services/auth.service';
+import { writeAuthResponse } from '../utils/auth-response.util';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 @ApiTags('auth')
 @Controller('auth/mfa')
 export class MfaController {
-  constructor(private readonly mfaService: MfaService) {}
+  constructor(
+    private readonly mfaService: MfaService,
+    private readonly refreshCookies: RefreshCookieService,
+  ) {}
 
   @ApiOperation({ summary: 'Begin TOTP MFA enrollment — returns secret and OTP auth URL' })
   @UseGuards(JwtAuthGuard)
@@ -47,13 +53,16 @@ export class MfaController {
   }
 
   @ApiOperation({ summary: 'Complete MFA challenge after password login (no JWT required)' })
+  @ApiResponse({ status: 200, type: AuthResponseDto })
   @Post('challenge')
   @HttpCode(HttpStatus.OK)
-  completeMfaChallenge(
+  async completeMfaChallenge(
     @Body() dto: ChallengeMfaDto,
     @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
   ): Promise<AuthResponseDto> {
-    return this.mfaService.completeMfaChallenge(dto, this.buildContext(req));
+    const pair = await this.mfaService.completeMfaChallenge(dto, this.buildContext(req));
+    return writeAuthResponse(res, req, pair, this.refreshCookies);
   }
 
   @ApiOperation({ summary: 'Disable MFA — requires password and current TOTP code' })

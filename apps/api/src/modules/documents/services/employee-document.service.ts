@@ -110,6 +110,44 @@ export class EmployeeDocumentService {
     return this.toDto(updated);
   }
 
+  async approve(
+    id: string,
+    userId: string,
+    tenantId: string,
+    notes?: string,
+  ): Promise<EmployeeDocumentResponseDto> {
+    await this.findById(id, tenantId);
+    const updated = await this.repo.update(
+      id,
+      tenantId,
+      {
+        status: 'ACTIVE',
+        notes: notes ?? undefined,
+        updatedBy: userId,
+      },
+    );
+    return this.toDto(updated);
+  }
+
+  async reject(
+    id: string,
+    userId: string,
+    tenantId: string,
+    reason: string,
+  ): Promise<EmployeeDocumentResponseDto> {
+    await this.findById(id, tenantId);
+    const updated = await this.repo.update(
+      id,
+      tenantId,
+      {
+        status: 'REJECTED',
+        notes: reason,
+        updatedBy: userId,
+      },
+    );
+    return this.toDto(updated);
+  }
+
   async delete(id: string, tenantId: string): Promise<void> {
     const existing = await this.repo.findById(id, tenantId);
     if (!existing) {

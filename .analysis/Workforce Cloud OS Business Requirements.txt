@@ -1,0 +1,3230 @@
+--- Page 1 ---
+Workforce Cloud OS
+Business Requirements Document
+Document Version: 1.0
+Document Status: Draft for Stakeholder Review
+Prepared For: Founders, Investors, Product Team, Business Stakeholders and Enterprise Clients
+Primary Market: Pakistan
+Expansion Markets: GCC, Europe, United Kingdom, North America and selected global markets
+Product Type: Multi-tenant Software-as-a-Service Workforce Management Platform
+Date: July 2026 
+1. Document Purpose
+This Business Requirements Document defines the business needs, operational capabilities, user
+expectations, functional boundaries and implementation priorities for Workforce Cloud OS.
+The document translates the product’s strategic vision into a structured set of requirements that can be
+used by:
+Founders and investors.
+Product managers.
+Business analysts.
+User experience designers.
+Software architects.
+Engineering teams.
+Quality-assurance teams.
+Security and compliance teams.
+Implementation partners.
+Sales and customer-success teams.
+Enterprise customers evaluating the platform.
+This BRD focuses primarily on what the business and users require from the platform. Detailed
+screen specifications, API structures, database schemas, technical component designs and individual
+development stories should be documented separately in the Product Requirements Document,
+Solution Architecture Document and implementation backlog.
+2. Business Background
+Workforce operations in many organisations are managed through disconnected systems.
+Attendance may be recorded through a biometric device, leave requests may be approved through
+email or WhatsApp, payroll may be calculated in spreadsheets, employee documents may be stored in
+shared folders, assets may be tracked manually, and employee tasks may be managed through a
+separate project-management application.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+1
+
+--- Page 2 ---
+This fragmentation creates:
+Duplicate employee records.
+Payroll inaccuracies.
+Delayed approvals.
+Inconsistent policies.
+Weak auditability.
+Limited employee transparency.
+Repeated manual work.
+Higher software and integration costs.
+Poor cross-departmental visibility.
+Difficulty scaling from small to enterprise workforce sizes.
+The original product vision defines Workforce Cloud OS as a multi-tenant SaaS platform connecting HR,
+attendance, payroll, task execution, finance, benefits, assets and compliance within one operational
+environment. 
+The system is intended to become the organisation’s workforce operating layer, connecting
+employees, managers, HR, payroll, finance, operations, procurement and leadership.
+3. Business Problem Statement
+Organisations need a single, configurable and scalable platform that can manage the complete
+workforce lifecycle while connecting operational events across departments.
+The following major business problems must be addressed.
+3.1 Fragmented Workforce Data
+Employee information is often duplicated across:
+HR applications.
+Payroll systems.
+Attendance devices.
+Task-management tools.
+Finance software.
+Asset spreadsheets.
+Benefits records.
+Email approval chains.
+This makes it difficult to identify which system contains the authoritative employee record.
+3.2 Manual Attendance and Leave Processes
+Many businesses still depend on:
+Paper attendance registers.
+Manual timesheets.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+2
+
+--- Page 3 ---
+Spreadsheet attendance reconciliation.
+Informal leave approvals.
+Manual overtime calculations.
+Email-based attendance corrections.
+These processes create payroll disputes and consume significant HR time.
+3.3 Payroll Disconnection
+Payroll is frequently calculated independently from attendance, overtime, leave, bonuses, expenses and
+employee-status changes.
+This creates:
+Incorrect salary calculations.
+Missed deductions.
+Overtime disputes.
+Delayed payroll closure.
+Repeated data entry.
+Limited payroll auditability.
+3.4 Limited Employee Transparency
+Employees may not have immediate access to:
+Leave balances.
+Attendance history.
+Payslips.
+Benefits.
+Approval statuses.
+Performance objectives.
+Assigned assets.
+Company policies.
+Employment documents.
+This increases employee dependency on HR and reduces trust in internal processes.
+3.5 Weak Cross-Departmental Automation
+Important workforce events do not automatically trigger related actions.
+For example:
+Employee onboarding may not trigger asset provisioning.
+Approved leave may not update payroll.
+Employee resignation may not trigger access removal.
+Employee exit may not trigger asset recovery.
+Salary changes may not update payroll structures.
+Expense approval may not create finance records.
+Task SLA breaches may not be escalated.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+3
+
+--- Page 4 ---
+3.6 Compliance Complexity
+Organisations operating across multiple regions must manage different:
+Working-hour policies.
+Overtime calculations.
+Leave entitlements.
+Payroll deductions.
+Employee-document requirements.
+Privacy requirements.
+Data-retention rules.
+Approval authorities.
+Benefits structures.
+Termination and settlement processes.
+The platform must support configurable compliance policies rather than assuming one universal
+employment model.
+3.7 Scalability Limitations
+A system that works for 50 employees may become unusable when the organisation grows to 500 or
+5,000 employees.
+The platform must support larger organisations, multiple legal entities, departments, branches,
+locations, shifts, currencies, languages and time zones without requiring complete replacement.
+4. Product Vision
+The product vision is:
+To create a unified workforce operating system through which organisations
+manage people, attendance, payroll, tasks, assets, finance, benefits, policies and
+workforce intelligence.
+Workforce Cloud OS will function as foundational infrastructure rather than a standalone HR tool.
+The product will create one connected operational data model across modules. The original concept
+identifies cross-module connectivity as a key differentiator , allowing employee events to update several
+business functions without repeated data entry. 
+5. Product Positioning
+5.1 Primary Positioning
+Workforce Cloud OS is a configurable, employee-first workforce operations platform designed initially
+for Pakistan and architected for global deployment.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+4
+
+--- Page 5 ---
+5.2 Market Position
+The product will operate between several traditional software categories:
+Human Resource Management Systems.
+Payroll platforms.
+Attendance systems.
+Project-management applications.
+Asset-management systems.
+Employee-benefit portals.
+Expense-management applications.
+Workforce analytics platforms.
+5.3 Positioning Statement
+Workforce Cloud OS connects every workforce event—from attendance and leave to
+payroll, tasks, assets, benefits and finance—through one secure and configurable
+platform.
+5.4 Core Value Proposition
+For employers:
+One workforce system of record.
+Lower administrative cost.
+Faster payroll processing.
+Improved policy enforcement.
+Better workforce visibility.
+Reduced manual errors.
+Easier organisational scaling.
+Stronger audit readiness.
+For employees:
+Clear leave and attendance information.
+Faster approvals.
+Self-service access.
+Transparent payslips and benefits.
+Mobile attendance.
+Better onboarding.
+Visible performance goals.
+Centralised access to documents and requests.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+5
+
+--- Page 6 ---
+6. Business Objectives
+BO-001: Establish a Unified Workforce Record
+The platform shall provide one authoritative employee identity that can be used across HR, attendance,
+payroll, tasks, assets, finance, benefits and reporting.
+BO-002: Reduce Manual Administration
+The system shall replace spreadsheet, paper , email and informal approval processes with configurable
+digital workflows.
+BO-003: Improve Payroll Accuracy
+Payroll calculations shall use approved attendance, leave, overtime, benefits, deductions and employee-
+status information.
+BO-004: Increase Employee Self-Service
+Employees shall be able to access routine workforce information and submit requests without
+depending entirely on HR.
+BO-005: Improve Organisational Transparency
+Managers and executives shall receive role-appropriate visibility into attendance, workforce cost, leave,
+operational workload, payroll and performance.
+BO-006: Support Local and Global Operations
+The platform shall support Pakistan-specific requirements while allowing configuration for other
+countries, currencies, languages, time zones and policy frameworks.
+BO-007: Support Organisational Growth
+The system shall support organisations ranging from approximately 20 employees to several thousand
+employees.
+BO-008: Create Recurring SaaS Revenue
+The product shall support tenant subscriptions, employee-based pricing, module-based plans,
+implementation services and enterprise add-ons.
+BO-009: Enable Modular Expansion
+Customers shall be able to begin with Core HR and attendance and later adopt payroll, TaskOps, assets,
+benefits, compliance and AI capabilities.
+6
+
+--- Page 7 ---
+BO-010: Build an Auditable Workforce Platform
+Every important business action shall be traceable through timestamps, users, approvals, data changes
+and policy versions.
+7. Business Success Measures
+The platform shall be evaluated through measurable outcomes rather than only through the number of
+features delivered. The source product guide identifies adoption, operational efficiency, payroll
+accuracy, automation, employee experience, compliance, retention and platform health as primary
+measurement categories. 
+7.1 Proposed Product Metrics
+Measurement Area Proposed Measure
+User adoption Monthly active employees and managers
+Employee self-service Percentage of routine requests completed without HR intervention
+Attendance efficiency Reduction in manual attendance corrections
+Payroll accuracy Percentage of payrolls completed without post-processing correction
+Approval efficiency Average time to approve leave, expenses and attendance corrections
+Automation Percentage of workflows completed without manual data re-entry
+Employee experience Employee satisfaction and self-service completion rate
+Customer retention Tenant renewal rate
+Expansion Percentage of customers adopting additional modules
+Platform availability Monthly service availability
+Customer implementationAverage time from contract to production
+Support Time to acknowledge and resolve customer issues
+7.2 Proposed Pilot Targets
+The following are management targets and should be validated during customer discovery:
+10–15 design-partner organisations.
+At least three priority industries represented.
+75% or greater monthly active employee usage.
+90% or greater employee-data migration accuracy.
+Successful parallel payroll validation before production payroll.
+30% or greater reduction in routine HR administration effort.
+Standard implementation completed within two to eight weeks.
+At least three customer case studies before wider commercial expansion.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+7
+
+--- Page 8 ---
+8. Stakeholders
+8.1 Internal Stakeholders
+Stakeholder Primary Interest
+Founders Product strategy, revenue, investment and growth
+Product leadership Scope, roadmap, customer value and adoption
+Business analysts Requirements and workflow definition
+UX designers User journeys, accessibility and usability
+Engineering Architecture, implementation and scalability
+Quality assurance Functional, security and performance validation
+DevOps and cloud operationsReliability, deployment and monitoring
+Security team Identity, access, privacy and data protection
+Sales team Market positioning and commercial conversion
+Customer success Onboarding, adoption, renewals and expansion
+Implementation team Configuration, migration and integrations
+Support team Customer issue resolution
+Finance Pricing, billing, payroll and revenue controls
+8.2 Customer Stakeholders
+Stakeholder Primary Requirement
+Chief Executive OfficerWorkforce visibility and operational control
+Chief Operating OfficerProcess efficiency and organisational scalability
+Chief Financial OfficerPayroll accuracy, workforce cost and financial control
+Head of HR Employee lifecycle, attendance, leave and compliance
+Payroll Manager Reliable payroll calculations and audit history
+IT Leader Security, SSO, integrations and deployment governance
+Department ManagerTeam attendance, leave, tasks and performance
+Employee Mobile self-service, transparency and fast requests
+Auditor Traceable records, approvals and policy history
+Procurement OfficerAsset acquisition and assignment visibility
+Compliance Officer Rule enforcement and reporting
+8
+
+--- Page 9 ---
+9. User Roles and Personas
+9.1 Platform Super Administrator
+Represents the Workforce Cloud OS operator .
+Responsibilities include:
+Tenant creation.
+Subscription management.
+Global configuration.
+Feature activation.
+Support administration.
+Platform monitoring.
+Compliance-pack administration.
+Usage and billing management.
+9.2 Tenant Administrator
+Represents the primary administrator of a customer organisation.
+Responsibilities include:
+Company configuration.
+Legal-entity setup.
+Branch and department configuration.
+User-role assignment.
+Subscription and module administration.
+Integration setup.
+Security-policy configuration.
+9.3 HR Administrator
+Responsibilities include:
+Employee records.
+Contracts and documents.
+Onboarding and offboarding.
+Leave policies.
+Attendance corrections.
+Performance cycles.
+Employee-status changes.
+Workforce reports.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+9
+
+--- Page 10 ---
+9.4 Payroll Administrator
+Responsibilities include:
+Salary structures.
+Payroll periods.
+Allowances and deductions.
+Attendance validation.
+Payroll calculation.
+Payroll approval.
+Payslip publication.
+Payroll reports and exports.
+9.5 Finance User
+Responsibilities include:
+Expense approvals.
+Payroll journals.
+Benefits disbursement.
+Cost-centre reporting.
+Finance-system integration.
+Reimbursement processing.
+9.6 Department Manager
+Responsibilities include:
+Team attendance review.
+Leave approval.
+Attendance correction approval.
+Task assignment.
+Workload monitoring.
+Performance feedback.
+Escalation management.
+9.7 Employee
+Responsibilities and capabilities include:
+Maintaining personal information.
+Checking in and out.
+Viewing attendance.
+Applying for leave.
+Viewing payslips.
+Submitting expenses.
+Accessing benefits.
+Viewing tasks.
+Acknowledging policies.
+Uploading documents.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+10
+
+--- Page 11 ---
+Completing onboarding actions.
+9.8 Auditor or Read-Only Reviewer
+Capabilities include:
+Viewing approved records.
+Reviewing audit trails.
+Exporting authorised reports.
+Inspecting policy versions.
+Reviewing payroll and attendance history.
+10. Business Scope
+10.1 Phase-One MVP Scope
+The first commercial release shall include:
+Multi-tenant company management.
+Subscription and plan configuration.
+Authentication and role-based access.
+Company, branch and department structure.
+Employee master records.
+Employee contracts and documents.
+Employee onboarding.
+Attendance management.
+Mobile and web check-in.
+Shift and roster management.
+Leave management.
+Attendance correction.
+Approval workflows.
+Basic payroll.
+Salary structures.
+Allowances and deductions.
+Payslip generation.
+Employee self-service.
+Manager self-service.
+Notifications.
+Operational reports.
+Audit trails.
+Data imports and exports.
+Basic biometric integration framework.
+English and Urdu localisation foundations.
+• 
+• 
+• 
+• 
+• 
+• 
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+11
+
+--- Page 12 ---
+10.2 Later-Phase Scope
+The approved product roadmap introduces capabilities through five phases:
+Phase 1: Core HR, attendance, leave and payroll.
+Phase 2: TaskOps, workload, sprints and SLA tracking.
+Phase 3: Assets, expenses and finance integration.
+Phase 4: Benefits and compliance automation.
+Phase 5: AI insights, gamification and global expansion. 
+10.3 Initial Out-of-Scope Items
+The following shall not be treated as mandatory for the first MVP unless required by a signed design
+partner:
+Full recruitment applicant-tracking system.
+Advanced learning-management system.
+Predictive employee attrition scoring.
+Automated disciplinary decision-making.
+Advanced gamification.
+Complete general ledger .
+Complete procurement suite.
+Global payroll processing for every country.
+Native integration with every biometric vendor .
+Full enterprise project portfolio management.
+Customer-specific source-code forks.
+Automated hiring or termination decisions.
+Cryptocurrency payroll.
+Government tax submission without authorised integration.
+11. Functional Business Requirements
+11.1 Tenant and Subscription Management
+BR-TEN-001: Tenant Creation
+The platform shall allow an authorised platform administrator to create a customer tenant.
+Each tenant shall have:
+Unique tenant identifier .
+Company name.
+Subscription plan.
+Enabled modules.
+Employee-seat limit.
+Storage limit.
+Billing status.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+12
+
+--- Page 13 ---
+Country and currency.
+Primary language.
+Time zone.
+Support tier .
+Data-hosting region.
+BR-TEN-002: Tenant Isolation
+One tenant shall not be able to access another tenant’s employees, payroll, documents, reports or
+configuration.
+BR-TEN-003: Tenant Branding
+Each tenant shall be able to configure:
+Company logo.
+Brand colours.
+Login-page branding.
+Email templates.
+Payslip branding.
+Document headers.
+Employee portal identity.
+BR-TEN-004: Subscription Control
+The platform shall support:
+Monthly and annual subscriptions.
+Per-employee pricing.
+Minimum platform fees.
+Module-based entitlements.
+Trial periods.
+Grace periods.
+Seat limits.
+Upgrade and downgrade requests.
+Subscription suspension.
+Usage visibility.
+BR-TEN-005: Feature Entitlements
+Features shall be enabled or disabled according to the customer’s subscription plan.
+11.2 Organisation Structure
+BR-ORG-001: Legal Entities
+A tenant shall be able to configure one or more legal entities.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+13
+
+--- Page 14 ---
+BR-ORG-002: Branches and Locations
+Each legal entity may contain:
+Offices.
+Branches.
+Stores.
+Hospitals.
+Warehouses.
+Factories.
+Remote locations.
+Field zones.
+BR-ORG-003: Departments and Teams
+The system shall support:
+Departments.
+Sub-departments.
+Teams.
+Cost centres.
+Business units.
+Reporting lines.
+BR-ORG-004: Positions and Grades
+HR shall be able to configure:
+Job titles.
+Positions.
+Grades.
+Employment levels.
+Pay bands.
+Reporting relationships.
+BR-ORG-005: Effective-Dated Structure
+Organisation changes shall support effective dates so historical reports remain accurate.
+11.3 Employee Master Data
+BR-EMP-001: Employee Profile
+The platform shall maintain an employee profile containing, where authorised:
+Employee number .
+Full name.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+14
+
+--- Page 15 ---
+Preferred name.
+Photograph.
+Contact details.
+Address.
+Emergency contacts.
+Nationality.
+Identification details.
+Employment status.
+Joining date.
+Department.
+Manager .
+Position.
+Work location.
+Shift.
+Payroll information.
+Bank details.
+Tax information.
+Benefit eligibility.
+Assigned assets.
+Documents.
+BR-EMP-002: Unique Employee Identity
+Each employee shall have a unique identity within the tenant.
+BR-EMP-003: Employment Types
+The system shall support configurable employment types such as:
+Permanent.
+Probationary.
+Contract.
+Part-time.
+Intern.
+Consultant.
+Temporary.
+Remote.
+Field-based.
+BR-EMP-004: Employee Status
+The system shall maintain statuses such as:
+Pre-boarding.
+Active.
+On leave.
+Suspended.
+Resigned.
+Terminated.
+Retired.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+15
+
+--- Page 16 ---
+Inactive.
+BR-EMP-005: Employee History
+Changes to department, manager , salary, grade, position and employment status shall be historically
+traceable.
+BR-EMP-006: Bulk Import
+Authorised users shall be able to import employee data using approved templates.
+The import process shall:
+Validate mandatory fields.
+Identify duplicates.
+Show errors.
+Support correction.
+Produce an import report.
+Preserve an audit trail.
+11.4 Employee Onboarding
+BR-ONB-001: Onboarding Workflow
+HR shall be able to create onboarding workflows based on:
+Department.
+Employment type.
+Job role.
+Location.
+Legal entity.
+BR-ONB-002: Onboarding Tasks
+Onboarding tasks may include:
+Document submission.
+Contract signing.
+Employee-profile completion.
+Bank-detail submission.
+Policy acknowledgement.
+Equipment request.
+Email-account request.
+Orientation scheduling.
+Manager introduction.
+Training assignment.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+16
+
+--- Page 17 ---
+BR-ONB-003: Task Ownership
+Every onboarding task shall have:
+Owner .
+Due date.
+Status.
+Escalation rule.
+Completion evidence where required.
+BR-ONB-004: Employee Activation
+An employee shall only become fully active after mandatory onboarding requirements are satisfied or
+an authorised exception is approved.
+11.5 Attendance Management
+BR-ATT-001: Attendance Sources
+The system shall support attendance from:
+Web check-in.
+Mobile check-in.
+Biometric devices.
+Imported attendance files.
+Approved manual entry.
+External attendance APIs.
+BR-ATT-002: Mobile Check-In
+Employees shall be able to check in and out through a mobile interface where enabled.
+BR-ATT-003: Geo-Fenced Attendance
+The tenant shall be able to define authorised attendance locations.
+A geo-fenced attendance event may record:
+Time.
+Date.
+Location.
+Device identifier .
+Accuracy level.
+Employee identity.
+Attendance source.
+Verification result.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+17
+
+--- Page 18 ---
+BR-ATT-004: Shift Validation
+Attendance events shall be evaluated against the employee’s assigned shift.
+BR-ATT-005: Attendance Status
+The system shall calculate configurable statuses including:
+Present.
+Absent.
+Late.
+Early departure.
+Half-day.
+Overtime.
+Holiday work.
+Rest-day work.
+Missing check-out.
+On approved leave.
+Remote work.
+BR-ATT-006: Attendance Correction
+Employees or authorised users shall be able to request attendance correction.
+A correction request shall contain:
+Affected date.
+Original attendance.
+Requested change.
+Reason.
+Supporting evidence.
+Approval status.
+Approver comments.
+BR-ATT-007: Overnight Shifts
+The system shall support shifts beginning on one date and ending on another .
+BR-ATT-008: Attendance Locking
+Attendance periods may be locked after payroll processing or authorised approval.
+BR-ATT-009: Attendance Audit
+Manual changes shall record:
+Previous value.
+New value.
+Requesting user .
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+18
+
+--- Page 19 ---
+Approving user .
+Reason.
+Date and time.
+11.6 Shift and Roster Management
+BR-SHF-001: Shift Configuration
+HR shall be able to define:
+Start and end time.
+Break duration.
+Grace period.
+Required hours.
+Overtime rules.
+Check-in window.
+Check-out window.
+Weekly rest days.
+BR-SHF-002: Roster Assignment
+Shifts may be assigned to:
+Individual employees.
+Teams.
+Departments.
+Locations.
+Employee groups.
+BR-SHF-003: Rotating Shifts
+The platform shall support rotating and recurring shift patterns.
+BR-SHF-004: Shift Changes
+Shift changes shall follow an approval process where configured.
+BR-SHF-005: Roster Visibility
+Employees and managers shall be able to view authorised future rosters.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+19
+
+--- Page 20 ---
+11.7 Leave Management
+BR-LVE-001: Leave Types
+The tenant shall be able to configure leave types such as:
+Annual leave.
+Casual leave.
+Sick leave.
+Maternity leave.
+Paternity leave.
+Bereavement leave.
+Study leave.
+Unpaid leave.
+Compensatory leave.
+Tenant-specific leave.
+BR-LVE-002: Leave Policy
+Each leave type may define:
+Eligibility.
+Annual entitlement.
+Accrual method.
+Carry-forward.
+Expiry.
+Minimum and maximum duration.
+Required notice.
+Attachment requirement.
+Probation restrictions.
+Encashment.
+Negative-balance rules.
+Approval chain.
+BR-LVE-003: Leave Request
+Employees shall be able to:
+Select leave type.
+Select dates.
+View available balance.
+Add reason.
+Attach supporting documents.
+Identify emergency leave where permitted.
+Submit for approval.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+20
+
+--- Page 21 ---
+BR-LVE-004: Leave Validation
+The system shall validate:
+Available balance.
+Overlapping requests.
+Holidays.
+Rest days.
+Team restrictions.
+Notice periods.
+Blackout dates.
+Required documents.
+BR-LVE-005: Approval Workflow
+Leave requests shall follow configurable approval chains.
+BR-LVE-006: Leave Calendar
+Managers shall be able to view authorised team leave to support workforce planning.
+BR-LVE-007: Payroll Integration
+Approved unpaid leave and other payroll-impacting leave shall be included in payroll calculation.
+11.8 Approval Workflow Management
+BR-WFL-001: Configurable Approval Chains
+Tenants shall be able to configure approvals based on:
+Request type.
+Department.
+Employee grade.
+Amount.
+Location.
+Legal entity.
+Employment type.
+Manager hierarchy.
+BR-WFL-002: Sequential and Parallel Approval
+The system shall support:
+Sequential approval.
+Parallel approval.
+Any-one approval.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+21
+
+--- Page 22 ---
+All-required approval.
+Conditional approval.
+BR-WFL-003: Delegation
+Approvers shall be able to delegate authority for a defined period where permitted.
+BR-WFL-004: Escalation
+Requests not processed within the defined service level shall be escalated.
+BR-WFL-005: Request Status
+Users shall be able to see whether a request is:
+Draft.
+Submitted.
+Under review.
+Approved.
+Rejected.
+Returned for changes.
+Cancelled.
+Escalated.
+BR-WFL-006: Approval Evidence
+The system shall retain approver identity, comments, action and timestamp.
+11.9 Payroll Management
+BR-PAY-001: Salary Structure
+Payroll administrators shall be able to configure salary components such as:
+Basic salary.
+House allowance.
+Transport allowance.
+Medical allowance.
+Communication allowance.
+Shift allowance.
+Overtime.
+Bonus.
+Commission.
+Tax deductions.
+Loan deductions.
+Unpaid leave.
+Employee benefits.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+22
+
+--- Page 23 ---
+Tenant-specific earnings and deductions.
+BR-PAY-002: Payroll Period
+The system shall support monthly and configurable payroll periods.
+BR-PAY-003: Attendance-Linked Payroll
+Payroll shall consume approved attendance information, including:
+Paid days.
+Unpaid absences.
+Approved leave.
+Overtime.
+Late deductions where configured.
+Holiday work.
+Rest-day work.
+BR-PAY-004: Payroll Calculation
+The system shall calculate gross pay, deductions and net pay using approved tenant policies.
+BR-PAY-005: Payroll Validation
+Before approval, the system shall identify:
+Missing salary structure.
+Missing bank information.
+Negative net salary.
+Unapproved attendance.
+Unresolved leave.
+Unusual payroll variance.
+Duplicate payments.
+Inactive employees included in payroll.
+BR-PAY-006: Payroll Approval
+Payroll shall follow a configurable review and approval process.
+BR-PAY-007: Payroll Locking
+Once payroll is approved, records shall be locked against unauthorised changes.
+BR-PAY-008: Payslip Publication
+Employees shall receive secure access to authorised payslips.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+23
+
+--- Page 24 ---
+BR-PAY-009: Retroactive Adjustment
+Approved corrections may be processed through adjustment records without deleting historical payroll.
+BR-PAY-010: Payroll Export
+Authorised payroll users shall be able to export approved payroll data for banking, accounting or
+authorised external processing.
+BR-PAY-011: Final Settlement
+The platform shall support final-settlement calculation inputs including:
+Final salary.
+Leave encashment.
+Outstanding loans.
+Approved expenses.
+Benefits.
+Notice-period adjustment.
+Asset-related deductions where lawful and approved.
+The legal and payroll rules applied to final settlement must be externally validated for each jurisdiction.
+11.10 Employee Self-Service
+BR-ESS-001: Employee Dashboard
+Employees shall see a personalised dashboard containing authorised information such as:
+Attendance status.
+Check-in or check-out action.
+Leave balance.
+Pending requests.
+Payslip availability.
+Assigned tasks.
+Company announcements.
+Documents requiring acknowledgement.
+Assigned assets.
+Benefits summary.
+BR-ESS-002: Profile Management
+Employees may request changes to configurable personal information.
+Sensitive changes may require approval.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+24
+
+--- Page 25 ---
+BR-ESS-003: Document Access
+Employees shall be able to access authorised documents such as:
+Contracts.
+Policies.
+Letters.
+Payslips.
+Certificates.
+Benefit documents.
+BR-ESS-004: Request Tracking
+Employees shall be able to track the status of submitted requests.
+BR-ESS-005: Mobile Experience
+High-frequency actions shall be optimised for mobile use.
+11.11 Manager Self-Service
+BR-MSS-001: Team Dashboard
+Managers shall receive visibility into:
+Team attendance.
+Absent employees.
+Late employees.
+Employees on leave.
+Upcoming leave.
+Pending approvals.
+Workload and tasks where TaskOps is enabled.
+Employee probation or review deadlines.
+BR-MSS-002: Team Actions
+Managers shall be able to perform authorised actions including:
+Approve or reject leave.
+Review attendance correction.
+Assign tasks.
+Submit performance feedback.
+View team schedules.
+Request employee changes.
+Initiate recognition.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+25
+
+--- Page 26 ---
+BR-MSS-003: Data Restrictions
+Managers shall only access employees within their authorised reporting scope.
+11.12 Performance Management
+Performance management may be introduced during the MVP or a later controlled release depending
+on implementation capacity.
+BR-PRF-001: Review Cycles
+HR shall be able to configure review periods.
+BR-PRF-002: Goals
+Employees may be assigned:
+Individual goals.
+Team goals.
+Department goals.
+Competency objectives.
+Development objectives.
+BR-PRF-003: Reviews
+The system may support:
+Self-review.
+Manager review.
+Peer feedback.
+HR moderation.
+Final acknowledgement.
+BR-PRF-004: Historical Records
+Completed reviews shall remain available according to permissions and retention policies.
+BR-PRF-005: Human Oversight
+Performance data shall not automatically trigger adverse employment actions without authorised
+human review.
+11.13 TaskOps
+TaskOps will connect workforce administration with daily operational execution.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+26
+
+--- Page 27 ---
+The source concept defines TaskOps as supporting boards, task lists, sprints, backlogs, dependencies,
+SLA tracking, workload visibility, recurring tasks and team dashboards. 
+BR-TSK-001: Workspaces
+Authorised users shall be able to create department or project workspaces.
+BR-TSK-002: Boards and Backlogs
+TaskOps shall support:
+Boards.
+Lists.
+Backlogs.
+Sprints.
+Statuses.
+Priorities.
+Labels.
+BR-TSK-003: Task Management
+A task may contain:
+Title.
+Description.
+Assignee.
+Reporter .
+Due date.
+Priority.
+Status.
+SLA.
+Attachments.
+Comments.
+Dependencies.
+Time estimate.
+Time spent.
+BR-TSK-004: Recurring Tasks
+Operational activities may be configured to recur .
+BR-TSK-005: SLA Escalation
+Tasks approaching or breaching an SLA shall trigger notifications and escalation.
+BR-TSK-006: Workload View
+Managers shall be able to view workload distribution across their teams.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+27
+
+--- Page 28 ---
+BR-TSK-007: Performance Boundaries
+Task information may provide performance context but shall not be used as the sole basis for
+automated employee decisions.
+11.14 Asset Lifecycle Management
+The asset lifecycle shall cover procurement, inventory, assignment, usage, maintenance, return and
+disposal. 
+BR-AST-001: Asset Register
+The platform shall maintain asset records containing:
+Asset identifier .
+Category.
+Serial number .
+Purchase information.
+Supplier .
+Warranty.
+Condition.
+Location.
+Current custodian.
+Status.
+Maintenance history.
+Disposal information.
+BR-AST-002: Asset Assignment
+Assets may be assigned to:
+Employees.
+Departments.
+Locations.
+Projects.
+BR-AST-003: Assignment Confirmation
+Employees may be required to acknowledge receipt and condition.
+BR-AST-004: Asset Return
+Employee offboarding shall trigger a return workflow for assigned assets.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+28
+
+--- Page 29 ---
+BR-AST-005: Maintenance
+The system shall support:
+Maintenance request.
+Repair history.
+Warranty claim.
+Temporary replacement.
+Downtime tracking.
+BR-AST-006: Disposal
+Asset disposal shall require authorised approval and audit evidence.
+11.15 Expense and Finance Integration
+BR-FIN-001: Expense Submission
+Employees shall be able to submit expense claims with:
+Category.
+Amount.
+Currency.
+Date.
+Description.
+Cost centre.
+Receipt.
+Project or department.
+Payment method.
+BR-FIN-002: Expense Policy Validation
+The system shall validate claims against tenant policy.
+BR-FIN-003: Expense Approval
+Expenses shall follow configurable approval rules based on amount, category, employee grade or
+department.
+BR-FIN-004: Reimbursement Status
+Employees shall be able to track reimbursement status.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+29
+
+--- Page 30 ---
+BR-FIN-005: Finance Posting
+Approved expenses and payroll records may be exported or integrated with authorised finance
+systems.
+11.16 Employee Benefits
+BR-BEN-001: Benefits Catalogue
+HR shall be able to configure benefits such as:
+Health insurance.
+Medical allowance.
+Transport allowance.
+Mobile allowance.
+Bonuses.
+Gratuity.
+Retirement contribution.
+Paid leave.
+Employee discounts.
+Loans and advances.
+BR-BEN-002: Eligibility
+Benefit eligibility may depend on:
+Employment type.
+Grade.
+Department.
+Location.
+Service duration.
+Contract type.
+BR-BEN-003: Employee Visibility
+Employees shall be able to see authorised benefit information through the employee dashboard.
+BR-BEN-004: Benefit History
+Changes in benefit entitlement shall be historically traceable.
+11.17 Policy and Compliance Engine
+The original concept requires configurable and versioned policies so the organisation can determine
+which rule applied to a transaction at a specific time. 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+30
+
+--- Page 31 ---
+BR-CMP-001: Policy Configuration
+Tenants shall be able to configure policies for:
+Attendance.
+Leave.
+Overtime.
+Payroll.
+Expenses.
+Assets.
+Remote work.
+Performance reviews.
+Data retention.
+Approval escalation.
+BR-CMP-002: Policy Effective Dates
+Policies shall include effective start and end dates.
+BR-CMP-003: Policy Versions
+Previous policy versions shall remain available for audit and historical processing.
+BR-CMP-004: Policy Acknowledgement
+Employees may be required to acknowledge selected policies.
+BR-CMP-005: Jurisdiction Packs
+The system architecture shall support country or regional policy packs.
+BR-CMP-006: Legal Review
+No jurisdiction pack shall be marketed as legally compliant until reviewed by qualified legal, tax and
+payroll specialists.
+BR-CMP-007: Pakistan Positioning
+Pakistan configuration may support:
+English and Urdu interfaces.
+PKR payroll.
+Local holiday calendars.
+Provincial policy configuration.
+Employment-record administration.
+EOBI and social-security information where applicable.
+Local biometric-device connectivity.
+SECP-related organisational record support.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+31
+
+--- Page 32 ---
+SECP-related record support shall not be presented as a replacement for labour-law, payroll or tax
+review.
+11.18 Reporting and Analytics
+BR-RPT-001: Role-Based Dashboards
+The system shall provide dashboards based on user role.
+BR-RPT-002: HR Reports
+Reports may include:
+Headcount.
+Employee movement.
+New joiners.
+Exits.
+Probation status.
+Leave balances.
+Attendance exceptions.
+Employee-document status.
+BR-RPT-003: Payroll Reports
+Reports may include:
+Payroll summary.
+Salary register .
+Department cost.
+Allowance and deduction summary.
+Overtime cost.
+Payroll variance.
+Bank-transfer file.
+Final-settlement report.
+BR-RPT-004: Attendance Reports
+Reports may include:
+Daily attendance.
+Late arrivals.
+Absence.
+Overtime.
+Shift compliance.
+Missing attendance.
+Location exceptions.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+32
+
+--- Page 33 ---
+BR-RPT-005: Management Reports
+Management shall receive authorised visibility into:
+Workforce size.
+Labour cost.
+Attendance trends.
+Leave utilisation.
+Overtime trends.
+Operational workload.
+Approval bottlenecks.
+Asset exposure.
+Employee turnover .
+BR-RPT-006: Filters
+Reports shall support relevant filters such as:
+Date.
+Legal entity.
+Branch.
+Department.
+Manager .
+Location.
+Employee.
+Employment type.
+Status.
+BR-RPT-007: Export
+Authorised users shall be able to export reports to approved formats such as CSV, Excel or PDF.
+BR-RPT-008: Scheduled Reports
+Selected reports may be scheduled for authorised recipients.
+BR-RPT-009: Data Privacy
+Reports shall not expose information beyond the user’s permission scope.
+11.19 Notifications and Communication
+BR-NTF-001: Notification Channels
+The platform may support:
+In-app notifications.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+33
+
+--- Page 34 ---
+Email.
+Mobile push notifications.
+SMS through configured providers.
+Approved third-party messaging integrations.
+BR-NTF-002: Notification Events
+Notifications may be generated for:
+Leave submission.
+Leave approval or rejection.
+Attendance correction.
+Missing check-out.
+Payroll publication.
+Document expiry.
+Onboarding task.
+Approval escalation.
+Shift update.
+Task SLA breach.
+Asset return.
+Subscription issue.
+BR-NTF-003: Notification Preferences
+Tenants and users shall be able to manage permitted notification preferences.
+BR-NTF-004: Communication Audit
+Important notifications shall retain delivery and status information where available.
+11.20 Integration Requirements
+BR-INT-001: API Framework
+The platform shall expose secure APIs for authorised integrations.
+BR-INT-002: Identity Integration
+The platform shall support integration with identity providers such as:
+Microsoft Entra ID.
+Google Workspace.
+OAuth-compatible identity providers.
+SAML-compatible enterprise providers where required.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+34
+
+--- Page 35 ---
+BR-INT-003: Biometric Integration
+The platform shall support a connector framework for biometric attendance systems.
+BR-INT-004: Payroll and Banking Integration
+The system may export approved data to payroll, banking and payment systems.
+BR-INT-005: ERP and Finance Integration
+The platform shall support integration with approved ERP and finance systems.
+BR-INT-006: Integration Monitoring
+Integration failures shall be logged and visible to authorised administrators.
+BR-INT-007: Retry and Reconciliation
+Failed transactions shall support controlled retry and reconciliation.
+BR-INT-008: Webhooks
+The platform may provide secure outbound webhooks for approved business events.
+12. Critical End-to-End Business Workflows
+12.1 Tenant Onboarding Workflow
+Customer contract or trial is approved.
+Platform administrator creates the tenant.
+Subscription plan and modules are assigned.
+Tenant administrator receives secure invitation.
+Company profile is configured.
+Legal entities, departments and branches are created.
+User roles are assigned.
+Employee data is imported.
+Attendance and leave policies are configured.
+Payroll structures are configured.
+Integrations are tested.
+Customer validation is completed.
+Tenant is activated for production.
+Completion Outcome
+The customer can operate approved workforce processes within a secure tenant.
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+35
+
+--- Page 36 ---
+12.2 Employee Onboarding Workflow
+HR creates or imports the employee.
+Employment information is added.
+Contract and documents are assigned.
+Onboarding workflow is generated.
+Employee receives activation invitation.
+Employee completes profile and required documents.
+Manager receives assigned onboarding tasks.
+IT or procurement receives account and asset requests.
+Policies are acknowledged.
+HR reviews completion.
+Employee becomes active.
+Exception Scenarios
+Missing mandatory documents.
+Duplicate employee identity.
+Invalid bank details.
+Incomplete approval.
+Delayed asset assignment.
+Employee does not activate account.
+12.3 Attendance Workflow
+Employee checks in through an authorised method.
+System validates employee identity.
+Time, location and device information are captured where permitted.
+Attendance is compared with assigned shift.
+Attendance status is calculated.
+Exception is generated if the event is outside policy.
+Manager or HR reviews exceptions.
+Approved attendance becomes available for payroll.
+Attendance period is locked after payroll approval.
+12.4 Leave Workflow
+Employee views leave balance.
+Employee selects leave type and dates.
+System validates eligibility and balance.
+Employee submits request.
+Request follows configured approval chain.
+Approver approves, rejects or requests changes.
+Employee receives notification.
+Approved leave updates attendance calendar .
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+• 
+• 
+• 
+• 
+• 
+• 
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+36
+
+--- Page 37 ---
+Payroll impact is calculated where applicable.
+12.5 Payroll Workflow
+Payroll period is opened.
+Active employee population is identified.
+Salary structures are loaded.
+Approved attendance, leave and overtime are collected.
+Allowances, deductions and adjustments are applied.
+Payroll is calculated.
+Validation exceptions are generated.
+Payroll administrator resolves exceptions.
+Reviewer checks payroll variance.
+Authorised approver approves payroll.
+Payroll is locked.
+Payslips are published.
+Banking or finance export is generated.
+Payroll audit record is retained.
+12.6 Employee Offboarding Workflow
+Resignation or termination is recorded.
+Last working date is approved.
+Offboarding checklist is generated.
+Manager completes handover confirmation.
+Assigned tasks are transferred.
+IT access-removal request is generated.
+Assigned assets are identified.
+Employee returns assets.
+Finance confirms outstanding expenses or loans.
+Leave balance and final settlement are reviewed.
+Final settlement is approved.
+Employment status is changed to inactive.
+Access is disabled according to policy.
+Records are retained according to legal and tenant requirements.
+13. Business Rules
+13.1 Tenant Rules
+Every business record shall belong to an identified tenant.
+Cross-tenant access shall be prohibited.
+Tenant configuration shall not affect another tenant.
+Tenant administrators shall not have platform-wide access.
+9. 
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+• 
+• 
+• 
+• 
+37
+
+--- Page 38 ---
+13.2 Employee Rules
+Each employee shall have a unique employee number within the tenant.
+Sensitive employee changes shall require authorised access.
+Historical employment information shall not be silently overwritten.
+Employee deletion shall be restricted where records are required for audit.
+13.3 Attendance Rules
+Attendance calculations shall use the policy effective on the attendance date.
+Overnight shifts shall be processed as one logical shift.
+Manual attendance changes shall require a reason.
+Locked attendance shall require authorised reopening.
+Location information shall only be collected where enabled and lawfully permitted.
+13.4 Leave Rules
+Leave entitlement shall be calculated according to the applicable policy.
+Overlapping approved leave shall not be allowed.
+Unpaid leave shall be identified for payroll.
+Holiday and rest-day treatment shall be configurable.
+Supporting documents may be mandatory for selected leave types.
+13.5 Payroll Rules
+Payroll shall use approved and effective-dated data.
+Historical payroll shall not be deleted to process adjustments.
+Salary changes shall require effective dates.
+Payroll calculation shall be repeatable before final approval.
+Approved payroll shall be locked.
+Reopening payroll shall require elevated permission and audit logging.
+13.6 Workflow Rules
+Approval chains shall be configurable.
+The request creator shall not approve their own request where segregation of duties is enabled.
+Delegated authority shall have defined dates.
+Escalations shall not automatically approve a request unless explicitly configured and permitted.
+Rejections shall support comments.
+13.7 Policy Rules
+Policies shall be versioned.
+Historical transactions shall retain the policy version used.
+Future policy changes shall not silently modify completed transactions.
+Legal or country-specific rules shall require qualified review.
+13.8 AI Rules
+AI insights shall be advisory.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+38
+
+--- Page 39 ---
+Users shall be informed when a recommendation is AI-generated.
+High-impact employment decisions shall require human review.
+AI outputs shall not be the sole basis for termination, promotion, disciplinary action or
+compensation reduction.
+Organisations shall be able to disable selected AI capabilities.
+14. Data Requirements
+14.1 Master Data
+The platform shall manage:
+Tenants.
+Legal entities.
+Branches.
+Departments.
+Positions.
+Grades.
+Employees.
+Managers.
+Locations.
+Shifts.
+Leave types.
+Salary components.
+Policies.
+Benefits.
+Asset categories.
+Expense categories.
+14.2 Transactional Data
+The platform shall manage:
+Attendance events.
+Leave requests.
+Approval actions.
+Payroll calculations.
+Payslips.
+Expenses.
+Asset assignments.
+Onboarding tasks.
+Offboarding tasks.
+Performance reviews.
+TaskOps items.
+Notifications.
+Audit records.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+39
+
+--- Page 40 ---
+14.3 Document Data
+The platform may store:
+Employment contracts.
+Identification documents.
+Certificates.
+Medical documents where permitted.
+Payslips.
+Policy documents.
+Asset forms.
+Expense receipts.
+Employee letters.
+14.4 Data Quality
+The system shall provide controls for:
+Mandatory fields.
+Data formats.
+Duplicate detection.
+Referential integrity.
+Import validation.
+Effective dates.
+Data reconciliation.
+14.5 Data Retention
+Data-retention periods shall be configurable according to:
+Tenant policy.
+Country requirements.
+Employment-record requirements.
+Payroll requirements.
+Privacy requirements.
+Contractual requirements.
+15. Non-Functional Business Requirements
+15.1 Security
+The system shall provide:
+Encryption in transit.
+Encryption at rest.
+Role-based access control.
+Strong authentication.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+40
+
+--- Page 41 ---
+Multi-factor authentication capability.
+SSO capability.
+Secure password handling.
+Session management.
+Audit logging.
+Rate limiting.
+Secure document access.
+Administrative access controls.
+Vulnerability-management processes.
+The source guide identifies tenant isolation, encryption, fine-grained permissions, immutable audit
+trails, backup controls and API rate limiting as key architectural requirements. 
+15.2 Privacy
+The platform shall support:
+Purpose-based data collection.
+Role-restricted access.
+Configurable retention.
+Data-export requests.
+Data-correction workflows.
+Data-subject request processes.
+Consent records where required.
+Regional hosting options.
+Privacy-aware reporting.
+15.3 Availability
+The target production availability should be at least 99.9%, excluding approved maintenance windows.
+15.4 Performance
+Proposed initial performance targets:
+Standard pages should generally load within three seconds under supported conditions.
+Attendance acknowledgement should normally complete within two seconds.
+Employee search should generally return results within three seconds.
+Standard reports should normally complete within 30 seconds.
+Large reports may be processed asynchronously.
+Payroll processing shall support batch execution without blocking routine employee access.
+Final performance targets shall be validated during architecture and load testing.
+15.5 Scalability
+The solution shall support:
+Growth in employee seats.
+Multiple tenants.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+41
+
+--- Page 42 ---
+Multiple legal entities.
+High attendance-event volumes.
+Payroll batch processing.
+Large document volumes.
+Horizontal application scaling.
+Regional deployment.
+15.6 Accessibility
+The user experience should target recognised accessibility practices, including:
+Keyboard navigation.
+Screen-reader support.
+Text alternatives.
+Sufficient visual contrast.
+Clear form errors.
+Responsive layouts.
+Localised right-to-left support where required.
+15.7 Localisation
+The platform shall support:
+English.
+Urdu.
+Additional languages in later phases.
+Right-to-left layouts.
+Local date formats.
+Time zones.
+Multiple currencies.
+Country-specific holidays.
+Local number formats.
+15.8 Auditability
+Important changes shall record:
+User .
+Date and time.
+Previous value.
+New value.
+Source.
+Reason where applicable.
+Approval reference.
+15.9 Backup and Recovery
+The system shall support:
+Automated backups.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+42
+
+--- Page 43 ---
+Restore testing.
+Recovery procedures.
+Defined recovery-point objectives.
+Defined recovery-time objectives.
+Region-aware disaster-recovery planning.
+Final objectives shall be approved during solution architecture.
+15.10 Observability
+The platform shall provide:
+Application logs.
+Infrastructure metrics.
+Distributed traces where applicable.
+Error monitoring.
+Integration monitoring.
+Security-event monitoring.
+Audit-event monitoring.
+Alerting.
+16. Technology and Architecture Constraints
+The proposed technology direction includes:
+Layer Proposed Technology
+Backend Node.js with NestJS
+Web frontend React and Next.js
+Mobile React Native or native applications
+Database PostgreSQL
+Tenant security Tenant-aware design and row-level security
+Authentication OAuth 2.0, JWT and SSO
+Identity providersMicrosoft Entra ID and Google Workspace
+APIs REST and GraphQL where justified
+Infrastructure Kubernetes on AWS, Azure or Google Cloud
+Delivery Automated CI/CD pipelines
+Observability Centralised logs, metrics, traces and audit monitoring
+These technologies were established in the source idea guide. 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+43
+
+--- Page 44 ---
+16.1 MVP Architecture Direction
+The MVP should use a modular monolith with clearly separated business domains, unless technical
+validation identifies a requirement for independent services.
+This approach should:
+Reduce initial infrastructure complexity.
+Improve development speed.
+Simplify transactions.
+Lower operational cost.
+Allow future service extraction.
+Preserve clean domain boundaries.
+16.2 Service Extraction Criteria
+A business domain may later become an independent service where:
+It requires independent scaling.
+It has a distinct security boundary.
+It requires separate deployment.
+It handles high asynchronous volume.
+It has a separate development lifecycle.
+Operational benefit exceeds distributed-system complexity.
+17. Commercial Requirements
+17.1 Subscription Packages
+The platform shall support configurable packages such as:
+Essential.
+Growth.
+Enterprise.
+17.2 Pricing Dimensions
+Commercial pricing may consider:
+Active employee seats.
+Enabled modules.
+Storage.
+API usage.
+Support tier .
+Hosting region.
+Implementation requirements.
+On-premises connectors.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+44
+
+--- Page 45 ---
+SSO.
+Compliance packs.
+17.3 Trial Management
+The platform should support:
+Time-limited trials.
+Employee-seat limits.
+Limited module access.
+Trial-to-paid conversion.
+Trial-expiry notification.
+Data-retention policy after trial expiry.
+17.4 Partner Model
+The business should support partner categories such as:
+HR consultants.
+Payroll firms.
+Accounting firms.
+Biometric-device vendors.
+ERP implementers.
+Cloud and managed-service providers.
+Benefit and insurance providers.
+Regional implementation partners.
+17.5 Customer Expansion
+The platform shall support land-and-expand adoption:
+Core HR and attendance → payroll → performance → TaskOps → assets → benefits →
+analytics → AI.
+18. Implementation Requirements
+18.1 Discovery
+Each enterprise implementation shall include:
+Stakeholder identification.
+Current-process review.
+Policy review.
+Data-source inventory.
+Integration assessment.
+Reporting requirements.
+Security review.
+Gap analysis.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+45
+
+--- Page 46 ---
+Scope confirmation.
+18.2 Configuration
+Implementation shall cover:
+Organisation structure.
+Employee fields.
+Roles.
+Attendance policies.
+Leave policies.
+Approval workflows.
+Payroll components.
+Notifications.
+Reports.
+Integrations.
+18.3 Data Migration
+Migration shall include:
+Data template.
+Data extraction.
+Data cleansing.
+Validation.
+Test migration.
+Customer review.
+Production migration.
+Reconciliation.
+Acceptance sign-off.
+18.4 Payroll Validation
+Before live payroll:
+At least one parallel payroll cycle should be completed for standard customers.
+Complex enterprise customers may require multiple cycles.
+Differences shall be documented and resolved.
+Payroll sign-off shall be obtained from authorised customer representatives.
+18.5 User Acceptance Testing
+Customers shall test:
+Employee records.
+Attendance.
+Leave.
+Approvals.
+Payroll.
+Reports.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+46
+
+--- Page 47 ---
+Security roles.
+Notifications.
+Integrations.
+Mobile experience.
+18.6 Production Readiness
+Production launch shall require:
+Approved configuration.
+Completed migration.
+Successful integration testing.
+Security review.
+Backup validation.
+Support readiness.
+User training.
+UAT sign-off.
+Go-live approval.
+19. Training and Change Management
+19.1 Administrator Training
+Training shall cover:
+Tenant administration.
+Employee management.
+Policies.
+Attendance.
+Leave.
+Payroll.
+Reporting.
+Audit records.
+Support escalation.
+19.2 Manager Training
+Training shall cover:
+Team dashboard.
+Approvals.
+Attendance review.
+Leave calendar .
+Tasks.
+Performance actions.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+47
+
+--- Page 48 ---
+19.3 Employee Training
+Training shall cover:
+Login.
+Profile.
+Attendance.
+Leave.
+Payslips.
+Requests.
+Documents.
+Mobile application.
+19.4 Training Materials
+The business should provide:
+Administrator guide.
+Manager guide.
+Employee quick-start guide.
+Video tutorials.
+Frequently asked questions.
+Knowledge base.
+Urdu and English materials.
+Release notes.
+19.5 Change Communication
+Customers should communicate:
+Why the system is being introduced.
+Which processes are changing.
+What employees must do.
+What information is collected.
+How privacy is protected.
+Where support is available.
+20. Support Requirements
+20.1 Support Channels
+Support may be delivered through:
+Help centre.
+In-product support.
+Email.
+Ticketing portal.
+Phone for enterprise customers.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+48
+
+--- Page 49 ---
+Customer-success manager .
+Implementation partner .
+20.2 Severity Levels
+Severity Description
+Critical Platform unavailable, payroll blocked or major security incident
+High Major function unavailable with significant business impact
+Medium Feature issue with available workaround
+Low General question, configuration request or minor defect
+20.3 Service Commitments
+Response and resolution targets shall be defined by subscription tier and support agreement.
+20.4 Release Management
+Customers shall receive:
+Release notes.
+Maintenance notification.
+Feature-deprecation notice.
+Security advisories where required.
+Migration guidance for material changes.
+21. Assumptions
+This BRD assumes:
+Workforce Cloud OS will operate primarily as a multi-tenant cloud SaaS platform.
+Customers will provide lawful authority to process employee data.
+Country-specific payroll and labour rules will be reviewed externally.
+The first commercial market will be Pakistan.
+Initial customers will mainly have 50–1,000 employees.
+The first release will prioritise Core HR, attendance, leave and payroll.
+TaskOps, assets, advanced benefits, AI and global compliance will follow in phases.
+Customers will participate in data validation and user-acceptance testing.
+Biometric hardware will be integrated through a controlled connector framework.
+Enterprise customers may require additional configuration, SSO and integration support.
+Customer-specific needs will be addressed through configuration where possible rather than
+separate code branches.
+Revenue and user-growth projections are management targets rather than guaranteed results.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+49
+
+--- Page 50 ---
+22. Dependencies
+The product depends on:
+Confirmed product-market validation.
+Customer design partners.
+Qualified payroll specialists.
+Legal and compliance advisers.
+Cloud infrastructure.
+Identity providers.
+Mobile platform support.
+Biometric vendors or integration protocols.
+Banking and finance export standards.
+Reliable email, SMS and push-notification providers.
+Security testing.
+Customer data quality.
+Implementation and support capacity.
+Urdu localisation expertise.
+Partner networks for GCC expansion.
+23. Constraints
+23.1 Commercial Constraints
+Price sensitivity in the Pakistan SME market.
+Long enterprise procurement cycles.
+Customer requests for excessive customisation.
+Limited early sales and implementation capacity.
+Need to balance SaaS revenue with services revenue.
+23.2 Product Constraints
+Broad product scope.
+Payroll complexity.
+Country-specific policy differences.
+Biometric-device variation.
+Mobile location limitations.
+Employee resistance to attendance tracking.
+Data migration from poor-quality spreadsheets.
+23.3 Technical Constraints
+Multi-tenant isolation.
+High attendance-event volumes.
+Payroll batch complexity.
+Data-residency requirements.
+External integration reliability.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+50
+
+--- Page 51 ---
+Offline or low-connectivity locations.
+Mobile device permission restrictions.
+23.4 Regulatory Constraints
+Provincial labour requirements.
+Payroll and tax changes.
+Employee privacy.
+Cross-border data transfer .
+Document-retention obligations.
+Country-specific employment regulations.
+24. Business Risks and Mitigation
+Risk Business Impact Mitigation
+Product scope becomes
+too broad
+Delayed launch and
+increased cost
+Strict phased roadmap and change
+control
+Payroll calculation errorsCustomer distrust and
+financial liability
+Parallel payroll, automated testing and
+approval controls
+Excessive custom
+development Reduced SaaS margins Configuration-first product policy
+Weak tenant isolationSevere privacy and security
+impact
+Row-level security, testing and
+independent security review
+Poor customer data Failed implementation Migration templates, cleansing and
+reconciliation
+Employee resistance Low adoption Transparent communication and
+employee-first design
+Biometric incompatibilityDelayed attendance rolloutStandard connector framework and
+certified integrations
+Incorrect compliance
+claims Legal and reputational riskQualified external review and
+controlled wording
+Low SME willingness to
+pay Weak revenue growth Tiered pricing and measurable ROI
+Long enterprise sales
+cycles Cash-flow pressure Combined self-service, partner and
+direct-sales models
+AI bias or misuse Employee harm and
+reputational risk
+Human review, explainability and
+configurable controls
+Cloud data-residency
+objection
+Lost enterprise
+opportunities
+Regional hosting and secure on-
+premises connectors
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+51
+
+--- Page 52 ---
+Risk Business Impact Mitigation
+Customer churn Reduced recurring revenueStrong onboarding, customer success
+and module expansion
+Implementation
+bottlenecks Slow revenue recognitionStandardised deployment packages
+and partner certification
+25. MVP Prioritisation
+Must Have
+Tenant management.
+Authentication.
+Role-based access.
+Organisation structure.
+Employee master data.
+Employee onboarding.
+Attendance.
+Shifts.
+Leave.
+Approvals.
+Basic payroll.
+Payslips.
+Employee self-service.
+Manager self-service.
+Notifications.
+Core reports.
+Audit trails.
+Import and export.
+Security controls.
+Responsive web interface.
+Should Have
+Mobile application.
+Geo-fenced attendance.
+Basic biometric connectors.
+SSO.
+Expense claims.
+Performance reviews.
+Urdu interface.
+Basic subscription management.
+Custom report filters.
+Could Have
+TaskOps.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+52
+
+--- Page 53 ---
+Asset lifecycle.
+Benefits portal.
+Advanced analytics.
+Partner portal.
+Advanced compliance packs.
+AI recommendations.
+Recognition and badges.
+Will Not Have in Initial MVP
+Fully automated global payroll.
+Automated employment decisions.
+Complete ERP replacement.
+Complete accounting platform.
+Advanced applicant-tracking system.
+Full learning-management suite.
+Unrestricted customer-specific customisation.
+26. Business Acceptance Criteria
+The MVP shall be considered business-ready when:
+A customer tenant can be created without engineering intervention.
+Tenant data is isolated and security tested.
+Organisation structures can be configured.
+Employees can be imported and managed.
+Employees can securely access the platform.
+Attendance can be recorded and reviewed.
+Shifts and leave policies can be configured.
+Leave and attendance-correction approvals operate correctly.
+Payroll can be calculated from approved workforce data.
+Payroll exceptions can be identified and resolved.
+Payslips can be securely published.
+Employees can view attendance, leave and payslips.
+Managers can view and approve team requests.
+Audit records are generated for critical changes.
+Core reports can be generated and exported.
+Notification workflows operate successfully.
+A test customer can complete data migration.
+At least one parallel payroll cycle matches approved customer calculations within agreed
+tolerance.
+Backup and restore procedures are validated.
+Production monitoring and support processes are operational.
+User-acceptance testing is signed off.
+No unresolved critical security issue remains.
+Implementation and training documentation is available.
+Customer support escalation is defined.
+Product limitations and compliance boundaries are clearly communicated.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+53
+
+--- Page 54 ---
+27. Proposed Delivery Stages
+Delivery StageBusiness Scope
+Stage 0 Customer discovery, process mapping and product validation
+Stage 1 Tenant, authentication, organisation and employee records
+Stage 2 Attendance, shifts, leave and approvals
+Stage 3 Payroll, salary structures and payslips
+Stage 4 Employee and manager self-service
+Stage 5 Reports, audit, notifications and basic integrations
+Stage 6 Pilot migration, parallel payroll and production hardening
+Stage 7 Commercial launch and customer-success operation
+Stage 8 TaskOps and performance expansion
+Stage 9 Assets, expenses and finance integration
+Stage 10 Benefits, compliance packs, AI and global expansion
+28. Open Business Decisions
+The following decisions must be finalised before the PRD and implementation backlog are approved:
+Will the mobile application use React Native or separate native applications?
+Which Pakistan payroll calculations will be included in the first release?
+Which biometric vendors or protocols will be supported first?
+Will payroll payments be generated only as files or also through direct banking integrations?
+Which features will be available in the Essential, Growth and Enterprise plans?
+Will TaskOps be included in the MVP or Phase Two?
+Which employee documents will support electronic signatures?
+Which cloud provider and primary region will be used for launch?
+What recovery-point and recovery-time objectives will be commercially committed?
+Which customer segments will receive on-premises connectors?
+What level of offline attendance capability will be supported?
+What will be the standard customer implementation fee?
+Will Urdu be available at MVP launch or shortly after launch?
+Which GCC country will be the first international expansion market?
+Which independent legal, payroll and security advisers will validate the platform?
+What data will be used for future AI models?
+Which actions will be prohibited from automated AI decision-making?
+What are the final seat, storage and API limits for each plan?
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+54
+
+--- Page 55 ---
+29. Requirement Traceability Summary
+Business Objective Supporting Capability
+Unified workforce record Tenant, organisation and employee master data
+Reduced manual administrationDigital workflows, self-service and automation
+Improved payroll accuracyAttendance-linked payroll and validation
+Employee transparency Employee dashboards, payslips and request tracking
+Management visibility Dashboards, reports and analytics
+Compliance support Versioned policies and jurisdiction packs
+Organisational scalability Multi-tenant architecture and configurable structures
+Recurring revenue Subscription and module management
+Product expansion Modular roadmap and feature entitlements
+Audit readiness Immutable history, approvals and audit logs
+30. Final Business Recommendation
+Workforce Cloud OS should not begin as a complete global workforce suite.
+The recommended business approach is to establish a reliable system of record through:
+Core HR.
+Attendance.
+Shifts.
+Leave.
+Payroll.
+Employee self-service.
+Manager approvals.
+Reporting.
+Security.
+Auditability.
+After these capabilities are validated through real customer deployments, the product should expand
+into TaskOps, assets, expenses, finance integration, benefits, compliance automation and AI workforce
+intelligence.
+The platform’s most defensible advantage will not be the independent presence of many modules. Its
+advantage will be the ability to connect those modules through shared employee data, configurable
+policies and cross-functional workflows.
+The intended operating model can be summarised as:
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+55
+
+--- Page 56 ---
+One employee identity, one configurable policy engine, one approval framework
+and one connected workforce operating environment.
+This BRD establishes the business foundation required to proceed into product requirements, user
+journeys, solution architecture, data modelling, UX design, implementation planning and design-
+partner validation.
+56

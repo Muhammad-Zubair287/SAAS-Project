@@ -117,3 +117,26 @@ export interface ListAttendanceParams {
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
 }
+
+export interface AttendancePeriod {
+  id: string;
+  tenantId: string;
+  periodStart: string;
+  periodEnd: string;
+  isLocked: boolean;
+  lockedAt: string | null;
+  unlockedAt: string | null;
+  lockedBy: string | null;
+  unlockReason: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AttendancePeriodLockPayload {
+  periodStart: string;
+  periodEnd: string;
+}
+
+export interface AttendancePeriodUnlockPayload extends AttendancePeriodLockPayload {
+  reason: string;
+}

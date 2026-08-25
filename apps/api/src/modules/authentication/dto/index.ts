@@ -2,6 +2,7 @@ export { LoginDto } from './login.dto';
 export { RefreshTokenDto } from './refresh-token.dto';
 export { LogoutDto } from './logout.dto';
 export { AuthResponseDto } from './auth-response.dto';
+export { SessionUserDto } from './session-user.dto';
 export { InvitationCreateDto } from './invitation-create.dto';
 export { InvitationAcceptDto } from './invitation-accept.dto';
 export { PasswordResetRequestDto } from './password-reset-request.dto';

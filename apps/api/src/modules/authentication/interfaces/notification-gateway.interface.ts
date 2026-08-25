@@ -14,7 +14,8 @@ export interface PasswordResetNotification {
   expiresAt: Date;
 }
 
-// Business layer depends only on this interface; SMTP/provider wired in M13.
+// Business layer depends only on this interface; SMTP adapter wired for M02 auth emails.
+// Broader notification platform (queues, multi-channel) remains M13.
 export interface NotificationGateway {
   sendInvitation(notification: InvitationNotification): Promise<void>;
   sendPasswordReset(notification: PasswordResetNotification): Promise<void>;

@@ -16,6 +16,13 @@ import type {
   UpdateCostCentrePayload,
   CreatePositionPayload,
   UpdatePositionPayload,
+  OrganisationOverviewResponse,
+  OrganisationHistoryEvent,
+  Grade,
+  DepartmentTreeNode,
+  CreateGradePayload,
+  UpdateGradePayload,
+  ListGradesParams,
   ListParams,
 } from '../types/organisation.types';
 
@@ -178,6 +185,52 @@ export const organisationApi = {
     deactivate: (id: string) =>
       apiClient
         .delete<void>(`${BASE}/positions/${id}`)
+        .then(() => undefined),
+  },
+
+  overview: {
+    get: () =>
+      apiClient
+        .get<ApiSuccessResponse<OrganisationOverviewResponse>>('/organisation/overview')
+        .then((r) => r.data),
+
+    history: (params?: { page?: number; pageSize?: number }) =>
+      apiClient
+        .get<PaginatedResponse<OrganisationHistoryEvent>>('/organisation/history', { params })
+        .then((r) => r.data),
+
+    departmentTree: (legalEntityId?: string) =>
+      apiClient
+        .get<ApiSuccessResponse<DepartmentTreeNode[]>>('/departments/tree', {
+          params: legalEntityId ? { legalEntityId } : undefined,
+        })
+        .then((r) => r.data),
+  },
+
+  grades: {
+    create: (payload: CreateGradePayload) =>
+      apiClient
+        .post<ApiSuccessResponse<Grade>>('/grades', payload)
+        .then((r) => r.data),
+
+    list: (params?: ListGradesParams) =>
+      apiClient
+        .get<PaginatedResponse<Grade>>('/grades', { params })
+        .then((r) => r.data),
+
+    getById: (id: string) =>
+      apiClient
+        .get<ApiSuccessResponse<Grade>>(`/grades/${id}`)
+        .then((r) => r.data),
+
+    update: (id: string, payload: UpdateGradePayload) =>
+      apiClient
+        .patch<ApiSuccessResponse<Grade>>(`/grades/${id}`, payload)
+        .then((r) => r.data),
+
+    deactivate: (id: string) =>
+      apiClient
+        .delete<void>(`/grades/${id}`)
         .then(() => undefined),
   },
 };

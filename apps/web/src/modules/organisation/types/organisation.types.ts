@@ -162,3 +162,71 @@ export interface ListParams {
   branchId?: string;
   departmentId?: string;
 }
+
+export interface OrganisationOverviewResponse {
+  counts: {
+    legalEntities: number;
+    branches: number;
+    departments: number;
+    positions: number;
+    grades: number;
+    activeEmployees: number;
+    unassignedEmployees: number;
+  };
+  incompleteStructure: boolean;
+  generatedAt: string;
+}
+
+export interface OrganisationHistoryEvent {
+  id: string;
+  entityType: string;
+  entityId: string;
+  changeType: string;
+  previousValue: unknown;
+  newValue: unknown;
+  effectiveDate: string;
+  changedBy: string | null;
+  createdAt: string;
+}
+
+export interface Grade {
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  sortOrder: number;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DepartmentTreeNode {
+  id: string;
+  name: string;
+  code: string;
+  status: string;
+  parentId: string | null;
+  legalEntityId: string;
+  children: DepartmentTreeNode[];
+}
+
+export interface CreateGradePayload {
+  code: string;
+  name: string;
+  description?: string;
+  sortOrder?: number;
+}
+
+export interface UpdateGradePayload {
+  name?: string;
+  description?: string;
+  sortOrder?: number;
+  status?: string;
+}
+
+export interface ListGradesParams {
+  page?: number;
+  pageSize?: number;
+  status?: string;
+  search?: string;
+}

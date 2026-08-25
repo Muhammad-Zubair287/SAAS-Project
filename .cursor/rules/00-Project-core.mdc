@@ -1,0 +1,19 @@
+---
+description: Global project identity, tech stack overview, and Cursor response formatting constraints
+alwaysApply: true
+---
+
+# Project Identity & Stack
+- **Project:** <PROJECT_NAME> | **Domain:** <domain> | **Scale:** <scale> | **Team:** <team>
+- **Core Stack:** TypeScript 5.x, Node 20 / Bun, Next.js 15 (App Router), React 19, Tailwind CSS, PostgreSQL 16, Prisma 6.
+
+# Cursor Output Format Rules
+- Code blocks only; omit conversational filler/greetings.
+- Match existing file patterns exactly.
+- Max 3 file changes per response.
+- Diff format: show only changed lines with context.
+- If ambiguous: ask 1 clarifying question, never assume.
+
+# Refactoring Rules
+- Preserve behavior: no functional changes without explicit approval.
+- Commit-sized changes that fit in a single logical commit.

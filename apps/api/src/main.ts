@@ -1,17 +1,42 @@
-import { Logger } from '@nestjs/common';
+import { config as loadEnv } from 'dotenv';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import compression from 'compression';
+import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
+import { existsSync, mkdirSync } from 'fs';
+import { join } from 'path';
 import { AppModule } from './app.module';
+import { AppLogger } from './common/logging/app-logger';
+import { resolveNestLogLevels } from './config/logging.config';
+
+// Load .env before resolving LOG_LEVEL so NestFactory logger matches file config
+// when the variable is not already set in the process environment.
+loadEnv();
 
 async function bootstrap(): Promise<void> {
-  const logger = new Logger('Bootstrap');
+  const nestLevels = resolveNestLogLevels();
+  const logger = new AppLogger('API', nestLevels);
 
-  const app = await NestFactory.create(AppModule, {
+  // Prisma rowVersion fields are BigInt; JSON responses must stringify them.
+  // Platform-wide — does not change domain calculation behavior.
+  if (!(BigInt.prototype as { toJSON?: () => string }).toJSON) {
+    Object.defineProperty(BigInt.prototype, 'toJSON', {
+      value(): string {
+        return this.toString();
+      },
+      writable: true,
+      configurable: true,
+    });
+  }
+
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bufferLogs: true,
+    logger,
   });
+  app.useLogger(logger);
 
   const config = app.get(ConfigService);
 
@@ -23,6 +48,13 @@ async function bootstrap(): Promise<void> {
   const corsOrigins = config.get<string[]>('cors.origins', ['http://localhost:3000']);
   const swaggerEnabled = config.get<boolean>('swagger.enabled', true);
   const swaggerPath = config.get<string>('swagger.path', 'docs');
+  const uploadDir =
+    config.get<string>('UPLOAD_STORAGE_PATH') ?? join(process.cwd(), 'storage', 'uploads');
+  if (!existsSync(uploadDir)) {
+    mkdirSync(uploadDir, { recursive: true });
+  }
+
+  logger.log(`Starting ${appName} v${appVersion}`);
 
   // Security headers (must be first middleware)
   app.use(
@@ -42,6 +74,9 @@ async function bootstrap(): Promise<void> {
   // Response compression
   app.use(compression());
 
+  // Parse cookies (required for HttpOnly refresh-token transport)
+  app.use(cookieParser());
+
   // CORS
   app.enableCors({
     origin: corsOrigins,
@@ -49,16 +84,20 @@ async function bootstrap(): Promise<void> {
     allowedHeaders: [
       'Content-Type',
       'Authorization',
+      'X-WCOS-Device-Token',
       'X-Tenant-Id',
       'Idempotency-Key',
       'X-Correlation-ID',
       'If-Match',
     ],
-    exposedHeaders: ['ETag', 'X-Correlation-ID'],
+    exposedHeaders: ['ETag', 'X-Correlation-ID', 'Retry-After'],
     credentials: true,
     preflightContinue: false,
     optionsSuccessStatus: 204,
   });
+
+  // Public branding assets (outside /api/v1 prefix)
+  app.useStaticAssets(uploadDir, { prefix: '/uploads/' });
 
   // Global API prefix — all routes at /api/v1/*
   app.setGlobalPrefix(`${apiPrefix}/${apiVersion}`);
@@ -77,6 +116,13 @@ async function bootstrap(): Promise<void> {
         { type: 'apiKey', in: 'header', name: 'X-Tenant-Id' },
         'tenant-id',
       )
+      .addApiKey(
+        { type: 'apiKey', in: 'header', name: 'X-WCOS-Device-Token' },
+        'deviceToken',
+      )
+      .addTag('tenant', 'Tenant Admin Console (SCR-TEN / SCR-SET / SCR-SUB)')
+      .addTag('roles', 'Tenant role matrix (SCR-AUD-04)')
+      .addTag('users', 'Tenant user directory (SCR-TEN-05)')
       .addServer(`http://localhost:${port}`, 'Local Development')
       .build();
 
@@ -88,23 +134,25 @@ async function bootstrap(): Promise<void> {
         filter: true,
       },
     });
-
-    logger.log(
-      `Swagger docs → http://localhost:${port}/${apiPrefix}/${swaggerPath}`,
-    );
   }
 
   await app.listen(port);
 
-  logger.log(`${appName} v${appVersion} → http://localhost:${port}`);
-  logger.log(`API base  → http://localhost:${port}/${apiPrefix}/${apiVersion}`);
-  logger.log(
-    `Health    → http://localhost:${port}/${apiPrefix}/${apiVersion}/health`,
-  );
+  const apiBase = `http://localhost:${port}/${apiPrefix}/${apiVersion}`;
+  const swaggerUrl = `http://localhost:${port}/${apiPrefix}/${swaggerPath}`;
+  const healthUrl = `${apiBase}/health`;
+
+  logger.log('Server ready');
+  logger.log(`API:     ${apiBase}`);
+  logger.log(`Uploads: http://localhost:${port}/uploads/`);
+  if (swaggerEnabled) {
+    logger.log(`Swagger: ${swaggerUrl}`);
+  }
+  logger.log(`Health:  ${healthUrl}`);
 }
 
 bootstrap().catch((err: unknown) => {
-  const logger = new Logger('Bootstrap');
+  const logger = new AppLogger('API', ['error']);
   logger.error(`Fatal error during bootstrap: ${String(err)}`);
   process.exit(1);
 });

@@ -1,32 +1,49 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import {
   ATTENDANCE_STATUS,
   ATTENDANCE_EXCEPTION_TYPE,
 } from '../constants/attendance.constants';
+import { AttendancePolicyService } from './attendance-policy.service';
 import type { LeaveCheckAdapter } from '../interfaces/leave-check-adapter.interface';
-import type { ShiftCheckAdapter, ShiftWorkSchedule } from '../interfaces/shift-check-adapter.interface';
+import {
+  SHIFT_CHECK_ADAPTER,
+  type ResolvedWorkSchedule,
+  type ScheduleSource,
+  type ShiftCheckAdapter,
+  type ShiftScheduleProvenance,
+  type ShiftWorkSchedule,
+} from '../interfaces/shift-check-adapter.interface';
 
 export interface RawEventInput {
   id: string;
-  eventType: string;  // CHECK_IN | CHECK_OUT
+  eventType: string; // CHECK_IN | CHECK_OUT
   eventTime: Date;
 }
 
 export interface CalculationInput {
   tenantId: string;
   employeeId: string;
+  branchId: string | null;
   legalEntityId: string | null;
   workDate: Date;
   rawEvents: RawEventInput[];
   leaveAdapter: LeaveCheckAdapter;
-  shiftAdapter: ShiftCheckAdapter;
-  policySchedule: ShiftWorkSchedule;
+  /** When set, reuse pinned Shift/policy instead of live assignment resolve. */
+  pinnedProvenance?: {
+    scheduleSource: ScheduleSource;
+    resolvedShiftId: string | null;
+    shiftAssignmentId: string | null;
+    rosterAssignmentId?: string | null;
+    attendancePolicyId: string | null;
+  } | null;
+  /** Optional pre-resolved shift schedule (from workDate attribution). */
+  preResolved?: ResolvedWorkSchedule | null;
 }
 
 export interface ExceptionResult {
   exceptionType: string;
   description: string;
-  severity: string;  // INFO | WARNING | ERROR
+  severity: string; // INFO | WARNING | ERROR
 }
 
 export interface CalculationResult {
@@ -42,35 +59,99 @@ export interface CalculationResult {
   isHoliday: boolean;
   isWeekend: boolean;
   exceptions: ExceptionResult[];
+  provenance: ShiftScheduleProvenance;
 }
 
 @Injectable()
 export class AttendanceCalculatorService {
+  constructor(
+    private readonly policyService: AttendancePolicyService,
+    @Inject(SHIFT_CHECK_ADAPTER)
+    private readonly shiftCheck: ShiftCheckAdapter,
+  ) {}
+
   async calculate(input: CalculationInput): Promise<CalculationResult> {
-    const { tenantId, employeeId, legalEntityId, workDate, rawEvents, leaveAdapter, shiftAdapter, policySchedule } = input;
+    const {
+      tenantId,
+      employeeId,
+      branchId,
+      legalEntityId,
+      workDate,
+      rawEvents,
+      leaveAdapter,
+      pinnedProvenance,
+      preResolved,
+    } = input;
 
-    // 1. Get schedule (shift adapter overrides policy schedule; policy schedule is required)
-    const schedule: ShiftWorkSchedule =
-      (await shiftAdapter.getWorkSchedule(tenantId, employeeId, workDate)) ?? policySchedule;
+    const { schedule, provenance, crossesMidnight, isRestDay } =
+      await this.resolveScheduleContext({
+        tenantId,
+        employeeId,
+        branchId,
+        legalEntityId,
+        workDate,
+        pinnedProvenance,
+        preResolved,
+      });
 
-    // 2. Check non-working day first (early exit)
-    const dayOfWeek = workDate.getDay(); // 0=Sun, 6=Sat
-    const isWeekend = schedule.weekendDays.includes(dayOfWeek);
+    // Roster rest-day takes absolute precedence — treat as WEEKEND (PD-2).
+    if (isRestDay) {
+      return this.nonWorkingDayResult(
+        ATTENDANCE_STATUS.WEEKEND,
+        true,
+        false,
+        false,
+        provenance,
+      );
+    }
+
+    // PD-3: published roster working Shift wins over policy weekendDefinition.
+    // Only apply policy weekendDays when schedule did not come from an explicit
+    // published roster assignment.
+    const dayOfWeek = workDate.getDay();
+    const isWeekend =
+      provenance.scheduleSource !== 'ROSTER' &&
+      schedule.weekendDays.includes(dayOfWeek);
     if (isWeekend) {
-      return this.nonWorkingDayResult(ATTENDANCE_STATUS.WEEKEND, true, false, false);
+      return this.nonWorkingDayResult(
+        ATTENDANCE_STATUS.WEEKEND,
+        true,
+        false,
+        false,
+        provenance,
+      );
     }
 
-    const isHoliday = await leaveAdapter.isHoliday(tenantId, legalEntityId, workDate);
+    const isHoliday = await leaveAdapter.isHoliday(
+      tenantId,
+      legalEntityId,
+      workDate,
+    );
     if (isHoliday) {
-      return this.nonWorkingDayResult(ATTENDANCE_STATUS.HOLIDAY, false, true, false);
+      return this.nonWorkingDayResult(
+        ATTENDANCE_STATUS.HOLIDAY,
+        false,
+        true,
+        false,
+        provenance,
+      );
     }
 
-    const isLeave = await leaveAdapter.hasApprovedLeave(tenantId, employeeId, workDate);
+    const isLeave = await leaveAdapter.hasApprovedLeave(
+      tenantId,
+      employeeId,
+      workDate,
+    );
     if (isLeave) {
-      return this.nonWorkingDayResult(ATTENDANCE_STATUS.ON_LEAVE, false, false, true);
+      return this.nonWorkingDayResult(
+        ATTENDANCE_STATUS.ON_LEAVE,
+        false,
+        false,
+        true,
+        provenance,
+      );
     }
 
-    // 3. No raw events = ABSENT
     if (rawEvents.length === 0) {
       return {
         status: ATTENDANCE_STATUS.ABSENT,
@@ -85,10 +166,10 @@ export class AttendanceCalculatorService {
         isHoliday: false,
         isWeekend: false,
         exceptions: [],
+        provenance,
       };
     }
 
-    // 4. Extract check-ins and check-outs
     const checkIns = rawEvents
       .filter((e) => e.eventType === 'CHECK_IN')
       .sort((a, b) => a.eventTime.getTime() - b.eventTime.getTime());
@@ -96,12 +177,15 @@ export class AttendanceCalculatorService {
       .filter((e) => e.eventType === 'CHECK_OUT')
       .sort((a, b) => a.eventTime.getTime() - b.eventTime.getTime());
 
-    const firstCheckIn  = checkIns.length  > 0 ? checkIns[0]!.eventTime  : null;
-    const lastCheckOut  = checkOuts.length > 0 ? checkOuts[checkOuts.length - 1]!.eventTime : null;
+    const firstCheckIn =
+      checkIns.length > 0 ? checkIns[0]!.eventTime : null;
+    const lastCheckOut =
+      checkOuts.length > 0
+        ? checkOuts[checkOuts.length - 1]!.eventTime
+        : null;
 
     const exceptions: ExceptionResult[] = [];
 
-    // 5. Missing punch detection
     if (!firstCheckIn && lastCheckOut) {
       exceptions.push({
         exceptionType: ATTENDANCE_EXCEPTION_TYPE.MISSING_CHECK_IN,
@@ -130,29 +214,40 @@ export class AttendanceCalculatorService {
         isHoliday: false,
         isWeekend: false,
         exceptions,
+        provenance,
       };
     }
 
-    // 6. Compute worked time
+    // Wall-clock worked minutes — Phase 3 does NOT subtract breakMinutes.
     const totalWorkedMinutes = Math.max(
       0,
-      Math.floor((lastCheckOut.getTime() - firstCheckIn.getTime()) / 60000),
+      Math.floor(
+        (lastCheckOut.getTime() - firstCheckIn.getTime()) / 60000,
+      ),
     );
 
-    // 7. Parse schedule times (HH:MM) in workDate context
-    const [startH, startM] = schedule.workStartTime.split(':').map(Number) as [number, number];
-    const [endH, endM]     = schedule.workEndTime.split(':').map(Number) as [number, number];
+    const [startH, startM] = schedule.workStartTime
+      .split(':')
+      .map(Number) as [number, number];
+    const [endH, endM] = schedule.workEndTime.split(':').map(Number) as [
+      number,
+      number,
+    ];
 
     const scheduledStart = new Date(workDate);
     scheduledStart.setHours(startH, startM, 0, 0);
 
     const scheduledEnd = new Date(workDate);
     scheduledEnd.setHours(endH, endM, 0, 0);
+    if (crossesMidnight) {
+      scheduledEnd.setDate(scheduledEnd.getDate() + 1);
+    }
 
-    // 8. Late minutes
     const rawLate = Math.max(
       0,
-      Math.floor((firstCheckIn.getTime() - scheduledStart.getTime()) / 60000) - schedule.gracePeriodMinutes,
+      Math.floor(
+        (firstCheckIn.getTime() - scheduledStart.getTime()) / 60000,
+      ) - schedule.gracePeriodMinutes,
     );
     const lateMinutes = Math.max(0, rawLate);
     if (lateMinutes > schedule.lateToleranceMinutes) {
@@ -163,12 +258,16 @@ export class AttendanceCalculatorService {
       });
     }
 
-    // 9. Early departure
     const rawEarly = Math.max(
       0,
-      Math.floor((scheduledEnd.getTime() - lastCheckOut.getTime()) / 60000),
+      Math.floor(
+        (scheduledEnd.getTime() - lastCheckOut.getTime()) / 60000,
+      ),
     );
-    const earlyDepartureMinutes = Math.max(0, rawEarly - schedule.earlyDepartureMinutes);
+    const earlyDepartureMinutes = Math.max(
+      0,
+      rawEarly - schedule.earlyDepartureMinutes,
+    );
     if (earlyDepartureMinutes > 0) {
       exceptions.push({
         exceptionType: ATTENDANCE_EXCEPTION_TYPE.EARLY_DEPARTURE,
@@ -177,14 +276,19 @@ export class AttendanceCalculatorService {
       });
     }
 
-    // 10. Overtime
-    const excessMinutes  = Math.max(0, totalWorkedMinutes - schedule.workMinutesRequired);
-    const overtimeMinutes = Math.max(0, excessMinutes - schedule.overtimeThresholdMinutes);
+    const excessMinutes = Math.max(
+      0,
+      totalWorkedMinutes - schedule.workMinutesRequired,
+    );
+    const overtimeMinutes = Math.max(
+      0,
+      excessMinutes - schedule.overtimeThresholdMinutes,
+    );
+    const regularMinutes = Math.min(
+      totalWorkedMinutes,
+      schedule.workMinutesRequired,
+    );
 
-    // 11. Regular minutes
-    const regularMinutes = Math.min(totalWorkedMinutes, schedule.workMinutesRequired);
-
-    // 12. Determine status (priority ladder)
     let status: string;
     if (totalWorkedMinutes < schedule.halfDayThresholdMinutes) {
       status = ATTENDANCE_STATUS.HALF_DAY;
@@ -207,6 +311,152 @@ export class AttendanceCalculatorService {
       isHoliday: false,
       isWeekend: false,
       exceptions,
+      provenance,
+    };
+  }
+
+  private async resolveScheduleContext(args: {
+    tenantId: string;
+    employeeId: string;
+    branchId: string | null;
+    legalEntityId: string | null;
+    workDate: Date;
+    pinnedProvenance?: CalculationInput['pinnedProvenance'];
+    preResolved?: ResolvedWorkSchedule | null;
+  }): Promise<{
+    schedule: ShiftWorkSchedule;
+    provenance: ShiftScheduleProvenance;
+    crossesMidnight: boolean;
+    isRestDay: boolean;
+  }> {
+    const {
+      tenantId,
+      employeeId,
+      branchId,
+      legalEntityId,
+      workDate,
+      pinnedProvenance,
+      preResolved,
+    } = args;
+
+    // ROSTER pinned provenance
+    if (
+      pinnedProvenance?.scheduleSource === 'ROSTER' &&
+      pinnedProvenance.rosterAssignmentId
+    ) {
+      const pinned = await this.shiftCheck.rebuildFromProvenance(
+        tenantId,
+        workDate,
+        {
+          scheduleSource: 'ROSTER',
+          rosterAssignmentId: pinnedProvenance.rosterAssignmentId,
+          resolvedShiftId: pinnedProvenance.resolvedShiftId,
+          attendancePolicyId: pinnedProvenance.attendancePolicyId,
+        },
+      );
+      return {
+        schedule: pinned.schedule,
+        crossesMidnight: pinned.crossesMidnight,
+        isRestDay: pinned.isRestDay,
+        provenance: {
+          scheduleSource: 'ROSTER',
+          resolvedShiftId: pinned.shiftId,
+          shiftAssignmentId: null,
+          rosterAssignmentId: pinned.rosterAssignmentId,
+          attendancePolicyId: pinned.attendancePolicyId,
+        },
+      };
+    }
+
+    // SHIFT_ASSIGNMENT pinned provenance
+    if (
+      pinnedProvenance?.scheduleSource === 'SHIFT_ASSIGNMENT' &&
+      pinnedProvenance.shiftAssignmentId &&
+      pinnedProvenance.resolvedShiftId &&
+      pinnedProvenance.attendancePolicyId
+    ) {
+      const pinned = await this.shiftCheck.rebuildFromProvenance(
+        tenantId,
+        workDate,
+        {
+          scheduleSource: 'SHIFT_ASSIGNMENT',
+          shiftAssignmentId: pinnedProvenance.shiftAssignmentId,
+          resolvedShiftId: pinnedProvenance.resolvedShiftId,
+          attendancePolicyId: pinnedProvenance.attendancePolicyId,
+        },
+      );
+      return {
+        schedule: pinned.schedule,
+        crossesMidnight: pinned.crossesMidnight,
+        isRestDay: pinned.isRestDay,
+        provenance: {
+          scheduleSource: 'SHIFT_ASSIGNMENT',
+          resolvedShiftId: pinned.shiftId,
+          shiftAssignmentId: pinned.shiftAssignmentId,
+          rosterAssignmentId: null,
+          attendancePolicyId: pinned.attendancePolicyId,
+        },
+      };
+    }
+
+    // Pre-resolved (from resolveWorkDateForEvent — may be ROSTER or SHIFT_ASSIGNMENT)
+    if (preResolved) {
+      return {
+        schedule: preResolved.schedule,
+        crossesMidnight: preResolved.crossesMidnight,
+        isRestDay: preResolved.isRestDay,
+        provenance: {
+          scheduleSource: preResolved.source,
+          resolvedShiftId: preResolved.shiftId,
+          shiftAssignmentId: preResolved.shiftAssignmentId,
+          rosterAssignmentId: preResolved.rosterAssignmentId,
+          attendancePolicyId: preResolved.attendancePolicyId,
+        },
+      };
+    }
+
+    if (pinnedProvenance?.scheduleSource === 'ATTENDANCE_POLICY') {
+      // Legacy/policy provenance: re-resolve via scope ladder.
+    }
+
+    // Live resolve (roster → assignment → policy)
+    const fromAssignment = await this.shiftCheck.getWorkSchedule(
+      tenantId,
+      employeeId,
+      workDate,
+    );
+    if (fromAssignment) {
+      return {
+        schedule: fromAssignment.schedule,
+        crossesMidnight: fromAssignment.crossesMidnight,
+        isRestDay: fromAssignment.isRestDay,
+        provenance: {
+          scheduleSource: fromAssignment.source,
+          resolvedShiftId: fromAssignment.shiftId,
+          shiftAssignmentId: fromAssignment.shiftAssignmentId,
+          rosterAssignmentId: fromAssignment.rosterAssignmentId,
+          attendancePolicyId: fromAssignment.attendancePolicyId,
+        },
+      };
+    }
+
+    const policy = await this.policyService.resolvePolicy(
+      tenantId,
+      workDate,
+      branchId,
+      legalEntityId,
+    );
+    return {
+      schedule: this.policyService.policyToSchedule(policy),
+      crossesMidnight: false,
+      isRestDay: false,
+      provenance: {
+        scheduleSource: 'ATTENDANCE_POLICY',
+        resolvedShiftId: null,
+        shiftAssignmentId: null,
+        rosterAssignmentId: null,
+        attendancePolicyId: policy.id,
+      },
     };
   }
 
@@ -215,6 +465,7 @@ export class AttendanceCalculatorService {
     isWeekend: boolean,
     isHoliday: boolean,
     isLeave: boolean,
+    provenance: ShiftScheduleProvenance,
   ): CalculationResult {
     return {
       status,
@@ -229,6 +480,7 @@ export class AttendanceCalculatorService {
       isHoliday,
       isWeekend,
       exceptions: [],
+      provenance,
     };
   }
 }

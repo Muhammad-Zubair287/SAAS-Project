@@ -1,6 +1,7 @@
 {
   "common": {
     "loading": "لوڈ ہو رہا ہے...",
+    "refreshing": "تازہ کاری…",
     "error": "ایک خرابی پیش آئی",
     "retry": "دوبارہ کوشش کریں",
     "cancel": "منسوخ کریں",
@@ -21,7 +22,16 @@
     "no": "نہیں",
     "required": "ضروری",
     "optional": "اختیاری",
-    "actions": "اقدامات"
+    "actions": "اقدامات",
+    "skipToContent": "مرکزی مواد پر جائیں",
+    "comingSoonHint": "یہ ماڈیول ابھی دستیاب نہیں ہے",
+    "closeSidebar": "سائیڈبار بند کریں",
+    "language": "زبان",
+    "create": "بنائیں",
+    "confirm": "تصدیق",
+    "saving": "محفوظ ہو رہا ہے…",
+    "empty": "کوئی ریکارڈ نہیں۔",
+    "clear": "صاف کریں"
   },
   "errors": {
     "generic": "کچھ غلط ہو گیا۔ براہ کرم دوبارہ کوشش کریں۔",
@@ -29,13 +39,367 @@
     "unauthorized": "آپ کو یہ عمل کرنے کا اختیار نہیں ہے۔",
     "networkError": "نیٹ ورک خرابی۔ براہ کرم اپنا کنکشن چیک کریں۔",
     "serverError": "سرور کی خرابی۔ براہ کرم بعد میں دوبارہ کوشش کریں۔",
-    "validationFailed": "براہ کرم ذیل کی غلطیاں درست کریں۔"
+    "validationFailed": "براہ کرم ذیل کی غلطیاں درست کریں۔",
+    "loadFailed": "ڈیٹا لوڈ نہیں ہو سکا۔",
+    "saveFailed": "تبدیلیاں محفوظ نہیں ہو سکیں۔"
+  },
+  "auth": {
+    "brand": {
+      "name": "ورک فورس کلاؤڈ او ایس",
+      "tagline": "لوگ۔ کام۔ پے رول۔ ایک آپریٹنگ سسٹم۔",
+      "headline": "اپنے پورے ورک فورس کو ایک مربوط کلاؤڈ سے چلائیں۔",
+      "trust": "ایچ آر، حاضری، چھٹی، پے رول، منظوریوں اور ملازم سیلف سروس کو انٹرپرائز سیکیورٹی اور پاکستان کی ترجیحی لوکلائزیشن کے ساتھ یکجا کریں۔",
+      "organisationSignIn": "ادارہ سائن ان · {name}"
+    },
+    "language": "زبان",
+    "links": {
+      "privacy": "رازداری",
+      "terms": "شرائط",
+      "support": "مدد"
+    },
+    "showPassword": "پاس ورڈ دکھائیں",
+    "hidePassword": "پاس ورڈ چھپائیں",
+    "show": "دکھائیں",
+    "hide": "چھپائیں",
+    "backToSignIn": "سائن ان پر واپس",
+    "fields": {
+      "email": "کام کی ای میل",
+      "password": "پاس ورڈ",
+      "newPassword": "نیا پاس ورڈ",
+      "confirmPassword": "پاس ورڈ کی تصدیق"
+    },
+    "validation": {
+      "emailRequired": "ای میل ضروری ہے",
+      "passwordRequired": "پاس ورڈ ضروری ہے",
+      "passwordMin": "پاس ورڈ کم از کم ۸ حروف کا ہونا چاہیے",
+      "passwordMatch": "پاس ورڈ مماثل ہونے چاہییں",
+      "codeRequired": "تصدیقی کوڈ ضروری ہے",
+      "termsRequired": "جاری رکھنے کے لیے شرائط قبول کریں"
+    },
+    "errors": {
+      "invalidCredentials": "غلط ای میل یا پاس ورڈ۔",
+      "accountLocked": "اکاؤنٹ مقفل ہے۔ اپنے منتظم سے رابطہ کریں۔",
+      "tenantSuspended": "یہ ادارہ دستیاب نہیں ہے۔",
+      "membershipRequired": "آپ کو اس ادارے تک رسائی نہیں ہے۔",
+      "tenantContextRequired": "جاری رکھنے کے لیے اپنے ادارے کا سائن ان لنک استعمال کریں۔",
+      "mfaInvalid": "تصدیقی کوڈ غلط ہے یا میعاد ختم ہو چکی ہے۔",
+      "resetInvalid": "یہ ری سیٹ لنک غلط ہے یا پہلے استعمال ہو چکا ہے۔",
+      "resetExpired": "یہ ری سیٹ لنک کی میعاد ختم ہو چکی ہے۔ نیا درخواست کریں۔",
+      "invitationInvalid": "یہ دعوت نامہ غلط ہے۔",
+      "invitationExpired": "اس دعوت نامے کی میعاد ختم ہو چکی ہے۔",
+      "invitationAccepted": "یہ دعوت نامہ پہلے قبول ہو چکا ہے۔",
+      "generic": "کچھ غلط ہو گیا۔ براہ کرم دوبارہ کوشش کریں۔"
+    },
+    "signIn": {
+      "title": "خوش آمدید",
+      "subtitle": "اپنے ورک فورس ورک اسپیس میں جاری رکھنے کے لیے سائن ان کریں۔",
+      "emailPlaceholder": "sara.ahmed@company.com",
+      "forgotPassword": "پاس ورڈ بھول گئے؟",
+      "rememberDevice": "اس آلے کو یاد رکھیں",
+      "submit": "محفوظ طریقے سے سائن ان کریں",
+      "orContinueWith": "یا جاری رکھیں",
+      "ssoMicrosoft": "Microsoft",
+      "ssoGoogle": "Google",
+      "ssoNotConfigured": "اس ماحول کے لیے {provider} سائن ان ترتیب نہیں دیا گیا۔",
+      "maintenance": "ورک فورس کلاؤڈ او ایس عارضی طور پر مینٹیننس کے لیے دستیاب نہیں ہے۔ بعد میں کوشش کریں۔",
+      "ssoOnly": "اس ادارے کے لیے پاس ورڈ سائن ان بند ہے۔ اپنے ادارے کا SSO استعمال کریں۔"
+    },
+    "forgot": {
+      "title": "پاس ورڈ بھول گئے",
+      "subtitle": "اگر اکاؤنٹ موجود ہے تو ہم ری سیٹ ہدایات بھیجیں گے۔",
+      "submit": "ری سیٹ لنک بھیجیں",
+      "genericSuccess": "اگر اس ای میل کا اکاؤنٹ موجود ہے تو ری سیٹ ہدایات بھیج دی گئی ہیں۔"
+    },
+    "reset": {
+      "title": "پاس ورڈ ری سیٹ",
+      "subtitle": "اپنے اکاؤنٹ کے لیے نیا پاس ورڈ منتخب کریں۔",
+      "policy": "کم از کم ۸ حروف استعمال کریں۔ منفرد پاس ورڈ ترجیح دیں۔",
+      "submit": "پاس ورڈ ری سیٹ کریں",
+      "success": "پاس ورڈ اپ ڈیٹ ہو گیا۔ سائن ان پر منتقل ہو رہے ہیں…"
+    },
+    "mfa": {
+      "title": "کثیر مرحلہ تصدیق",
+      "subtitle": "اپنے تصدیقی ایپ سے کوڈ درج کریں۔",
+      "code": "تصدیقی کوڈ",
+      "backupCode": "بیک اپ کوڈ",
+      "totpHint": "تصدیقی ایپ سے ۶ ہندسوں کا کوڈ۔",
+      "backupHint": "اندراج پر فراہم کردہ ایک بار استعمال بیک اپ کوڈ۔",
+      "submit": "تصدیق کریں",
+      "useBackup": "بیک اپ کوڈ استعمال کریں",
+      "useTotp": "تصدیقی ایپ کوڈ استعمال کریں"
+    },
+    "invite": {
+      "title": "اپنا اکاؤنٹ فعال کریں",
+      "subtitle": "دعوت مکمل کرنے کے لیے پاس ورڈ مقرر کریں۔",
+      "terms": "میں استعمال کی شرائط اور رازداری کی پالیسی قبول کرتا/کرتی ہوں۔",
+      "submit": "اکاؤنٹ فعال کریں"
+    },
+    "sessionExpired": {
+      "title": "سیشن ختم",
+      "subtitle": "آپ کا سیشن محفوظ طریقے سے ختم ہو گیا۔",
+      "body": "جاری رکھنے کے لیے دوبارہ سائن ان کریں۔ غیر محفوظ حساس ڈیٹا اب دستیاب نہیں۔",
+      "signInAgain": "دوبارہ سائن ان کریں",
+      "banner": "پچھلا سیشن ختم ہو گیا۔ براہ کرم دوبارہ سائن ان کریں۔"
+    },
+    "unauthorized": {
+      "title": "تصدیق درکار",
+      "subtitle": "اس حصے تک رسائی کے لیے سائن ان کریں۔"
+    },
+    "forbidden": {
+      "title": "رسائی مسترد",
+      "subtitle": "آپ کو یہ صفحہ دیکھنے کی اجازت نہیں ہے۔",
+      "home": "ڈیش بورڈ پر جائیں"
+    }
   },
   "nav": {
     "dashboard": "ڈیش بورڈ",
     "settings": "ترتیبات",
     "profile": "پروفائل",
-    "logout": "سائن آؤٹ"
+    "logout": "سائن آؤٹ",
+    "comingSoon": "جلد",
+    "primaryLabel": "مرکزی نیویگیشن",
+    "breadcrumbLabel": "بریڈکرمب",
+    "openMenu": "نیویگیشن مینو کھولیں",
+    "preferences": "ترجیحات",
+    "collapseSidebar": "سائیڈبار سکیڑیں",
+    "expandSidebar": "سائیڈبار پھیلائیں"
+  },
+  "employee": {
+    "nav": {
+      "home": "ہوم",
+      "attendance": "حاضری",
+      "requests": "درخواستیں",
+      "documents": "دستاویزات",
+      "profile": "پروفائل",
+      "notifications": "اطلاعات",
+      "policies": "پالیسیاں",
+      "roster": "روسٹر",
+      "leave": "چھٹی",
+      "payslips": "تنخواہ سلیپس",
+      "more": "مزید",
+      "bottomLabel": "ملازم بنیادی نیویگیشن",
+      "sidebarLabel": "ملازم مینو"
+    },
+    "shell": {
+      "userFallback": "ملازم",
+      "roleLabel": "ملازم"
+    }
+  },
+  "ess": {
+    "common": {
+      "notRecorded": "Not recorded"
+    },
+    "actions": {
+      "newRequest": "New request",
+      "checkIn": "Check in",
+      "checkOut": "Check out",
+      "submit": "Submit",
+      "cancelRequest": "Cancel request",
+      "markAllRead": "Mark all read",
+      "markRead": "Mark read",
+      "acknowledge": "Acknowledge"
+    },
+    "dashboard": {
+      "title": "میرا ورک اسپیس",
+      "description": "آپ کی حاضری، درخواستیں، دستاویزات اور اطلاعات ایک جگہ۔",
+      "greeting": "خوش آمدید، {name}",
+      "attendanceStatus": "حاضری کی حالت",
+      "checkedIn": "چیک اِن ہو چکا",
+      "checkedOut": "چیک آؤٹ ہو چکا",
+      "notCheckedIn": "چیک اِن نہیں ہوا",
+      "firstCheckIn": "چیک اِن وقت",
+      "lastCheckOut": "آخری چیک آؤٹ",
+      "workedToday": "آج کام کا وقت",
+      "weeklyWorked": "اس ہفتے کام",
+      "leaveBalance": "چھٹی",
+      "leaveBalanceUnit": "دستیاب دن",
+      "latestPayslip": "تازہ تنخواہ سلیپ",
+      "location": "مقام",
+      "locationUnavailable": "مقام سیٹ نہیں",
+      "pendingRequests": "زیر التوا درخواستیں",
+      "unreadNotifications": "غیر پڑھی اطلاعات",
+      "todayShift": "آج کی شفٹ",
+      "noShift": "کوئی شفٹ شیڈول نہیں",
+      "documents": "دستاویزات اور پالیسیاں",
+      "documentReminder": "{count} دستاویز یا پالیسی توجہ مانگتی ہے۔",
+      "onboarding": "آن بورڈنگ",
+      "noOnboarding": "کوئی فعال آن بورڈنگ کام نہیں۔",
+      "quickActions": {
+        "title": "فوری اقدامات",
+        "requestLeave": "چھٹی کی درخواست",
+        "correctAttendance": "حاضری درست کریں",
+        "viewPayslip": "تنخواہ سلیپ دیکھیں",
+        "viewNotifications": "اطلاعات دیکھیں"
+      },
+      "announcements": {
+        "title": "کمپنی اعلانات"
+      }
+    },
+    "more": {
+      "description": "پروفائل، دستاویزات، چھٹی اور دیگر ملازم ٹولز۔"
+    },
+    "attendance": {
+      "title": "میری حاضری",
+      "description": "آج کی حاضری اور حالیہ تاریخ دیکھیں۔",
+      "todayStatus": "آج کی حالت",
+      "worked": "کام کا وقت",
+      "overtime": "اوور ٹائم",
+      "empty": "اس مدت کے لیے کوئی حاضری ریکارڈ نہیں۔",
+      "checkInTitle": "چیک اِن",
+      "checkInDescription": "چیک اِن سے پہلے مقام اور شفٹ کی تصدیق کریں۔",
+      "checkOutTitle": "چیک آؤٹ",
+      "checkOutDescription": "چیک آؤٹ سے پہلے کام کا وقت دیکھیں۔",
+      "currentTime": "موجودہ وقت",
+      "locationConsent": "تنظیم کی پالیسی کے مطابق حاضری کی تصدیق کے لیے مقام استعمال ہو سکتا ہے۔",
+      "alreadyCheckedIn": "آپ آج پہلے سے چیک اِن ہیں۔",
+      "cannotCheckOut": "اب چیک آؤٹ دستیاب نہیں۔ پہلے چیک اِن مکمل کریں، یا آپ پہلے سے چیک آؤٹ ہو چکے ہیں۔",
+      "checkOutWarning": "شفٹ ختم ہونے سے پہلے چیک آؤٹ پالیسی کے تحت نشان زد ہو سکتا ہے۔",
+      "correctionTitle": "حاضری درستگی کی درخواست",
+      "correctionDescription": "مینجر یا ایچ آر کے جائزے کے لیے درستگی جمع کروائیں۔",
+      "attendanceDate": "حاضری کی تاریخ",
+      "correctionType": "درستگی کی قسم",
+      "requestedCheckIn": "مطلوبہ چیک اِن",
+      "requestedCheckOut": "مطلوبہ چیک آؤٹ",
+      "correctionTypes": {
+        "ADD_EVENT": "ایونٹ شامل کریں",
+        "CHANGE_TIME": "وقت تبدیل کریں",
+        "REMOVE_EVENT": "ایونٹ ہٹائیں",
+        "STATUS_CORRECTION": "حالت درست کریں"
+      }
+    },
+    "requests": {
+      "title": "My requests",
+      "description": "Track profile changes, attendance corrections and document requests.",
+      "empty": "No requests match the current filters.",
+      "detailTitle": "Request detail",
+      "detailDescription": "Review status, timeline and submitted values.",
+      "newTitle": "New request",
+      "newDescription": "Submit a profile change or attendance correction for review."
+    },
+    "requestTypes": {
+      "PROFILE_CHANGE": "Profile change",
+      "ATTENDANCE_CORRECTION": "Attendance correction",
+      "DOCUMENT": "Document",
+      "OTHER": "Other"
+    },
+    "profile": {
+      "title": "My profile",
+      "description": "View employment details and update allowed contact fields.",
+      "requestChange": "Request change",
+      "directEdit": "Direct edit fields",
+      "saved": "Profile changes saved."
+    },
+    "documents": {
+      "title": "My documents",
+      "description": "View documents issued to you by HR.",
+      "empty": "No documents are available yet.",
+      "fileAvailable": "File available",
+      "noFile": "No file attached"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Read system and HR notifications sent to you.",
+      "empty": "No notifications found.",
+      "unread": "Unread",
+      "read": "Read"
+    },
+    "policies": {
+      "title": "Policies",
+      "description": "Review and acknowledge pending policy documents.",
+      "empty": "No policies require acknowledgement."
+    },
+    "roster": {
+      "title": "My roster",
+      "description": "View your published shifts and rest days.",
+      "empty": "No roster entries found for this range.",
+      "restDay": "Rest day"
+    },
+    "leave": {
+      "title": "My leave",
+      "description": "View balances and manage your leave requests.",
+      "empty": "No leave requests match the current filters.",
+      "noBalances": "No leave balances are available yet.",
+      "noTypes": "No active leave types are configured.",
+      "requestLeave": "Request leave",
+      "newTitle": "Request leave",
+      "newDescription": "Submit a leave request using your available balance.",
+      "detailTitle": "Leave request detail",
+      "detailDescription": "Review leave request dates, status and payroll impact.",
+      "pendingReserved": "{count} pending",
+      "pendingRequests": "Pending leave requests",
+      "upcoming": "Upcoming leave",
+      "leaveType": "Leave type",
+      "dayPart": "Day part",
+      "quantity": "Quantity",
+      "payrollImpact": "Payroll impact",
+      "emergency": "Emergency leave",
+      "dayParts": {
+        "FULL": "Full day",
+        "FIRST_HALF": "First half",
+        "SECOND_HALF": "Second half"
+      }
+    },
+    "payslips": {
+      "title": "My payslips",
+      "description": "View published payslips from payroll.",
+      "empty": "No published payslips are available yet.",
+      "detailTitle": "Payslip detail",
+      "detailDescription": "Review earnings, deductions, gross pay and net pay.",
+      "grossPay": "Gross pay",
+      "netPay": "Net pay",
+      "earnings": "Earnings",
+      "deductions": "Deductions",
+      "earning": "Earning",
+      "deduction": "Deduction"
+    },
+    "comingSoon": {
+      "title": "Coming soon",
+      "description": "This employee self-service module is not live yet.",
+      "moduleUnavailable": "This module is not available for your workspace yet.",
+      "notImplemented": "The module is enabled but this screen is still being completed."
+    },
+    "filters": {
+      "from": "From",
+      "to": "To",
+      "allTypes": "All types",
+      "allStatuses": "All statuses"
+    },
+    "fields": {
+      "date": "Date",
+      "status": "Status",
+      "shift": "Shift",
+      "time": "Time",
+      "dueDate": "Due date",
+      "currentValue": "Current value",
+      "requestedValue": "Requested value",
+      "reason": "Reason",
+      "createdAt": "Created at",
+      "submittedAt": "Submitted at",
+      "decidedAt": "Decided at",
+      "decisionNote": "Decision note",
+      "requestType": "Request type",
+      "section": "Section",
+      "fieldPath": "Field",
+      "employeeNumber": "Employee number",
+      "workEmail": "Work email",
+      "department": "Department",
+      "position": "Position",
+      "manager": "Manager",
+      "preferredName": "Preferred name",
+      "phoneMobile": "Mobile phone",
+      "emailPersonal": "Personal email",
+      "addressLine1": "Address line 1",
+      "addressLine2": "Address line 2",
+      "city": "City",
+      "stateProvince": "State / province",
+      "postalCode": "Postal code",
+      "countryCode": "Country code",
+      "issuedDate": "Issued date",
+      "expiryDate": "Expiry date",
+      "file": "File",
+      "version": "Version",
+      "effectiveDate": "Effective date"
+    }
   },
   "pagination": {
     "showing": "{total} میں سے {from}–{to} دکھا رہا ہے",
@@ -48,7 +412,17 @@
   "platform": {
     "admin": {
       "label": "پلیٹ فارم ایڈمن",
-      "roleLabel": "سپر ایڈمن"
+      "roleLabel": "سپر ایڈمن",
+      "roles": {
+        "superAdmin": "پلیٹ فارم سپر ایڈمن",
+        "supportEngineer": "پلیٹ فارم سپورٹ انجینئر",
+        "auditor": "پلیٹ فارم آڈیٹر",
+        "operator": "پلیٹ فارم آپریٹر"
+      }
+    },
+    "brand": {
+      "shortName": "Workforce OS",
+      "fullName": "ورک فورس کلاؤڈ او ایس"
     },
     "nav": {
       "overview": "پلیٹ فارم جائزہ",
@@ -57,18 +431,58 @@
       "usage": "استعمال",
       "supportAccess": "سپورٹ رسائی",
       "audit": "آڈٹ",
-      "config": "سسٹم کنفیگریشن"
+      "config": "سسٹم کنفیگریشن",
+      "integrationHealth": "انٹیگریشن صحت",
+      "configGeneral": "عام",
+      "configSecurity": "سیکیورٹی",
+      "configRetention": "ڈیٹا برقرار رکھنا",
+      "configRegions": "علاقے",
+      "configNotifications": "اطلاعاتی چینلز",
+      "configIntegrations": "انضمام",
+      "configAuditLogging": "آڈٹ لاگنگ"
     },
     "dashboard": {
       "title": "پلیٹ فارم جائزہ",
       "description": "اداروں، سبسکرپشنز اور پلیٹ فارم کی صحت کی نگرانی کریں۔",
       "recentTenants": "حالیہ ادارے",
+      "recentActivity": "حالیہ ادارہ سرگرمی",
+      "noRecentActivity": "کوئی حالیہ پلیٹ فارم ادارہ سرگرمی نہیں۔",
+      "lastUpdated": "اپ ڈیٹ: {time}",
+      "period": {
+        "label": "مدت",
+        "today": "آج",
+        "7d": "آخری ۷ دن",
+        "30d": "آخری ۳۰ دن",
+        "month": "اس مہینے",
+        "custom": "حسب ضرورت"
+      },
       "stats": {
         "total": "کل ادارے",
-        "active": "فعال",
+        "active": "فعال ادارے",
+        "trial": "آزمائشی ادارے",
         "draft": "مسودہ",
-        "suspended": "معطل",
-        "closed": "بند"
+        "suspended": "معطل ادارے",
+        "closed": "بند",
+        "grace": "مہلت والے ادارے"
+      },
+      "widgets": {
+        "subscriptionAlerts": "سبسکرپشن الرٹس",
+        "trialsEndingSoon": "۱۴ دن میں ختم ہونے والے ٹرائلز",
+        "noAlerts": "لائیو ادارہ ڈیٹا سے کوئی سبسکرپشن الرٹ نہیں۔",
+        "supportAccess": "سپورٹ رسائی",
+        "activeGrants": "فعال اجازت نامے",
+        "supportIssues": "سپورٹ مسائل",
+        "supportIssuesDeferred": "سپورٹ ٹکٹ کی قطاریں بعد کے ماڈیولز (M13) کی ملکیت ہیں اور M01 میں لائیو نہیں۔ ٹکٹ تعداد فرض نہیں کی گئی۔",
+        "integrationIncidents": "انٹیگریشن واقعات",
+        "noIncidents": "کوئی کھلا انضمام واقعہ نہیں۔"
+      },
+      "actions": {
+        "viewTenants": "ادارے دیکھیں",
+        "viewAll": "سب دیکھیں",
+        "openAudit": "پلیٹ فارم آڈٹ کھولیں",
+        "reviewHealth": "انٹیگریشن صحت دیکھیں",
+        "export": "برآمد کریں",
+        "grantSupport": "سپورٹ رسائی دیں"
       }
     },
     "billing": {
@@ -79,13 +493,23 @@
       "title": "ادارے",
       "description": "پلیٹ فارم کے تمام کسٹمر اداروں کا انتظام کریں۔",
       "createButton": "ادارہ بنائیں",
-      "searchPlaceholder": "نام یا شناخت سے تلاش کریں…",
+      "searchPlaceholder": "ادارے تلاش کریں…",
       "empty": {
         "title": "کوئی ادارہ نہیں ملا",
         "description": "فلٹر تبدیل کریں یا پہلا ادارہ بنائیں۔"
       },
       "filters": {
-        "allStatuses": "تمام حالات"
+        "allStatuses": "تمام حالات",
+        "allPlans": "تمام پلانز",
+        "allCountries": "تمام ممالک",
+        "createdFrom": "تخلیق از",
+        "createdTo": "تخلیق تک",
+        "trialEndingBefore": "ٹرائل اختتام سے پہلے",
+        "usageThreshold": "استعمال کی حد",
+        "usageThresholdAll": "کوئی بھی استعمال",
+        "usageThreshold50": "50% یا زیادہ",
+        "usageThreshold80": "80% یا زیادہ",
+        "usageThreshold90": "90% یا زیادہ"
       },
       "status": {
         "draft": "مسودہ",
@@ -98,12 +522,23 @@
       },
       "columns": {
         "name": "ادارہ",
+        "identifier": "شناخت",
         "country": "ملک",
         "plan": "پلان",
         "seats": "نشستوں کی حد",
+        "usage": "ملازم استعمال",
         "status": "حالت",
-        "created": "تاریخ تخلیق"
+        "created": "تاریخ تخلیق",
+        "renewal": "تجدید / ٹرائل اختتام",
+        "actions": "اقدامات"
       },
+      "rowActions": {
+        "open": "کھولیں",
+        "edit": "ترمیم",
+        "support": "سپورٹ",
+        "more": "مزید"
+      },
+      "usageUnavailable": "دستیاب نہیں",
       "actions": {
         "activate": "فعال کریں",
         "suspend": "معطل کریں",
@@ -118,6 +553,8 @@
           "overview": "جائزہ",
           "usage": "استعمال",
           "subscription": "سبسکرپشن",
+          "modules": "ماڈیولز",
+          "administrators": "منتظمین",
           "support": "سپورٹ",
           "audit": "آڈٹ"
         },
@@ -132,12 +569,20 @@
           "currency": "کرنسی",
           "timezone": "وقت کا زون",
           "locale": "بنیادی زبان",
-          "createdBy": "بنانے والا"
+          "createdBy": "بنانے والا",
+          "trialStatus": "ادائیگی / ٹرائل حالت",
+          "lastActivity": "آخری سرگرمی",
+          "primaryContact": "بنیادی رابطہ"
         }
       },
       "usage": {
         "seats": "نشست استعمال",
-        "activeOf": "{total} میں سے فعال"
+        "activeOf": "{total} میں سے فعال",
+        "storage": "اسٹوریج",
+        "storageOf": "{limit} جی بی میں سے {used} استعمال شدہ",
+        "storageUsed": "{used} استعمال شدہ",
+        "storageLimitUnknown": "اسٹوریج استعمال تب ماپا جاتا ہے جب کوئی دستاویزی ذیلی نظام اسے رپورٹ کرے۔ مقررہ حد دستیاب ہونے پر دکھائی جاتی ہے۔",
+        "noSnapshot": "اس ادارے کے لیے کوئی استعمال سنیپ شاٹ ریکارڈ نہیں ہوا۔ ملازم استعمال فرض نہیں کیا گیا۔"
       },
       "subscription": {
         "currentPlan": "موجودہ پلان",
@@ -152,7 +597,20 @@
         "startsAt": "آغاز وقت",
         "endsAt": "اختتام وقت",
         "durationNote": "آغاز وقت سے زیادہ سے زیادہ 24 گھنٹے۔",
-        "createButton": "رسائی دیں"
+        "createButton": "رسائی دیں",
+        "bannerTitle": "کنٹرولڈ سپورٹ رسائی فعال ہے",
+        "bannerBody": "اس ادارے کے لیے وقتی سپورٹ اجازت نامہ جاری ہے۔ سپورٹ صارفین اسی اجازت نامے کے ذریعے رسائی حاصل کرتے ہیں — وہ کسٹمر صارف کی شکل اختیار نہیں کرتے۔",
+        "grantAs": "رسائی دینے والا",
+        "scopes": {
+          "attendance": "حاضری",
+          "payroll": "تنخواہ",
+          "leave": "چھٹی",
+          "employees": "ملازمین",
+          "organisation": "تنظیم",
+          "reports": "رپورٹیں",
+          "settings": "ترتیبات",
+          "audit": "آڈٹ"
+        }
       },
       "suspend": {
         "title": "ادارہ معطل کریں",
@@ -161,18 +619,57 @@
         "reasonPlaceholder": "اس ادارے کو معطل کرنے کی کاروباری وجہ بیان کریں…",
         "reasonHelp": "یہ وجہ آڈٹ لاگ میں محفوظ ہوگی اور ادارے کو نظر نہیں آئے گی۔",
         "confirmLabel": "تصدیق کے لیے ادارے کا نام ٹائپ کریں: {name}",
-        "confirmButton": "ادارہ معطل کریں"
+        "confirmButton": "ادارہ معطل کریں",
+        "userMessage": "صارف کو دکھایا جانے والا پیغام",
+        "effectiveNow": "فوری طور پر مؤثر",
+        "dataAccess": "تحریر بند ہے۔ مہلت کے دوران پڑھنا اور برآمد دستیاب رہتا ہے۔ ڈیٹا حذف نہیں ہوتا۔",
+        "mfaLabel": "MFA تصدیقی کوڈ",
+        "mfaPlaceholder": "۶ ہندسوں کا کوڈ",
+        "mfaHelp": "جب آپ کے پلیٹ فارم اکاؤنٹ پر MFA فعال ہو تو ضروری ہے (پروڈکشن میں ہمیشہ)۔"
+      },
+      "restore": {
+        "title": "ادارہ بحال کریں",
+        "reasonLabel": "بحالی کی وجہ"
+      },
+      "changePlan": {
+        "reason": "پلان تبدیلی کی وجہ"
+      },
+      "modules": {
+        "empty": "اس ادارے کے لیے کوئی پلان حقوق دستیاب نہیں۔"
+      },
+      "administrators": {
+        "empty": "اس ادارے کے لیے کوئی منتظم دعوت ریکارڈ نہیں ہوئی۔",
+        "expires": "میعاد ختم"
       },
       "create": {
         "title": "ادارہ بنائیں",
-        "description": "نئے کسٹمر ادارے کو فعال کریں۔ ادارہ مسودہ حالت میں بنے گا۔",
+        "description": "ڈرافٹ محفوظ کرنے سے ادارہ مسودہ حالت میں بغیر دعوت کے بنتا ہے۔ بنائیں اور دعوت بھیجیں بھی مسودہ رکھتا ہے اور بنیادی منتظم کو دعوت بھیجتا ہے۔ فعال کرنا الگ عمل ہے۔",
         "breadcrumb": "نیا ادارہ",
         "wizardProgress": "وزرڈ پیشرفت",
         "submitButton": "بنائیں اور دعوت نامہ بھیجیں",
+        "saveDraft": "ڈرافٹ محفوظ کریں",
         "steps": {
           "company": "کمپنی",
           "commercial": "تجارتی",
-          "admin": "منتظم"
+          "product": "پروڈکٹ",
+          "admin": "منتظم",
+          "review": "جائزہ"
+        },
+        "selectPlan": "پلان منتخب کریں…",
+        "selectRegion": "علاقہ منتخب کریں…",
+        "review": {
+          "title": "جائزہ اور تخلیق",
+          "description": "جمع ہونے والی ہر قیمت کی تصدیق کریں۔ ڈرافٹ محفوظ کرنے سے ادارہ مسودہ میں رہتا ہے اور دعوت نہیں جاتی۔ بنائیں اور دعوت بھیجیں بھی مسودہ رکھتا ہے اور بنیادی منتظم کو دعوت بھیجتا ہے۔"
+        },
+        "success": {
+          "title": "ادارہ بن گیا",
+          "titleInvited": "ادارہ بن گیا اور دعوت بھیج دی گئی",
+          "description": "ادارہ مسودہ حالت میں تیار ہو گیا ہے۔",
+          "descriptionInvited": "ادارہ محفوظ ہو گیا اور بنیادی منتظم کی دعوت بن گئی۔ ترسیل NotificationGateway کے نتیجے کے مطابق ہے۔",
+          "invitationStatus": "دعوت نامے کی حالت",
+          "invitationPending": "ادارہ بن گیا لیکن دعوت نامے کی حالت تصدیق نہیں ہو سکی۔",
+          "viewTenant": "ادارہ دیکھیں",
+          "backToDirectory": "فہرست پر واپس"
         },
         "company": {
           "title": "کمپنی کی تفصیلات",
@@ -181,26 +678,282 @@
           "country": "ملک",
           "currency": "کرنسی",
           "timeZone": "وقت کا زون",
-          "hostingRegion": "ہوسٹنگ علاقہ"
+          "hostingRegion": "ہوسٹنگ علاقہ",
+          "language": "بنیادی زبان"
         },
         "commercial": {
           "title": "تجارتی ترتیب",
           "plan": "پلان",
           "billingCycle": "بلنگ سائیکل",
           "seatLimit": "نشستوں کی حد",
+          "storageLimit": "اسٹوریج حد (جی بی)",
           "trialEndsAt": "آزمائشی مدت کا اختتام",
-          "trialHelp": "پہلے دن سے ادائیگی کے لیے خالی چھوڑیں۔"
+          "trialHelp": "آزمائشی آغاز کے لیے لازمی۔ ادا شدہ اداروں کے لیے ٹرائل تاریخ نہیں لگتی۔",
+          "subscriptionStart": "سبسکرپشن آغاز",
+          "trial": "آزمائشی",
+          "paid": "ادا شدہ"
+        },
+        "product": {
+          "title": "پروڈکٹ سیٹ اپ",
+          "entitlementNote": "فعال ماڈیولز، ایس ایس او، اے پی آئی اور سپورٹ درجہ منتخب پلان سے تصدیق ہوتے ہیں۔ M01 آزاد تبدیلی نہیں بناتا۔",
+          "noEntitlements": "اس پلان میں کیٹلاگ کے حقوق موجود نہیں۔",
+          "enabledModules": "فعال ماڈیولز",
+          "entitlements": "حقوق",
+          "source": "ماخذ",
+          "sso": "ایس ایس او",
+          "apiAccess": "اے پی آئی رسائی",
+          "supportTier": "سپورٹ درجہ",
+          "included": "شامل",
+          "notIncluded": "شامل نہیں",
+          "supportPremium": "پریمیم",
+          "supportStandard": "معیاری"
         },
         "admin": {
           "title": "بنیادی منتظم",
           "displayName": "پورا نام",
           "email": "ای میل پتہ",
-          "emailHelp": "اس ای میل پر دعوت نامہ بھیجا جائے گا۔"
+          "emailHelp": "بنیادی منتظم کے طور پر استعمال ہوگا۔ دعوت صرف تب بھیجی جاتی ہے جب آپ بنائیں اور دعوت بھیجیں منتخب کریں۔",
+          "emailTaken": "یہ ای میل پہلے سے استعمال میں ہے یا زیر زیر زیرز دعوت موجود ہے۔",
+          "emailAvailable": "ای میل دستیاب ہے۔",
+          "role": "کردار",
+          "roleValue": "ادارہ ایڈمن"
         }
       }
     },
+    "plans": {
+      "title": "پلانز اور حقوق",
+      "description": "تجارتی پلان کیٹلاگ اور حقوق کی ڈیفالٹ ویلیوز۔",
+      "billingModel": "بلنگ ماڈل",
+      "entitlements": "شامل حقوق",
+      "included": "شامل",
+      "notIncluded": "شامل نہیں",
+      "empty": "کوئی پلان ترتیب نہیں دیا گیا۔",
+      "total": "{count} پلان ترتیب دیا گیا",
+      "active": "{count} فعال",
+      "createPlan": "پلان بنائیں",
+      "editPlan": "پلان ترمیم کریں",
+      "editNote": "پلان میں تبدیلیاں اس پلان کے تمام اداروں پر اثر ڈالتی ہیں۔",
+      "fields": {
+        "name": "پلان کا نام",
+        "description": "تفصیل"
+      }
+    },
+    "usage": {
+      "title": "پلیٹ فارم استعمال",
+      "description": "تمام اداروں میں نشستوں کی مجموعی تقسیم اور استعمال۔",
+      "totalSeats": "کل نشستوں کی تقسیم",
+      "activeEmployees": "فعال ملازمین",
+      "utilisation": "نشست استعمال",
+      "tenantsReporting": "استعمال ڈیٹا والے ادارے",
+      "perTenantNote": "تفصیلی اسٹوریج اور API میٹرکس ہر ادارے کے استعمال ٹیب میں دستیاب ہیں۔",
+      "seats": "نشستیں",
+      "utilisationBreakdown": "نشست استعمال کی تفصیل",
+      "utilBand": {
+        "under50": "50% سے کم",
+        "50to75": "50 – 75%",
+        "75to90": "75 – 90%",
+        "over90": "90% سے زیادہ"
+      },
+      "topTenants": "استعمال کے لحاظ سے سرفہرست ادارے",
+      "noTenantData": "ادارے کا استعمال ڈیٹا دستیاب نہیں۔"
+    },
+    "support": {
+      "title": "سپورٹ رسائی",
+      "description": "کسٹمر اداروں کے لیے وقت محدود، محدود دائرے کی سپورٹ اجازتیں۔",
+      "empty": "موجودہ فلٹرز سے کوئی سپورٹ اجازت نامہ نہیں ملا۔",
+      "revoke": "منسوخ کریں",
+      "confirmRevoke": "منسوخی کی تصدیق",
+      "filters": {
+        "allStatuses": "تمام حالات"
+      },
+      "status": {
+        "active": "فعال",
+        "revoked": "منسوخ",
+        "expired": "میعاد ختم",
+        "pending": "زیر التواء",
+        "rejected": "مسترد"
+      },
+      "approve": "منظور کریں",
+      "reject": {
+        "label": "مسترد کریں",
+        "title": "سپورٹ اجازت مسترد کریں",
+        "description": "اس سپورٹ رسائی درخواست کو مسترد کرنے کی وجہ بتائیں۔",
+        "reason": "مسترد کرنے کی وجہ",
+        "confirm": "مسترد کریں"
+      }
+    },
     "audit": {
-      "comingSoon": "آڈٹ لاگ ویوئر مستقبل کے ریلیز میں دستیاب ہوگا۔"
+      "title": "پلیٹ فارم آڈٹ",
+      "description": "پلیٹ فارم انتظامیہ کے اعمال کا کراس ٹینینٹ آڈٹ ٹریل۔",
+      "empty": "موجودہ فلٹرز سے کوئی آڈٹ واقعہ نہیں ملا۔",
+      "filters": {
+        "allModules": "تمام ماڈیولز",
+        "tenant": "ادارہ",
+        "module": "ماڈیول",
+        "severity": "شدت",
+        "allSeverities": "تمام شدتیں",
+        "from": "شروع تاریخ",
+        "to": "آخری تاریخ",
+        "clear": "فلٹر صاف کریں"
+      },
+      "columns": {
+        "time": "وقت",
+        "action": "عمل",
+        "tenant": "ادارہ",
+        "actor": "فاعل",
+        "severity": "شدت"
+      },
+      "totalResults": "{total} نتائج",
+      "detail": {
+        "title": "واقعہ کی تفصیلات",
+        "id": "واقعہ آئی ڈی",
+        "action": "عمل",
+        "module": "ماڈیول",
+        "resource": "وسیلہ",
+        "actor": "اداکار",
+        "actorType": "اداکار کی قسم",
+        "tenant": "ادارہ",
+        "severity": "شدت",
+        "correlationId": "ارتباط آئی ڈی"
+      }
+    },
+    "config": {
+      "title": "سسٹم کنفیگریشن",
+      "description": "علاقوں اور تجارتی پلانز کے لیے M01 پلیٹ فارم حوالہ جاتی کنفیگریشن۔",
+      "readOnlyTitle": "M01 پلیٹ فارم حوالہ جاتی کنفیگریشن",
+      "readOnlyDescription": "یہ صفحہ M01 کا صرف پڑھنے والا حوالہ کیٹلاگ ہے (علاقے اور پلانز)۔ قابل ترمیم عالمی ترتیبات، فیچر فلیگز، بلنگ اور کمپلائنس پیک بعد کے ماڈیولز (M15/M16/M17) کی ملکیت ہیں اور یہاں مکمل نہیں۔",
+      "regions": {
+        "create": "علاقہ شامل کریں",
+        "code": "علاقہ کوڈ",
+        "name": "علاقہ کا نام"
+      },
+      "regionsNote": "تعیناتی علاقہ کیٹلاگ کے ذریعے منظم (پلانز اور tenant provisioning دیکھیں)۔",
+      "plans": "تجارتی پلانز",
+      "plansNote": "پلان کیٹلاگ کے ذریعے منظم۔ بلنگ اور سبسکرپشن M16 سے تعلق رکھتی ہے۔",
+      "emptyRegions": "کوئی فعال تعیناتی علاقہ سیڈ نہیں ہے۔",
+      "emptyPlans": "کوئی فعال تجارتی پلان سیڈ نہیں ہے۔",
+      "tabsLabel": "ترتیب ڈومینز",
+      "general": {
+        "platformName": "پلیٹ فارم کا نام",
+        "supportEmail": "سپورٹ ای میل",
+        "maintenanceMode": "دیکھ بھال موڈ",
+        "maintenanceModeDesc": "فعال ہونے پر نئے لاگ ان روکے جاتے ہیں۔"
+      },
+      "security": {
+        "mfaRequired": "تمام پلیٹ فارم ایڈمنز کے لیے MFA لازمی کریں",
+        "mfaRequiredDesc": "اگلے لاگ ان پر دو عنصری تصدیق لازم کرتا ہے۔",
+        "sessionTimeout": "سیشن ٹائم آؤٹ (سیکنڈ)",
+        "sessionTimeoutDesc": "اس مدت کے بعد بیکار سیشنز ختم ہو جاتے ہیں۔",
+        "passwordMinLength": "پاس ورڈ کی کم از کم لمبائی"
+      },
+      "retention": {
+        "auditDays": "آڈٹ لاگ رکھنے کی مدت (دن)",
+        "auditDaysDesc": "اس سے پرانے آڈٹ واقعات حذف کیے جاتے ہیں۔",
+        "archiveDays": "محفوظ بعد (دن)"
+      },
+      "notifications": {
+        "email": "ای میل اطلاعات",
+        "slack": "سلیک اطلاعات",
+        "slackWebhook": "سلیک ویب ہک URL"
+      },
+      "integrations": {
+        "webhook": "آؤٹ باؤنڈ ویب ہکس",
+        "webhookUrl": "ویب ہک اینڈ پوائنٹ URL"
+      },
+      "auditLogging": {
+        "stream": "آڈٹ واقعات سٹریم کریں",
+        "streamDesc": "آڈٹ واقعات کو بیرونی اینڈ پوائنٹ پر بھیجیں۔",
+        "endpoint": "سٹریمنگ اینڈ پوائنٹ URL",
+        "minSeverity": "سٹریم کرنے کی کم از کم شدت"
+      }
+    },
+    "integrationHealth": {
+      "title": "انٹیگریشن صحت",
+      "description": "پلیٹ فارم انٹیگریشنز کی کنیکٹر اور سنک صحت۔",
+      "unavailableTitle": "اس ریلیز میں دستیاب نہیں",
+      "deferredDescription": "انٹیگریشن واقعات کی ٹیلیمیٹری ماڈیول ۱۵ (ڈیٹا مائیگریشن اور انٹیگریشنز) کی ملکیت ہے اور ابھی لائیو نہیں۔ کوئی فرضی صحت ڈیٹا نہیں دکھایا گیا۔",
+      "lastSync": "آخری مطابقت",
+      "errors24h": "غلطیاں (24 گھنٹے)",
+      "successRate": "کامیابی کی شرح",
+      "retry": "دوبارہ کوشش کریں",
+      "disable": "غیر فعال کریں",
+      "configure": "ترتیب",
+      "empty": "کوئی انضمام نہیں",
+      "lastChecked": "آخری جانچ",
+      "latency": "تاخیر",
+      "status": {
+        "healthy": "صحت مند",
+        "degraded": "کمزور",
+        "down": "بند"
+      },
+      "incidents": "فعال واقعات"
+    },
+    "catalogue": {
+      "countries": {
+        "PK": "پاکستان",
+        "AE": "متحدہ عرب امارات",
+        "SA": "سعودی عرب",
+        "GB": "برطانیہ",
+        "US": "ریاستہائے متحدہ"
+      },
+      "currencies": {
+        "PKR": "پاکستانی روپیہ",
+        "AED": "اماراتی درہم",
+        "SAR": "سعودی ریال",
+        "GBP": "برطانوی پاؤنڈ",
+        "USD": "امریکی ڈالر"
+      },
+      "locales": {
+        "en-PK": "انگریزی (پاکستان)",
+        "ur-PK": "اردو (پاکستان)"
+      }
+    },
+    "chrome": {
+      "tenantSwitcher": {
+        "placeholder": "ادارہ تبدیل کریں",
+        "search": "اداروں میں تلاش کریں…",
+        "noResults": "کوئی ادارہ نہیں ملا",
+        "viewAll": "تمام ادارے دیکھیں"
+      },
+      "search": {
+        "placeholder": "ادارے، صارفین، آڈٹ تلاش کریں…",
+        "noResults": "کوئی نتیجہ نہیں ملا",
+        "users": "صارفین",
+        "audit": "آڈٹ واقعات"
+      },
+      "notifications": {
+        "label": "اطلاعات",
+        "title": "اطلاعات",
+        "markAll": "سب پڑھا ہوا نشان کریں",
+        "markRead": "پڑھا ہوا نشان کریں",
+        "empty": "کوئی غیر پڑھی اطلاع نہیں",
+        "viewAll": "تمام اطلاعات دیکھیں"
+      },
+      "quickCreate": {
+        "label": "فوری بنائیں",
+        "createTenant": "ادارہ بنائیں",
+        "inviteUser": "صارف مدعو کریں",
+        "announcement": "اعلان بنائیں",
+        "announcementTitle": "عنوان",
+        "announcementBody": "پیغام",
+        "viewAll": "سب دیکھیں"
+      },
+      "help": {
+        "label": "مدد",
+        "helpCenter": "ہیلپ سینٹر",
+        "docs": "دستاویزات",
+        "support": "سپورٹ سے رابطہ",
+        "status": "سسٹم کی حالت"
+      },
+      "userMenu": {
+        "profile": "پروفائل",
+        "myAccount": "میرا اکاؤنٹ",
+        "mfa": "MFA ترتیبات",
+        "notificationPreferences": "اطلاع کی ترجیحات",
+        "language": "زبان",
+        "help": "مدد",
+        "logout": "لاگ آؤٹ"
+      }
     }
   },
   "tenant": {
@@ -208,13 +961,463 @@
       "dashboard": "ڈیش بورڈ",
       "organisation": "تنظیم",
       "employees": "ملازمین",
-      "documents": "دستاویزات",
+      "documents": "آن بورڈنگ اور دستاویزات",
       "attendance": "حاضری",
-      "leave": "چھٹی",
+      "leave": "چھٹی اور پی ٹی او",
       "shifts": "شفٹیں",
+      "roster": "روسٹر کیلنڈر",
       "payroll": "تنخواہ",
       "reports": "رپورٹیں",
-      "settings": "ترتیبات"
+      "settings": "ترتیبات",
+      "people": "عملہ",
+      "employeeRecords": "ملازمین کے ریکارڈ",
+      "orgStructure": "تنظیمی ڈھانچہ",
+      "timeAttendance": "وقت و حاضری",
+      "attendanceOverview": "جائزہ",
+      "timeTracking": "وقت کی نگرانی",
+      "attendancePolicies": "حاضری کی پالیسیاں",
+      "captureOverview": "کیپچر جائزہ",
+      "captureDevices": "آلات",
+      "captureGeofences": "جیوفینسز",
+      "captureOfflineSessions": "آف لائن سیشنز",
+      "audit": "Audit",
+      "hrDashboard": "ایچ آر ڈیش بورڈ",
+      "onboarding": "آن بورڈنگ",
+      "documentsLibrary": "دستاویزات",
+      "attendanceExceptions": "استثنائات",
+      "periodLock": "مدت مقفل",
+      "hrSettings": "ایچ آر ترتیبات",
+      "shiftsRosters": "شفٹس اور روسٹر",
+      "shiftAssign": "شفٹ تفویض",
+      "approvals": "منظوریاں",
+      "home": "ہوم",
+      "integrations": "انضمام",
+      "subscription": "سبسکرپشن"
+    },
+    "admin": {
+      "label": "ٹینینٹ ایڈمن",
+      "roleLabel": "ایچ آر ایڈمنسٹریٹر"
+    },
+    "chrome": {
+      "search": {
+        "placeholder": "ملازمین تلاش کریں…",
+        "noResults": "کوئی ملازم نہیں ملا",
+        "employees": "ملازمین"
+      },
+      "notifications": {
+        "label": "اطلاعات",
+        "title": "اطلاعات",
+        "markAll": "سب پڑھا ہوا نشان کریں",
+        "markRead": "پڑھا ہوا نشان کریں",
+        "empty": "کوئی غیر پڑھی اطلاع نہیں",
+        "viewAll": "تمام اطلاعات دیکھیں"
+      },
+      "quickCreate": {
+        "label": "فوری بنائیں",
+        "addEmployee": "ملازم شامل کریں",
+        "requestLeave": "چھٹی کی درخواست",
+        "recordAttendance": "حاضری درج کریں"
+      },
+      "help": {
+        "label": "مدد",
+        "helpCenter": "ہیلپ سینٹر",
+        "docs": "دستاویزات",
+        "support": "سپورٹ سے رابطہ",
+        "status": "سسٹم کی حالت"
+      },
+      "userMenu": {
+        "profile": "پروفائل",
+        "mfa": "MFA ترتیبات",
+        "settings": "ترتیبات",
+        "logout": "لاگ آؤٹ"
+      }
+    },
+    "dashboard": {
+      "title": "ہوم",
+      "description": "آپ کی افرادی قوت کا جائزہ۔",
+      "welcome": "خوش آمدید، {name}! آج کی افرادی قوت کا جائزہ یہ ہے۔",
+      "quickActions": "فوری اقدامات",
+      "refresh": "تازہ کریں",
+      "workforceHeading": "آج کی افرادی قوت",
+      "organisationHeading": "تنظیم",
+      "totalEmployees": "کل ملازمین",
+      "activeEmployees": "فعال ملازمین",
+      "onLeaveToday": "آج چھٹی پر",
+      "presentToday": "آج حاضر",
+      "absentToday": "آج غیر حاضر",
+      "pendingApprovals": "زیر التوا منظوریاں",
+      "lateArrivals": "آج تاخیر سے آمد",
+      "openExceptions": "زیر التوا استثنیٰ",
+      "attendanceRate": "فعال عملے کا {rate}%",
+      "needsReview": "جائزے کے منتظر",
+      "ofHeadcount": "{total} ملازمین میں سے",
+      "viewAll": "سب دیکھیں",
+      "actions": {
+        "addEmployee": "ملازم شامل کریں",
+        "importEmployees": "ملازمین درآمد کریں",
+        "recordAttendance": "حاضری درج کریں",
+        "requestLeave": "چھٹی کی درخواست",
+        "runPayroll": "پے رول چلائیں",
+        "viewReports": "رپورٹس دیکھیں"
+      }
+    },
+    "settings": {
+      "title": "Settings",
+      "description": "Configure your organisation, users, branding, and security.",
+      "hub": {
+        "complete": "Complete",
+        "incomplete": "Incomplete",
+        "comingSoon": "Coming soon",
+        "percent": "{percent}% configured"
+      },
+      "categories": {
+        "company": "Company",
+        "organisation": "Organisation",
+        "users_roles": "Users and roles",
+        "attendance": "Attendance",
+        "regional": "Regional",
+        "branding": "Branding",
+        "modules": "Modules",
+        "security": "Security",
+        "subscription": "Subscription",
+        "leave": "Leave",
+        "payroll": "Payroll",
+        "workflows": "Workflows",
+        "notifications": "Notifications",
+        "integrations": "Integrations",
+        "sessions": "Active sessions",
+        "roles": "Roles and permissions"
+      },
+      "company": {
+        "title": "Company profile",
+        "description": "Legal and display details for your organisation.",
+        "save": "Save profile",
+        "saved": "Company profile saved."
+      },
+      "branding": {
+        "title": "Branding",
+        "description": "Logos and colours within permitted limits.",
+        "save": "Save branding",
+        "saved": "Branding updated.",
+        "previewLogin": "Login preview",
+        "previewEmail": "Email header preview",
+        "previewPayslip": "Payslip header preview",
+        "contrastWarning": "Contrast warning",
+        "uploads": "Logo uploads",
+        "uploading": "Uploading logo..."
+      },
+      "regional": {
+        "title": "Language and regional settings",
+        "description": "Locale, formats, and working week.",
+        "save": "Save regional settings",
+        "saved": "Regional settings saved.",
+        "rtlPreview": "RTL preview",
+        "enabledLocales": "Enabled locales",
+        "workingWeekPattern": "Working week"
+      },
+      "users": {
+        "title": "Tenant administrators and users",
+        "description": "Invite, deactivate, and manage access.",
+        "invite": "Invite user",
+        "resend": "Resend",
+        "revoke": "Revoke",
+        "deactivate": "Deactivate",
+        "requireReset": "Require password reset",
+        "requireMfa": "Require MFA",
+        "empty": "No users found.",
+        "invitations": "Pending invitations",
+        "detail": "User detail"
+      },
+      "roles": {
+        "title": "Roles and permissions",
+        "description": "View and edit the permission matrix.",
+        "create": "Create role",
+        "system": "System",
+        "custom": "Custom",
+        "assignments": "{count} users",
+        "delete": "Delete role",
+        "confirmDelete": "Delete {name}? Users assigned to this role will lose these permissions."
+      },
+      "modules": {
+        "title": "Module settings",
+        "description": "Active, inactive, and unavailable modules.",
+        "configure": "Configure",
+        "requestUpgrade": "Request upgrade",
+        "active": "Active",
+        "inactive": "Inactive",
+        "unavailable": "Unavailable"
+      },
+      "security": {
+        "title": "Security settings",
+        "description": "Password, MFA, and session policy.",
+        "save": "Save security policy",
+        "saved": "Security policy saved."
+      },
+      "sessions": {
+        "title": "Active sessions",
+        "description": "Review and revoke signed-in sessions.",
+        "revoke": "End session",
+        "revokeAll": "End all sessions",
+        "empty": "No active sessions."
+      },
+      "subscription": {
+        "title": "Subscription",
+        "description": "Plan, seats, and usage for your tenant.",
+        "requestUpgrade": "Request upgrade",
+        "seatLimit": "Seat limit",
+        "activeEmployees": "Active employees",
+        "storage": "Storage used",
+        "approaching": "Approaching seat limit",
+        "reached": "Seat limit reached",
+        "history": "Upgrade request history",
+        "status": "Status",
+        "plan": "Plan",
+        "createdAt": "Created",
+        "note": "Note",
+        "noHistory": "No upgrade requests yet."
+      },
+      "setup": {
+        "title": "Tenant setup checklist",
+        "description": "Complete required configuration before go-live.",
+        "progress": "{percent}% complete",
+        "required": "Required",
+        "optional": "Optional",
+        "blocked": "Blocked",
+        "resume": "Continue",
+        "goLiveReady": "Ready for go-live",
+        "notReady": "Setup incomplete"
+      },
+      "audit": {
+        "title": "Audit log",
+        "description": "Sensitive changes within your tenant.",
+        "empty": "No audit events found."
+      }
+    },
+    "setupSteps": {
+      "company_profile": "Company profile",
+      "branding": "Branding",
+      "organisation": "Organisation structure",
+      "locations": "Locations",
+      "roles_administrators": "Roles and administrators",
+      "attendance_policy": "Attendance policy",
+      "leave_policy": "Leave policy",
+      "payroll_settings": "Payroll settings",
+      "employee_import": "Employee import",
+      "notifications": "Notifications",
+      "integration_setup": "Integration setup",
+      "validation": "Validation",
+      "go_live_readiness": "Go-live readiness"
+    },
+    "leave": {
+      "home": {
+        "title": "Leave",
+        "description": "Manage leave requests, types, and balances.",
+        "pendingCount": "Pending requests",
+        "typesCount": "Active leave types",
+        "links": {
+          "requests": "Leave requests",
+          "requestsHint": "Review and decide submitted leave.",
+          "types": "Leave types",
+          "typesHint": "Configure paid and unpaid leave types.",
+          "adjust": "Balance adjustments",
+          "adjustHint": "Grant or adjust employee leave balances."
+        }
+      },
+      "requests": {
+        "title": "Leave requests",
+        "description": "Filter and open leave requests for this tenant.",
+        "filterStatus": "Filter by status",
+        "allStatuses": "All statuses",
+        "empty": "No leave requests match the current filters."
+      },
+      "detail": {
+        "title": "Leave request",
+        "description": "Review request details and approve or reject.",
+        "approve": "Approve",
+        "reject": "Reject",
+        "noActions": "No decision actions are available for this status."
+      },
+      "types": {
+        "title": "Leave types",
+        "description": "Create and edit leave types for this organisation.",
+        "create": "Create type",
+        "edit": "Edit type",
+        "empty": "No leave types configured yet.",
+        "halfDayAllowed": "Half-day allowed",
+        "columns": {
+          "code": "Code",
+          "name": "Name",
+          "paidStatus": "Paid status",
+          "unit": "Unit",
+          "status": "Status"
+        }
+      },
+      "adjust": {
+        "title": "Balance adjustments",
+        "description": "Grant or adjust leave balances for an employee.",
+        "employeeId": "Employee ID",
+        "leaveType": "Leave type",
+        "selectType": "Select leave type",
+        "entryType": "Entry type",
+        "grant": "Grant",
+        "adjustment": "Adjustment",
+        "quantity": "Quantity",
+        "effectiveDate": "Effective date",
+        "reason": "Reason"
+      },
+      "columns": {
+        "employee": "Employee",
+        "type": "Type",
+        "dates": "Dates",
+        "quantity": "Quantity",
+        "status": "Status",
+        "reason": "Reason"
+      },
+      "status": {
+        "DRAFT": "Draft",
+        "SUBMITTED": "Submitted",
+        "APPROVED": "Approved",
+        "REJECTED": "Rejected",
+        "RETURNED": "Returned",
+        "CANCELLED": "Cancelled",
+        "COMPLETED": "Completed"
+      }
+    },
+    "approvals": {
+      "title": "Approvals",
+      "description": "Items assigned for your decision.",
+      "tabs": {
+        "assigned": "Assigned to me"
+      },
+      "empty": "No items waiting for approval.",
+      "columns": {
+        "type": "Type",
+        "employee": "Employee",
+        "title": "Summary",
+        "status": "Status",
+        "submittedAt": "Submitted",
+        "open": "Open"
+      },
+      "types": {
+        "LEAVE": "Leave",
+        "CHANGE_REQUEST": "Change request"
+      }
+    },
+    "payroll": {
+      "home": {
+        "title": "Payroll",
+        "description": "Payslip publishing and payroll overview.",
+        "published": "Published payslips",
+        "generated": "Generated payslips",
+        "total": "Total payslips",
+        "links": {
+          "payslips": "Payslips",
+          "payslipsHint": "Browse published and generated payslips.",
+          "publish": "Publish payslip",
+          "publishHint": "Publish an ESS-visible payslip for an employee."
+        }
+      },
+      "payslips": {
+        "title": "Payslips",
+        "description": "Admin list of tenant payslips.",
+        "publishCta": "Publish payslip",
+        "filterStatus": "Filter by status",
+        "allStatuses": "All statuses",
+        "empty": "No payslips found.",
+        "publish": "شائع کریں"
+      },
+      "publish": {
+        "title": "Publish payslip",
+        "description": "Create a published payslip visible in employee self-service.",
+        "fields": {
+          "employeeId": "Employee ID",
+          "periodLabel": "Period label",
+          "periodStart": "Period start",
+          "periodEnd": "Period end",
+          "currency": "Currency",
+          "grossAmount": "Gross amount",
+          "netAmount": "Net amount"
+        }
+      },
+      "columns": {
+        "employee": "ملازم",
+        "period": "مدت",
+        "gross": "مجموعی",
+        "net": "خالص",
+        "status": "حیثیت",
+        "publishedAt": "اشاعت"
+      }
+    },
+    "reports": {
+      "title": "Reports",
+      "description": "Open operational reports from existing modules.",
+      "run": "Run",
+      "empty": "No reports are available for your permissions.",
+      "catalogue": {
+        "hrDirectory": {
+          "title": "HR employee directory",
+          "description": "Browse the employee directory."
+        },
+        "attendanceDaily": {
+          "title": "Attendance daily",
+          "description": "Open attendance records for daily review."
+        },
+        "leavePending": {
+          "title": "Leave pending",
+          "description": "Submitted leave requests awaiting decision."
+        },
+        "audit": {
+          "title": "Audit",
+          "description": "Tenant audit event log."
+        }
+      }
+    },
+    "integrations": {
+      "title": "Integrations",
+      "description": "Connect biometric, SSO, payroll export, and messaging channels.",
+      "configure": "Configure",
+      "status": {
+        "configured": "Configured",
+        "notConfigured": "Not configured"
+      },
+      "categories": {
+        "biometric": {
+          "title": "Biometric devices",
+          "description": "Attendance capture devices and connectors."
+        },
+        "sso": {
+          "title": "Single sign-on",
+          "description": "Identity provider and security settings."
+        },
+        "payrollExport": {
+          "title": "Payroll export",
+          "description": "Export payroll outputs to external systems."
+        },
+        "finance": {
+          "title": "Finance",
+          "description": "Finance and GL integrations."
+        },
+        "email": {
+          "title": "Email",
+          "description": "Transactional email delivery."
+        },
+        "sms": {
+          "title": "SMS",
+          "description": "SMS notification channel."
+        },
+        "webhook": {
+          "title": "Webhooks",
+          "description": "Outbound event webhooks."
+        },
+        "api": {
+          "title": "API access",
+          "description": "API clients and credentials."
+        }
+      }
+    },
+    "brand": {
+      "shortName": "Workforce OS",
+      "fullName": "Workforce Cloud OS"
     }
   },
   "documents": {
@@ -280,12 +1483,22 @@
       "status": "حالت",
       "expiry": "میعاد",
       "actions": "اقدامات"
+    },
+    "library": {
+      "title": "Document library",
+      "description": "Review and approve employee documents.",
+      "approve": "Approve",
+      "reject": "Reject"
     }
   },
   "organisation": {
     "overview": {
-      "title": "تنظیمی ڈھانچہ",
-      "description": "قانونی ادارے، شاخیں، محکمے، لاگت مراکز اور عہدے منظم کریں۔"
+      "title": "Organisation Structure",
+      "description": "Manage your legal entities, branches, departments, cost centres, and positions.",
+      "legalEntities": "Legal entities",
+      "departments": "Departments",
+      "activeEmployees": "Active employees",
+      "unassigned": "Unassigned placements"
     },
     "nav": {
       "legalEntities": "قانونی ادارے",
@@ -510,6 +1723,16 @@
         "breadcrumb": "عہدے کی تفصیل",
         "sectionDetails": "عہدے کی تفصیلات"
       }
+    },
+    "grades": {
+      "title": "Grades",
+      "description": "Job grade catalogue for positions and employment.",
+      "code": "Code",
+      "name": "Name"
+    },
+    "history": {
+      "title": "Organisation history",
+      "description": "Effective-dated organisation structure changes."
     }
   },
   "attendance": {
@@ -519,80 +1742,78 @@
     },
     "createButton": "حاضری درج کریں",
     "status": {
-      "PRESENT":         "حاضر",
-      "ABSENT":          "غیر حاضر",
-      "LATE":            "دیر سے آیا",
-      "HALF_DAY":        "آدھا دن",
+      "PRESENT": "حاضر",
+      "ABSENT": "غیر حاضر",
+      "LATE": "دیر سے آیا",
+      "HALF_DAY": "آدھا دن",
       "EARLY_DEPARTURE": "جلدی گیا",
-      "MISSING_PUNCH":   "پنچ غائب",
-      "ON_LEAVE":        "چھٹی پر",
-      "HOLIDAY":         "تعطیل",
-      "WEEKEND":         "ہفتہ وار تعطیل",
-      "REMOTE_WORK":     "دور سے کام",
-      "BUSINESS_TRIP":   "کاروباری سفر"
+      "MISSING_PUNCH": "پنچ غائب",
+      "ON_LEAVE": "چھٹی پر",
+      "HOLIDAY": "تعطیل",
+      "WEEKEND": "ہفتہ وار تعطیل",
+      "REMOTE_WORK": "دور سے کام",
+      "BUSINESS_TRIP": "کاروباری سفر"
     },
     "eventType": {
-      "CHECK_IN":  "حاضری",
+      "CHECK_IN": "حاضری",
       "CHECK_OUT": "روانگی"
     },
     "source": {
-      "BIOMETRIC":    "بائیومیٹرک",
-      "MOBILE":       "موبائل",
-      "WEB":          "ویب",
-      "MANUAL":       "دستی",
-      "API":          "اے پی آئی",
+      "BIOMETRIC": "بائیومیٹرک",
+      "MOBILE": "موبائل",
+      "WEB": "ویب",
+      "MANUAL": "دستی",
+      "API": "اے پی آئی",
       "OFFLINE_SYNC": "آف لائن"
     },
     "exceptionType": {
-      "LATE":               "دیر سے آمد",
-      "EARLY_DEPARTURE":    "جلدی روانگی",
-      "MISSING_CHECK_IN":   "حاضری غائب",
-      "MISSING_CHECK_OUT":  "روانگی غائب",
-      "OVERTIME_UNAPPROVED":"غیر منظور اضافی وقت"
+      "LATE": "دیر سے آمد",
+      "EARLY_DEPARTURE": "جلدی روانگی",
+      "MISSING_CHECK_IN": "حاضری غائب",
+      "MISSING_CHECK_OUT": "روانگی غائب",
+      "OVERTIME_UNAPPROVED": "غیر منظور اضافی وقت"
     },
     "columns": {
-      "date":     "تاریخ",
-      "checkIn":  "آمد",
+      "date": "تاریخ",
+      "checkIn": "آمد",
       "checkOut": "روانگی",
-      "worked":   "کام کا وقت",
-      "status":   "حیثیت",
+      "worked": "کام کا وقت",
+      "status": "حیثیت",
       "employee": "ملازم",
-      "type":     "قسم",
+      "type": "قسم",
       "severity": "شدت",
       "resolved": "حل شدہ"
     },
     "records": {
-      "title":       "حاضری کے ریکارڈ",
+      "title": "حاضری کے ریکارڈ",
       "description": "روزانہ کی حاضری دیکھیں اور منظم کریں۔",
       "empty": {
-        "title":       "کوئی ریکارڈ نہیں",
+        "title": "کوئی ریکارڈ نہیں",
         "description": "حاضری ریکارڈ یہاں ظاہر ہوں گے۔"
       }
     },
     "detail": {
-      "title":            "حاضری کی تفصیل",
-      "breadcrumb":       "تفصیل",
-      "sectionRecord":    "ریکارڈ",
-      "sectionEvents":    "خام واقعات",
-      "sectionExceptions":"استثنیات"
+      "title": "حاضری کی تفصیل",
+      "breadcrumb": "تفصیل",
+      "sectionRecord": "ریکارڈ",
+      "sectionEvents": "خام واقعات",
+      "sectionExceptions": "استثنیات"
     },
     "exceptions": {
-      "title":       "حاضری کی استثنیات",
-      "empty": {
-        "title":       "کوئی استثنا نہیں",
-        "description": "کوئی استثنا نہیں۔"
-      },
-      "resolveButton": "حل کریں"
+      "title": "Attendance exceptions",
+      "description": "Unresolved and recent attendance exceptions.",
+      "resolved": "Resolved",
+      "open": "Open"
     },
     "filters": {
       "allStatuses": "تمام حیثیتیں",
-      "dateFrom":    "شروع تاریخ",
-      "dateTo":      "اختتام تاریخ"
+      "dateFrom": "شروع تاریخ",
+      "dateTo": "اختتام تاریخ"
     },
     "cards": {
       "presentToday": "آج حاضر",
-      "absentToday":  "آج غیر حاضر",
-      "lateToday":    "آج دیر سے",
+      "absentToday": "آج غیر حاضر",
+      "lateToday": "آج دیر سے",
       "totalRecords": "کل ریکارڈ"
     },
     "policy": {
@@ -602,7 +1823,12 @@
         "error": "پالیسیاں لوڈ کرنے میں ناکامی",
         "empty": "ابھی تک کوئی حاضری پالیسی نہیں"
       },
-      "create": { "title": "حاضری پالیسی بنائیں" },
+      "create": {
+        "title": "حاضری پالیسی بنائیں"
+      },
+      "edit": {
+        "title": "حاضری پالیسی میں ترمیم کریں"
+      },
       "detail": {
         "back": "پالیسیاں",
         "loading": "پالیسی لوڈ ہو رہی ہے...",
@@ -644,7 +1870,9 @@
         "allowLateCheckOut": "دیر سے چیک آؤٹ کی اجازت",
         "allowOvertime": "اوور ٹائم کی اجازت"
       },
-      "units": { "minutes": "منٹ" },
+      "units": {
+        "minutes": "منٹ"
+      },
       "actions": {
         "create": "پالیسی بنائیں",
         "createFirst": "پہلی پالیسی بنائیں",
@@ -656,134 +1884,1176 @@
       "errors": {
         "nameRequired": "پالیسی کا نام ضروری ہے"
       }
+    },
+    "capture": {
+      "title": "کیپچر جائزہ",
+      "description": "حاضری کیپچر انفراسٹرکچر اور آلیٰ ہیلتھ کی نگرانی — ملازمین کی حاضری تجزیات نہیں۔",
+      "navLabel": "کیپچر جائزہ",
+      "purpose": "بائیومیٹرک ٹرمینلز، گیٹ ویز اور متعلقہ کیپچر اینڈ پوائنٹس کی عملی صحت۔",
+      "loading": "کیپچر جائزہ لوڈ ہو رہا ہے…",
+      "error": "کیپچر جائزہ لوڈ نہیں ہو سکا۔",
+      "retry": "دوبارہ کوشش",
+      "refresh": "تازہ کریں",
+      "lastUpdated": "آخری تازہ کاری",
+      "lastUpdatedValue": "آخری تازہ کاری {time}",
+      "summary": {
+        "title": "عملی خلاصہ",
+        "total": "کل آلات",
+        "healthy": "صحت مند",
+        "degraded": "کمزور",
+        "unhealthy": "غیر صحت مند",
+        "offline": "آف لائن",
+        "suspended": "معطل",
+        "decommissioned": "خارج"
+      },
+      "attention": {
+        "title": "توجہ درکار",
+        "description": "آلات جو کمزور، غیر صحت مند، آف لائن یا معطل ہیں۔",
+        "empty": "اس وقت کسی آلے کو توجہ کی ضرورت نہیں۔"
+      },
+      "empty": {
+        "title": "نگرانی کے لیے کوئی کیپچر آلہ نہیں",
+        "description": "ہیلتھ نگرانی کے لیے اس وقت کوئی حاضری کیپچر آلہ دستیاب نہیں۔"
+      },
+      "operational": {
+        "title": "عملی معلومات",
+        "dataSource": "ماخذ: آلیٰ ہیلتھ خلاصہ",
+        "rowCount": "{count} آلیٰ ہیلتھ قطاریں"
+      },
+      "actions": {
+        "refresh": "تازہ کریں",
+        "viewGeofences": "جیوفینسز دیکھیں"
+      },
+      "a11y": {
+        "page": "حاضری کیپچر عملی جائزہ",
+        "refresh": "کیپچر ہیلتھ ڈیٹا تازہ کریں",
+        "summary": "آلیٰ ہیلتھ کے خلاصہ شمار",
+        "attentionTable": "توجہ درکار آلات",
+        "deviceId": "آلے کی شناخت {id}"
+      }
+    },
+    "devices": {
+      "title": "آلات",
+      "description": "حاضری کیپچر آلات رجسٹر اور منظم کریں۔",
+      "purpose": "بائیومیٹرک ٹرمینلز، گیٹ ویز اور متعلقہ کیپچر اینڈ پوائنٹس کا رجسٹری۔",
+      "navLabel": "آلات",
+      "loading": "آلات لوڈ ہو رہے ہیں…",
+      "error": "آلات لوڈ نہیں ہو سکے۔",
+      "success": {
+        "registered": "آلہ کامیابی سے رجسٹر ہو گیا۔",
+        "provisioned": "آلہ کامیابی سے پروویژن ہو گیا۔",
+        "activated": "آلہ فعال کر دیا گیا۔",
+        "suspended": "آلہ معطل کر دیا گیا۔",
+        "decommissioned": "آلہ خارج کر دیا گیا۔",
+        "replaced": "آلہ کامیابی سے تبدیل ہو گیا۔"
+      },
+      "empty": {
+        "title": "کوئی آلہ رجسٹر نہیں",
+        "description": "حاضری کے واقعات وصول کرنے کے لیے ایک کیپچر آلہ رجسٹر کریں۔"
+      },
+      "filters": {
+        "search": "آلات تلاش کریں",
+        "searchPlaceholder": "نام یا سیریل سے تلاش…",
+        "status": "حیثیت",
+        "allStatuses": "تمام حیثیتیں"
+      },
+      "columns": {
+        "name": "نام",
+        "deviceType": "قسم",
+        "serialNumber": "سیریل نمبر",
+        "status": "حیثیت",
+        "health": "ہیلتھ",
+        "vendor": "وینڈر",
+        "model": "ماڈل",
+        "timezone": "ٹائم زون",
+        "lastSeenAt": "آخری بار دیکھا",
+        "createdAt": "تخلیق",
+        "updatedAt": "اپ ڈیٹ",
+        "actions": "اقدامات"
+      },
+      "fields": {
+        "name": "آلے کا نام",
+        "deviceType": "آلے کی قسم",
+        "serialNumber": "سیریل نمبر",
+        "vendor": "وینڈر",
+        "model": "ماڈل",
+        "timezone": "ٹائم زون",
+        "timezonePlaceholder": "ٹائم زون منتخب کریں (اختیاری)",
+        "deviceFingerprint": "ڈیوائس فنگر پرنٹ",
+        "publicKeyFingerprint": "پبلک کی فنگر پرنٹ",
+        "ipWhitelist": "آئی پی وائٹ لسٹ",
+        "ipWhitelistHint": "ہر اندراج میں ایک آئی پی یا سی آئی ڈی آر (اختیاری)۔",
+        "ipAdd": "آئی پی / سی آئی ڈی آر شامل کریں",
+        "ipRemove": "ہٹائیں",
+        "reason": "وجہ",
+        "reasonPlaceholder": "اس کارروائی کی وجہ درج کریں",
+        "newSerialNumber": "نیا سیریل نمبر",
+        "newDeviceFingerprint": "نیا ڈیوائس فنگر پرنٹ (اختیاری)",
+        "newPublicKeyFingerprint": "نیا پبلک کی فنگر پرنٹ (اختیاری)"
+      },
+      "sections": {
+        "basic": "بنیادی معلومات",
+        "manufacturer": "مینوفیکچرر",
+        "regional": "علاقائی / آپریشنل",
+        "overview": "جائزہ",
+        "lifecycle": "لائف سائیکل",
+        "provisioning": "پروویژنگ",
+        "health": "ہیلتھ",
+        "heartbeat": "ہارٹ بیٹ",
+        "heartbeatLatest": "تازہ ترین ہارٹ بیٹ",
+        "heartbeatHistory": "ہارٹ بیٹ کی تاریخ",
+        "system": "سسٹم معلومات",
+        "identity": "قابلِ اعتماد شناخت",
+        "network": "نیٹ ورک کنٹرولز"
+      },
+      "validation": {
+        "nameRequired": "آلے کا نام ضروری ہے۔",
+        "nameMax": "نام زیادہ سے زیادہ ۲۵۵ حروف کا ہو سکتا ہے۔",
+        "deviceTypeRequired": "آلے کی قسم ضروری ہے۔",
+        "deviceTypeMax": "آلے کی قسم زیادہ سے زیادہ ۶۴ حروف کی ہو سکتی ہے۔",
+        "serialRequired": "سیریل نمبر ضروری ہے۔",
+        "serialMax": "سیریل نمبر زیادہ سے زیادہ ۱۲۸ حروف کا ہو سکتا ہے۔",
+        "vendorMax": "وینڈر زیادہ سے زیادہ ۱۲۸ حروف کا ہو سکتا ہے۔",
+        "modelMax": "ماڈل زیادہ سے زیادہ ۱۲۸ حروف کا ہو سکتا ہے۔",
+        "timezoneMax": "ٹائم زون زیادہ سے زیادہ ۵۰ حروف کا ہو سکتا ہے۔",
+        "fingerprintRequired": "یہ فنگر پرنٹ ضروری ہے۔",
+        "fingerprintMax": "فنگر پرنٹ زیادہ سے زیادہ ۱۲۸ حروف کا ہو سکتا ہے۔",
+        "ipMax": "ہر آئی پی/سی آئی ڈی آر اندراج زیادہ سے زیادہ ۶۴ حروف کا ہو سکتا ہے۔",
+        "reasonRequired": "وجہ ضروری ہے۔",
+        "reasonMax": "وجہ زیادہ سے زیادہ ۵۰۰ حروف کی ہو سکتی ہے۔",
+        "newSerialRequired": "نیا سیریل نمبر ضروری ہے۔"
+      },
+      "actions": {
+        "register": "آلہ رجسٹر کریں",
+        "registerFirst": "پہلا آلہ رجسٹر کریں",
+        "provision": "پروویژن",
+        "activate": "فعال کریں",
+        "suspend": "معطل کریں",
+        "decommission": "خارج کریں",
+        "replace": "تبدیل کریں",
+        "issueToken": "ٹوکن جاری کریں",
+        "view": "دیکھیں",
+        "save": "محفوظ کریں",
+        "saving": "محفوظ ہو رہا ہے…",
+        "cancel": "منسوخ",
+        "confirm": "تصدیق",
+        "issuing": "جاری ہو رہا ہے…"
+      },
+      "confirm": {
+        "activate": "اس آلے کو فعال کریں تاکہ وہ حاضری کے واقعات کیپچر کر سکے؟",
+        "activateNamed": "“{name}” کو فعال کریں تاکہ وہ حاضری کے واقعات کیپچر کر سکے؟",
+        "suspend": "اس آلے کو معطل کریں؟ دوبارہ فعال ہونے تک کیپچر رک جائے گا۔",
+        "suspendNamed": "“{name}” کو معطل کریں؟ دوبارہ فعال ہونے تک کیپچر رک جائے گا۔",
+        "decommission": "اس آلے کو مستقل طور پر خارج کریں؟ رجسٹری سے یہ واپس نہیں ہو سکتا۔",
+        "decommissionNamed": "“{name}” کو مستقل طور پر خارج کریں؟ رجسٹری سے یہ واپس نہیں ہو سکتا۔",
+        "replace": "اس آلے کو تبدیل کریں؟ موجودہ آلہ خارج کر دیا جائے گا۔",
+        "replaceNamed": "“{name}” کو تبدیل کریں؟ موجودہ آلہ خارج ہوگا اور نیا آلہ بنے گا۔"
+      },
+      "lifecycle": {
+        "title": "لائف سائیکل اقدامات",
+        "pendingHint": "کیپچر سے پہلے قابلِ اعتماد شناخت کے لیے اس آلے کو پروویژن کریں۔",
+        "noActions": "اس حیثیت کے لیے کوئی لائف سائیکل اقدام دستیاب نہیں۔"
+      },
+      "status": {
+        "PENDING": "زیر التوا",
+        "ACTIVE": "فعال",
+        "SUSPENDED": "معطل",
+        "DECOMMISSIONED": "خارج"
+      },
+      "pagination": {
+        "showing": "{total} میں سے {from}–{to} دکھائے جا رہے ہیں",
+        "previous": "پچھلا صفحہ",
+        "next": "اگلا صفحہ"
+      },
+      "heartbeat": {
+        "empty": "ابھی تک کوئی ہارٹ بیٹ موصول نہیں ہوا۔",
+        "error": "ہارٹ بیٹ ڈیٹا لوڈ نہیں ہو سکا۔",
+        "sinceHours": "تاریخ کی مدت",
+        "hours": {
+          "1": "۱ گھنٹہ",
+          "6": "۶ گھنٹے",
+          "24": "۲۴ گھنٹے",
+          "72": "۷۲ گھنٹے",
+          "168": "۷ دن"
+        },
+        "columns": {
+          "occurredAt": "موصول",
+          "cpu": "سی پی یو",
+          "memory": "میموری",
+          "disk": "ڈسک",
+          "queueLength": "قطار",
+          "clockOffsetMs": "کلاک آفسیٹ (ملی سیکنڈ)",
+          "firmwareVersion": "فرم ویئر",
+          "lastSyncAt": "آخری سنک",
+          "ipAddress": "آئی پی"
+        }
+      },
+      "forbidden": "آپ کو آلات دیکھنے کی اجازت نہیں۔",
+      "a11y": {
+        "page": "حاضری کے آلات",
+        "table": "آلات کی جدول",
+        "status": "آلے کی حیثیت {status}",
+        "openDetail": "آلہ {name} کھولیں",
+        "serialNumber": "سیریل نمبر",
+        "editLifecycle": "{action} آلہ {name}",
+        "heartbeatTable": "آلے کی ہارٹ بیٹ تاریخ"
+      },
+      "new": {
+        "title": "آلہ رجسٹر کریں",
+        "description": "زیر التوا حالت میں نیا حاضری کیپچر آلہ بنائیں۔",
+        "breadcrumb": "رجسٹر"
+      },
+      "detail": {
+        "title": "آلے کی تفصیل",
+        "description": "اس آلے کا لائف سائیکل، ہیلتھ اور کیپچر سرگرمی۔",
+        "breadcrumb": "آلہ",
+        "notFound": "آلہ نہیں ملا۔"
+      },
+      "provision": {
+        "title": "آلہ پروویژن کریں",
+        "description": "قابلِ اعتماد آلہ شناخت قائم کرنے کے لیے فنگر پرنٹس اور نیٹ ورک کنٹرولز باندھیں۔",
+        "breadcrumb": "پروویژن",
+        "warning": "پروویژنگ قابلِ اعتماد آلہ شناخت قائم کرتی ہے۔ فنگر پرنٹس صرف تحریر کے لیے ہیں اور جمع کرانے کے بعد دوبارہ نہیں دکھائے جائیں گے۔",
+        "submit": "آلہ پروویژن کریں"
+      },
+      "replaceForm": {
+        "title": "آلہ تبدیل کریں",
+        "description": "اس آلے کو خارج کریں اور نئے سیریل نمبر کے ساتھ متبادل بنائیں۔"
+      }
+    },
+    "geofences": {
+      "title": "جیوفینسز",
+      "description": "مقام کی تصدیق کے لیے دائرہ نما کیپچر جیوفینسز متعین کریں۔",
+      "purpose": "قانونی اداروں اور برانچز پر محدود دائرہ جیوفینسز۔",
+      "navLabel": "جیوفینسز",
+      "loading": "جیوفینسز لوڈ ہو رہی ہیں…",
+      "error": "جیوفینسز لوڈ نہیں ہو سکیں۔",
+      "success": {
+        "created": "جیوفینس کامیابی سے بن گئی۔",
+        "updated": "جیوفینس کامیابی سے اپ ڈیٹ ہو گئی۔",
+        "deleted": "جیوفینس حذف کر دی گئی۔"
+      },
+      "empty": {
+        "title": "کوئی جیوفینس نہیں",
+        "description": "مقام کی تصدیق کے لیے دائرہ جیوفینس بنائیں۔"
+      },
+      "filters": {
+        "legalEntity": "قانونی ادارہ",
+        "branch": "برانچ",
+        "allLegalEntities": "تمام قانونی ادارے",
+        "allBranches": "تمام برانچز"
+      },
+      "columns": {
+        "name": "نام",
+        "scope": "دائرہ کار",
+        "latitude": "عرض بلد",
+        "longitude": "طول بلد",
+        "shape": "شکل",
+        "center": "مرکز",
+        "radiusMeters": "رداس (میٹر)",
+        "legalEntity": "قانونی ادارہ",
+        "branch": "برانچ",
+        "activeFrom": "سے فعال",
+        "activeTo": "تک فعال",
+        "rowVersion": "ورژن",
+        "updatedAt": "اپ ڈیٹ",
+        "createdAt": "تخلیق",
+        "actions": "اقدامات"
+      },
+      "fields": {
+        "name": "جیوفینس کا نام",
+        "legalEntityId": "قانونی ادارہ",
+        "branchId": "برانچ",
+        "centerLat": "مرکز عرض بلد",
+        "centerLng": "مرکز طول بلد",
+        "radiusMeters": "رداس (میٹر)",
+        "activeFrom": "سے فعال",
+        "activeTo": "تک فعال",
+        "legalEntityPlaceholder": "قانونی ادارہ منتخب کریں (اختیاری)",
+        "branchPlaceholder": "برانچ منتخب کریں (اختیاری)",
+        "tenantScope": "ٹینینٹ بھر میں"
+      },
+      "sections": {
+        "basic": "بنیادی معلومات",
+        "location": "مقام",
+        "dates": "مؤثر تاریخیں",
+        "overview": "جائزہ",
+        "scope": "دائرہ کار",
+        "system": "نظام کی معلومات"
+      },
+      "validation": {
+        "nameRequired": "جیوفینس کا نام ضروری ہے۔",
+        "nameMax": "نام زیادہ سے زیادہ 200 حروف کا ہو۔",
+        "latRange": "عرض بلد -90 اور 90 کے درمیان ہونا چاہیے۔",
+        "lngRange": "طول بلد -180 اور 180 کے درمیان ہونا چاہیے۔",
+        "radiusRange": "رداس {min} اور {max} میٹر کے درمیان ہونی چاہیے۔",
+        "dateOrder": "فعال ختم تاریخ شروع تاریخ کے بعد ہونی چاہیے۔"
+      },
+      "actions": {
+        "create": "جیوفینس بنائیں",
+        "createFirst": "پہلی جیوفینس بنائیں",
+        "edit": "ترمیم",
+        "delete": "حذف",
+        "check": "مقام چیک کریں",
+        "save": "محفوظ کریں",
+        "saving": "محفوظ ہو رہا ہے…",
+        "cancel": "منسوخ",
+        "confirmDelete": "جیوفینس حذف کریں",
+        "view": "دیکھیں"
+      },
+      "confirm": {
+        "delete": "اس جیوفینس کو حذف کریں؟ اس سے وابستہ مقام چیک رک جائیں گے۔",
+        "deleteNamed": "“{name}” حذف کریں؟ اس سے وابستہ مقام چیک رک جائیں گے۔"
+      },
+      "shape": {
+        "CIRCLE": "دائرہ"
+      },
+      "check": {
+        "title": "مقام چیک",
+        "description": "جانچیں کہ آیا کوئی محدد اس دائرہ جیوفینس کے اندر ہے۔",
+        "latitude": "عرض بلد",
+        "longitude": "طول بلد",
+        "at": "وقت (اختیاری)",
+        "submit": "چیک کریں",
+        "checking": "چیک ہو رہا ہے…",
+        "result": "نتیجہ",
+        "within": "جیوفینس کے اندر",
+        "outside": "جیوفینس کے باہر",
+        "distance": "فاصلہ: {distance} میٹر",
+        "exceedBy": "{exceedBy} میٹر زیادہ",
+        "close": "بند کریں"
+      },
+      "conflict": {
+        "title": "اس جیوفینس کو کسی اور صارف نے اپ ڈیٹ کر دیا ہے۔",
+        "description": "تبدیلیاں کرنے سے پہلے تازہ ترین ڈیٹا لوڈ کریں۔ آپ کی موجودہ ترمیمات جمع نہیں ہوں گی۔",
+        "reload": "تازہ ترین ڈیٹا لوڈ کریں",
+        "cancel": "منسوخ"
+      },
+      "versionConflict": "لوڈ کرنے کے بعد جیوفینس تبدیل ہو چکی ہے۔ دوبارہ لوڈ کر کے کوشش کریں۔",
+      "forbidden": "آپ کو جیوفینسز دیکھنے کی اجازت نہیں۔",
+      "a11y": {
+        "page": "حاضری جیوفینسز",
+        "table": "جیوفینسز کی جدول",
+        "coordinates": "محددات",
+        "openDetail": "جیوفینس {name} کھولیں",
+        "editGeofence": "جیوفینس {name} میں ترمیم",
+        "deleteGeofence": "جیوفینس {name} حذف کریں",
+        "checkLocation": "جیوفینس {name} کے خلاف مقام چیک کریں",
+        "numeric": "عددی قدر"
+      },
+      "new": {
+        "title": "جیوفینس بنائیں",
+        "description": "حاضری کیپچر تصدیق کے لیے دائرہ جیوفینس متعین کریں۔",
+        "breadcrumb": "نیا"
+      },
+      "detail": {
+        "title": "جیوفینس کی تفصیل",
+        "breadcrumb": "جیوفینس",
+        "notFound": "جیوفینس نہیں ملی۔"
+      },
+      "edit": {
+        "title": "جیوفینس میں ترمیم",
+        "description": "جیوفینس کی شکل یا فعال تاریخیں اپ ڈیٹ کریں۔",
+        "breadcrumb": "ترمیم"
+      }
+    },
+    "offline": {
+      "title": "آف لائن سیشنز",
+      "description": "آف لائن کیپچر سیشنز اور زیر التوا واقعات کی قطاروں کی نگرانی کریں۔",
+      "purpose": "آف لائن ہم آہنگی اور بازیابی کے لیے بنائے گئے حاضری کیپچر سیشنز کی نگرانی۔ یہ ملازم کی حاضری کی رپورٹ نہیں ہے۔",
+      "navLabel": "آف لائن سیشنز",
+      "loading": "آف لائن سیشنز لوڈ ہو رہے ہیں…",
+      "error": "آف لائن سیشنز لوڈ نہیں ہو سکے۔",
+      "forbidden": "آپ کو آف لائن سیشنز دیکھنے کی اجازت نہیں۔",
+      "success": {
+        "replayStarted": "آف لائن ری پلے مکمل ہو گیا۔",
+        "replaySummary": "پروسیس شدہ {processed}: {success} کامیاب، {errors} ناکام، {deduplicated} پہلے سے ری پلے۔",
+        "closed": "آف لائن سیشن بند کر دیا گیا۔",
+        "closedWithPending": "زیر التوا واقعات غیر متزامن ری پلے کے لیے قطار میں لگ گئے۔"
+      },
+      "errors": {
+        "replayFailed": "آف لائن سیشن ری پلے نہیں ہو سکا۔",
+        "closeFailed": "آف لائن سیشن بند نہیں ہو سکا۔",
+        "dateRange": "اختتامی تاریخ ابتدائی تاریخ کے برابر یا اس کے بعد ہونی چاہیے۔"
+      },
+      "empty": {
+        "title": "کوئی آف لائن سیشن نہیں",
+        "description": "کنیکٹیویٹی کے بغیر آلات چلنے پر آف لائن سیشنز یہاں نظر آئیں گے۔ سیشنز کیپچر ورک فلو سے بنتے ہیں، اس مانیٹر سے نہیں۔"
+      },
+      "filters": {
+        "status": "حیثیت",
+        "allStatuses": "تمام حیثیتیں",
+        "device": "آلہ",
+        "allDevices": "تمام آلات",
+        "dateFrom": "سے",
+        "dateTo": "تک"
+      },
+      "columns": {
+        "sessionId": "سیشن",
+        "deviceId": "آلہ",
+        "mobileDeviceId": "موبائل آلہ",
+        "startedAt": "شروع",
+        "endedAt": "ختم",
+        "clientTimezone": "کلائنٹ ٹائم زون",
+        "status": "حیثیت",
+        "pendingEvents": "زیر التوا واقعات",
+        "actions": "اقدامات"
+      },
+      "fields": {
+        "reason": "وجہ",
+        "reasonPlaceholder": "سیشن بند کرنے کی وجہ درج کریں",
+        "stillOpen": "ابھی کھلا ہے",
+        "sessionId": "سیشن آئی ڈی",
+        "device": "آلہ",
+        "mobileDeviceId": "موبائل آلہ آئی ڈی",
+        "clientTimezone": "کلائنٹ ٹائم زون",
+        "startedAt": "شروع کا وقت",
+        "endedAt": "اختتام کا وقت",
+        "status": "حیثیت"
+      },
+      "sections": {
+        "overview": "جائزہ",
+        "timing": "سیشن کا وقت",
+        "source": "کیپچر ماخذ",
+        "pending": "زیر التوا واقعات",
+        "actions": "بازیابی کے اقدامات"
+      },
+      "validation": {
+        "reasonRequired": "وجہ ضروری ہے۔",
+        "reasonMax": "وجہ زیادہ سے زیادہ ۵۰۰ حروف کی ہو سکتی ہے۔"
+      },
+      "actions": {
+        "view": "دیکھیں",
+        "replay": "قطار ری پلے کریں",
+        "close": "سیشن بند کریں",
+        "confirm": "تصدیق",
+        "cancel": "منسوخ",
+        "refresh": "تازہ کریں"
+      },
+      "confirm": {
+        "replay": "اس آف لائن سیشن کے زیر التوا واقعات ری پلے کریں؟ واقعات پروسیسنگ کے لیے جمع ہوں گے۔ ڈپلیکیٹ تحفظ بیک اینڈ پر نافذ رہتا ہے۔ فوری حاضری ریکارڈ کی ضمانت نہیں۔",
+        "replayNamed": "سیشن {id} کے زیر التوا واقعات ری پلے کریں؟ واقعات پروسیسنگ کے لیے جمع ہوں گے۔ ڈپلیکیٹ تحفظ بیک اینڈ پر نافذ رہتا ہے۔ فوری حاضری ریکارڈ کی ضمانت نہیں۔",
+        "close": "اس آف لائن سیشن کو بند کریں؟ نئی اپ لوڈز مسترد ہوں گی۔",
+        "closeNamed": "سیشن {id} ({device}) بند کریں؟ نئی اپ لوڈز مسترد ہوں گی۔",
+        "closeWithPending": "اس سیشن میں ابھی زیر التوا واقعات ہیں۔ بند کرنے پر انہیں غیر متزامن ری پلے کے لیے قطار میں لگایا جائے گا۔"
+      },
+      "sessionStatus": {
+        "ACTIVE": "فعال",
+        "CLOSED": "بند",
+        "COMPLETED": "مکمل"
+      },
+      "pendingStatus": {
+        "pending": "زیر التوا",
+        "completed": "مکمل",
+        "failed": "ناکام"
+      },
+      "pending": {
+        "title": "زیر التوا واقعات",
+        "empty": "کوئی زیر التوا واقعہ نہیں",
+        "emptyDescription": "اس سیشن کے لیے کوئی زیر التوا آف لائن قطار واقعہ نہیں۔",
+        "error": "زیر التوا واقعات لوڈ نہیں ہو سکے۔",
+        "sequence": "ترتیب",
+        "source": "ماخذ",
+        "status": "ری پلے حالت",
+        "uploadedAt": "اپ لوڈ",
+        "attempts": "کوششیں"
+      },
+      "detail": {
+        "title": "آف لائن سیشن",
+        "breadcrumb": "سیشن",
+        "description": "بازیابی کے لیے سیشن میٹا ڈیٹا اور آف لائن قطار کے زیر التوا واقعات۔",
+        "notFound": "آف لائن سیشن نہیں ملا۔"
+      },
+      "a11y": {
+        "page": "آف لائن کیپچر سیشنز",
+        "table": "آف لائن سیشنز کی جدول",
+        "pendingTable": "زیر التوا آف لائن واقعات کی جدول",
+        "openDetail": "آف لائن سیشن کھولیں",
+        "openDetailNamed": "آف لائن سیشن {id} کھولیں",
+        "sessionId": "سیشن شناخت کنندہ {id}",
+        "deviceId": "آلہ شناخت کنندہ {id}",
+        "sequence": "ترتیب نمبر {value}",
+        "status": "سیشن حیثیت {status}"
+      },
+      "pagination": {
+        "showing": "{total} میں سے {from}–{to} دکھائے جا رہے ہیں",
+        "previous": "پچھلا صفحہ",
+        "next": "اگلا صفحہ"
+      }
+    },
+    "deviceHealth": {
+      "title": "آلے کی ہیلتھ",
+      "description": "ٹینینٹ بھر میں کیپچر آلات کی ہیلتھ کا خلاصہ۔",
+      "loading": "آلے کی ہیلتھ لوڈ ہو رہی ہے…",
+      "error": "آلے کی ہیلتھ لوڈ نہیں ہو سکی۔",
+      "empty": {
+        "title": "کوئی ہیلتھ ڈیٹا نہیں",
+        "description": "آلات ہارٹ بیٹ بھیجنے کے بعد ہیلتھ خلاصہ ظاہر ہوتا ہے۔"
+      },
+      "columns": {
+        "device": "آلہ",
+        "health": "ہیلتھ",
+        "lastSeenAt": "آخری بار دیکھا",
+        "averageCpu": "اوسط سی پی یو",
+        "averageMemory": "اوسط میموری",
+        "averageDisk": "اوسط ڈسک",
+        "outstandingQueue": "قطار"
+      },
+      "status": {
+        "HEALTHY": "صحت مند",
+        "DEGRADED": "کمزور",
+        "UNHEALTHY": "غیر صحت مند",
+        "OFFLINE": "آف لائن",
+        "SUSPENDED": "معطل",
+        "DECOMMISSIONED": "خارج"
+      },
+      "a11y": {
+        "status": "آلے کی ہیلتھ {status}",
+        "summary": "آلے کی ہیلتھ کا خلاصہ"
+      }
+    },
+    "deviceToken": {
+      "title": "ڈیوائس ٹوکن",
+      "issue": "ڈیوائس ٹوکن جاری کریں",
+      "issued": "ٹوکن جاری ہو گیا",
+      "warning": {
+        "title": "یہ ٹوکن ابھی کاپی کریں",
+        "body": "یہ ڈیوائس ٹوکن صرف ایک بار دکھایا جاتا ہے۔ اسے آلے پر محفوظ رکھیں۔ دوبارہ حاصل نہیں کیا جا سکتا۔"
+      },
+      "fields": {
+        "token": "ٹوکن",
+        "tokenType": "ٹوکن کی قسم",
+        "expiresIn": "میعاد",
+        "expiresAt": "میعاد ختم"
+      },
+      "actions": {
+        "copy": "ٹوکن کاپی کریں",
+        "copied": "ٹوکن کاپی ہو گیا",
+        "dismiss": "مکمل"
+      },
+      "errors": {
+        "issueFailed": "ڈیوائس ٹوکن جاری نہیں ہو سکا۔"
+      },
+      "a11y": {
+        "dialog": "یک وقتی ڈیوائس ٹوکن",
+        "copy": "ڈیوائس ٹوکن کلپ بورڈ پر کاپی کریں",
+        "tokenValue": "ڈیوائس ٹوکن کی قدر"
+      }
+    },
+    "periodLock": {
+      "title": "Attendance period lock",
+      "description": "Lock a date range to prevent retroactive attendance changes.",
+      "start": "Period start",
+      "end": "Period end",
+      "lock": "Lock period"
     }
   },
   "employees": {
     "directory": {
-      "title": "ملازمین",
-      "description": "تمام قانونی اداروں میں ملازمین کی ڈائریکٹری کا انتظام کریں۔"
+      "title": "Employees",
+      "description": "Manage your employee directory across all legal entities."
     },
-    "createButton": "ملازم شامل کریں",
-    "searchPlaceholder": "نام، ای میل یا نمبر سے تلاش کریں…",
+    "createButton": "Add employee",
+    "searchPlaceholder": "Search by name, email or number…",
     "filters": {
-      "allStatuses": "تمام حالتیں",
-      "allTypes": "تمام اقسام"
+      "allStatuses": "All statuses",
+      "allTypes": "All types"
+    },
+    "status": {
+      "ACTIVE": "Active",
+      "PROBATION": "Probation",
+      "ON_LEAVE": "On leave",
+      "INACTIVE": "Inactive",
+      "TERMINATED": "Terminated"
+    },
+    "employmentType": {
+      "FULL_TIME": "Full-time",
+      "PART_TIME": "Part-time",
+      "CONTRACT": "Contract",
+      "INTERN": "Intern"
+    },
+    "gender": {
+      "MALE": "Male",
+      "FEMALE": "Female",
+      "OTHER": "Other",
+      "UNDISCLOSED": "Prefer not to say"
+    },
+    "maritalStatus": {
+      "SINGLE": "Single",
+      "MARRIED": "Married",
+      "DIVORCED": "Divorced",
+      "WIDOWED": "Widowed",
+      "SEPARATED": "Separated",
+      "UNDISCLOSED": "Prefer not to say"
+    },
+    "columns": {
+      "name": "Name",
+      "email": "Work email",
+      "type": "Type",
+      "hireDate": "Hire date",
+      "status": "Status"
+    },
+    "empty": {
+      "title": "No employees found",
+      "description": "Add your first employee to get started."
+    },
+    "fields": {
+      "firstName": "First name",
+      "firstNamePlaceholder": "Enter first name",
+      "lastName": "Last name",
+      "lastNamePlaceholder": "Enter last name",
+      "gender": "Gender",
+      "genderPlaceholder": "Select gender (optional)",
+      "dateOfBirth": "Date of birth",
+      "nationalId": "National ID (CNIC)",
+      "nationalIdPlaceholder": "e.g. 42201-1234567-8",
+      "emailWork": "Work email",
+      "emailWorkPlaceholder": "name@company.com",
+      "emailPersonal": "Personal email",
+      "emailPersonalPlaceholder": "name@personal.com",
+      "phoneWork": "Work phone",
+      "phoneWorkPlaceholder": "+92 21 1234567",
+      "phoneMobile": "Mobile",
+      "phoneMobilePlaceholder": "+92 300 1234567",
+      "hireDate": "Hire date",
+      "terminationDate": "Termination date",
+      "employmentType": "Employment type",
+      "status": "Status",
+      "legalEntityId": "Legal entity ID",
+      "legalEntityIdPlaceholder": "Enter legal entity UUID",
+      "managerId": "Manager ID",
+      "managerIdPlaceholder": "Enter manager employee UUID (optional)",
+      "legalEntity": "Legal entity",
+      "legalEntityPlaceholder": "Select legal entity",
+      "branch": "Branch",
+      "branchPlaceholder": "Select branch (optional)",
+      "department": "Department",
+      "departmentPlaceholder": "Select department (optional)",
+      "position": "Position",
+      "positionPlaceholder": "Select position (optional)",
+      "manager": "Reporting manager",
+      "managerPlaceholder": "Search by name or email…",
+      "departmentId": "Department ID",
+      "positionId": "Position ID"
+    },
+    "create": {
+      "title": "Add employee",
+      "description": "Create a new employee record.",
+      "breadcrumb": "New employee",
+      "sectionIdentity": "Identity",
+      "sectionContact": "Contact",
+      "sectionEmployment": "Employment",
+      "sectionOrgAssignment": "Organisation assignment",
+      "sectionPersonalDetail": "Personal detail (optional)",
+      "submitButton": "Create employee"
+    },
+    "edit": {
+      "title": "Edit employee",
+      "breadcrumb": "Edit"
+    },
+    "detail": {
+      "breadcrumb": "Employee detail",
+      "tabProfile": "Profile",
+      "tabPersonal": "Personal details",
+      "sectionEmployment": "Employment",
+      "sectionContact": "Contact"
+    },
+    "personalDetail": {
+      "notFound": "No personal details have been recorded yet.",
+      "sectionDetails": "Personal details",
+      "sectionNextOfKin": "Next of kin",
+      "fields": {
+        "nationality": "Nationality",
+        "countryOfBirth": "Country of birth",
+        "maritalStatus": "Marital status",
+        "addressLine1": "Address line 1",
+        "addressLine2": "Address line 2",
+        "city": "City",
+        "stateProvince": "State / Province",
+        "postalCode": "Postal code",
+        "countryCode": "Country",
+        "nextOfKinName": "Full name",
+        "nextOfKinRelationship": "Relationship",
+        "nextOfKinPhone": "Phone"
+      }
+    },
+    "importButton": "Import",
+    "dataQualityButton": "Data quality",
+    "actions": {
+      "transfer": "Transfer",
+      "changeStatus": "Change status",
+      "timeline": "Timeline"
+    },
+    "statusChange": {
+      "title": "Change employee status",
+      "status": "Status",
+      "effectiveDate": "Effective date",
+      "reason": "Reason"
+    },
+    "transfer": {
+      "title": "Transfer employee",
+      "currentAssignment": "Current assignment",
+      "effectiveDate": "Effective date",
+      "reason": "Reason"
+    },
+    "timeline": {
+      "title": "Employee timeline"
+    },
+    "import": {
+      "title": "Bulk employee import",
+      "description": "Validate and commit employee rows. Data is not saved until you confirm.",
+      "rowsJson": "Employee rows (JSON array)",
+      "invalidJson": "Invalid JSON",
+      "validate": "Validate import",
+      "status": "Import status",
+      "counts": "Valid {valid} · Warnings {warning} · Errors {error}",
+      "commit": "Commit valid rows",
+      "committed": "Committed {count} employees"
+    },
+    "dataQuality": {
+      "title": "ملازم ڈیٹا کوالٹی",
+      "description": "فرق جو ایچ آر گو-لائیو مکمل ہونے میں رکاوٹ بنتے ہیں۔",
+      "activeEmployees": "اسکوپ میں {count} فعال ملازمین",
+      "activeEmployeesLabel": "فعال ملازمین",
+      "missingManager": "مینجر غائب",
+      "missingDepartment": "محکمہ غائب",
+      "missingShift": "شفٹ غائب",
+      "missingMandatoryFields": "لازمی خانے غائب",
+      "missingCompensation": "معاوضہ غائب",
+      "expiredDocuments": "میعاد ختم دستاویزات",
+      "duplicateIdentifiers": "ڈپلیکیٹ شناختیں",
+      "inactiveStructureAssignments": "غیر فعال ساخت تفویضات",
+      "samplesTitle": "توجہ درکار ملازمین",
+      "samplesDescription": "فرق دور کرنے کے لیے نمونہ ملازم ریکارڈ کھولیں۔",
+      "openEmployee": "ملازم کھولیں"
+    }
+  },
+  "shifts": {
+    "title": "شفٹیں",
+    "description": "روستر اور حاضری کے لیے قابلِ استعمال کام کے اوقات کی تعریفیں۔",
+    "forbidden": "آپ کو شفٹیں دیکھنے کی اجازت نہیں ہے۔",
+    "columns": {
+      "shift": "شفٹ",
+      "code": "کوڈ",
+      "startEnd": "آغاز / اختتام",
+      "requiredHours": "مطلوبہ ساعات",
+      "break": "وقفہ",
+      "overnight": "رات بھر",
+      "policy": "حاضری پالیسی",
+      "status": "حیثیت",
+      "actions": "اقدامات",
+      "assigned": "تفویض شدہ ملازمین"
     },
     "status": {
       "ACTIVE": "فعال",
-      "PROBATION": "آزمائشی",
-      "ON_LEAVE": "چھٹی پر",
-      "INACTIVE": "غیر فعال",
-      "TERMINATED": "برخاست"
+      "INACTIVE": "غیر فعال"
     },
-    "employmentType": {
-      "FULL_TIME": "مکمل وقت",
-      "PART_TIME": "جز وقتی",
-      "CONTRACT": "معاہدہ",
-      "INTERN": "انٹرن"
-    },
-    "gender": {
-      "MALE": "مرد",
-      "FEMALE": "خاتون",
-      "OTHER": "دیگر",
-      "UNDISCLOSED": "ظاہر نہ کرنا"
-    },
-    "maritalStatus": {
-      "SINGLE": "غیر شادی شدہ",
-      "MARRIED": "شادی شدہ",
-      "DIVORCED": "طلاق یافتہ",
-      "WIDOWED": "بیوہ",
-      "SEPARATED": "علیحدہ",
-      "UNDISCLOSED": "ظاہر نہ کرنا"
-    },
-    "columns": {
-      "name": "نام",
-      "email": "دفتری ای میل",
-      "type": "قسم",
-      "hireDate": "تقرری تاریخ",
-      "status": "حالت"
-    },
-    "empty": {
-      "title": "کوئی ملازم نہیں ملا",
-      "description": "شروع کرنے کے لیے پہلا ملازم شامل کریں۔"
+    "overnight": {
+      "yes": "رات بھر",
+      "no": "دن"
     },
     "fields": {
-      "firstName": "پہلا نام",
-      "firstNamePlaceholder": "پہلا نام درج کریں",
-      "lastName": "آخری نام",
-      "lastNamePlaceholder": "آخری نام درج کریں",
-      "gender": "جنس",
-      "genderPlaceholder": "جنس منتخب کریں (اختیاری)",
-      "dateOfBirth": "تاریخ پیدائش",
-      "nationalId": "قومی شناختی کارڈ",
-      "nationalIdPlaceholder": "مثلاً 42201-1234567-8",
-      "emailWork": "دفتری ای میل",
-      "emailWorkPlaceholder": "name@company.com",
-      "emailPersonal": "ذاتی ای میل",
-      "emailPersonalPlaceholder": "name@personal.com",
-      "phoneWork": "دفتری فون",
-      "phoneWorkPlaceholder": "+92 21 1234567",
-      "phoneMobile": "موبائل",
-      "phoneMobilePlaceholder": "+92 300 1234567",
-      "hireDate": "تقرری تاریخ",
-      "terminationDate": "برخاستگی تاریخ",
-      "employmentType": "ملازمت کی قسم",
-      "status": "حالت",
-      "legalEntityId": "قانونی ادارے کی شناخت",
-      "legalEntityIdPlaceholder": "قانونی ادارے کا UUID درج کریں",
-      "managerId": "رپورٹنگ مینیجر کی شناخت",
-      "managerIdPlaceholder": "مینیجر ملازم کا UUID درج کریں (اختیاری)",
-      "legalEntity": "قانونی ادارہ",
-      "legalEntityPlaceholder": "قانونی ادارہ منتخب کریں",
-      "branch": "برانچ",
-      "branchPlaceholder": "برانچ منتخب کریں (اختیاری)",
-      "department": "محکمہ",
-      "departmentPlaceholder": "محکمہ منتخب کریں (اختیاری)",
-      "position": "عہدہ",
-      "positionPlaceholder": "عہدہ منتخب کریں (اختیاری)",
-      "manager": "رپورٹنگ مینیجر",
-      "managerPlaceholder": "نام یا ای میل سے تلاش کریں…"
+      "code": "شفٹ کوڈ",
+      "name": "شفٹ کا نام",
+      "policy": "حاضری پالیسی",
+      "policyPlaceholder": "پالیسی منتخب کریں",
+      "policyHint": "گریس، تاخیر اور اوورٹائم قواعد منسلک پالیسی سے آتے ہیں۔",
+      "policyLink": "حاضری پالیسیاں منظم کریں",
+      "start": "آغاز کا وقت",
+      "end": "اختتام کا وقت",
+      "overnight": "رات بھر کی شفٹ (اگلے دن ختم)",
+      "requiredMinutes": "مطلوبہ منٹ",
+      "breakMinutes": "وقفے کی مدت (منٹ)",
+      "breakPaid": "وقفہ ادا شدہ ہے",
+      "paid": "ادا شدہ",
+      "unpaid": "غیر ادا شدہ",
+      "checkInBefore": "چیک اِن ونڈو سے پہلے (منٹ)",
+      "checkInAfter": "چیک اِن ونڈو کے بعد (منٹ)",
+      "checkOutAfter": "چیک آؤٹ ونڈو کے بعد (منٹ)",
+      "effectiveFrom": "موثر از",
+      "effectiveTo": "موثر تا (خارجی)",
+      "version": "ورژن"
     },
-    "create": {
-      "title": "ملازم شامل کریں",
-      "description": "نیا ملازم ریکارڈ بنائیں۔",
-      "breadcrumb": "نیا ملازم",
-      "sectionIdentity": "شناخت",
-      "sectionContact": "رابطہ",
-      "sectionEmployment": "ملازمت",
-      "sectionOrgAssignment": "تنظیمی تفویض",
-      "sectionPersonalDetail": "ذاتی تفصیل (اختیاری)",
-      "submitButton": "ملازم بنائیں"
+    "sections": {
+      "basic": "بنیادی معلومات",
+      "timing": "بنیادی اوقات",
+      "break": "وقفہ",
+      "windows": "حاضری ونڈوز",
+      "effective": "موثر تاریخیں",
+      "policyRules": "حاضری تشخیصی قواعد"
+    },
+    "policyReadOnly": {
+      "hint": "یہ اقدار حاضری پالیسی کی ملکیت ہیں اور یہاں ترمیم نہیں ہو سکتیں۔",
+      "selectPolicy": "تشخیصی قواعد دیکھنے کے لیے حاضری پالیسی منتخب کریں۔",
+      "grace": "گریس مدت",
+      "lateTolerance": "تاخیر کی حد",
+      "earlyDeparture": "جلد روانگی کی حد",
+      "overtime": "اوورٹائم",
+      "enabled": "فعال",
+      "disabled": "غیر فعال",
+      "minutes": "منٹ"
+    },
+    "actions": {
+      "create": "شفٹ بنائیں",
+      "edit": "ترمیم",
+      "save": "محفوظ کریں",
+      "deactivate": "غیر فعال کریں",
+      "cancel": "منسوخ",
+      "assign": "شفٹ تفویض کریں",
+      "viewAssignments": "تفویضات",
+      "viewRoster": "روسٹر کیلنڈر"
+    },
+    "filters": {
+      "search": "شفٹیں تلاش کریں",
+      "searchPlaceholder": "نام یا کوڈ سے تلاش کریں",
+      "status": "حیثیت",
+      "allStatuses": "تمام حیثیتیں"
+    },
+    "empty": {
+      "title": "ابھی کوئی شفٹ نہیں",
+      "description": "روسترنگ شروع کرنے کے لیے قابلِ استعمال شفٹ ٹیمپلیٹ بنائیں۔"
+    },
+    "errors": {
+      "loadFailed": "شفٹیں لوڈ نہیں ہو سکیں۔",
+      "saveFailed": "شفٹ محفوظ نہیں ہو سکی۔",
+      "deactivateFailed": "شفٹ غیر فعال نہیں ہو سکی۔"
+    },
+    "success": {
+      "created": "شفٹ بنا دی گئی۔",
+      "updated": "شفٹ اپ ڈیٹ ہو گئی۔",
+      "versionCreated": "نیا شفٹ ورژن v{version} بنایا گیا۔ تاریخی ورژن محفوظ ہیں۔",
+      "deactivated": "شفٹ غیر فعال کر دی گئی۔"
+    },
+    "validation": {
+      "codeRequired": "شفٹ کوڈ لازمی ہے۔",
+      "nameRequired": "شفٹ کا نام لازمی ہے۔",
+      "policyRequired": "حاضری پالیسی لازمی ہے۔",
+      "timesRequired": "آغاز اور اختتام کا وقت لازمی ہے۔",
+      "requiredMinutes": "مطلوبہ منٹ صفر سے زیادہ ہوں۔",
+      "breakMinutes": "وقفے کے منٹ منفی نہیں ہو سکتے۔",
+      "dateRange": "موثر تا تاریخ، موثر از کے بعد ہونی چاہیے۔",
+      "dayTimes": "دن کی شفٹ میں اختتام آغاز کے بعد ہونا چاہیے۔",
+      "overnightTimes": "رات بھر کی شفٹ میں اختتام آغاز سے پہلے ہونا چاہیے (اگلا دن)۔"
+    },
+    "version": {
+      "warning": "ان شیڈول تبدیلیوں کو محفوظ کرنے سے نیا شفٹ ورژن بنے گا اور پرانا ورژن تاریخ کے لیے محفوظ رہے گا۔"
+    },
+    "conflict": {
+      "title": "شفٹ کہیں اور تبدیل ہو گئی",
+      "description": "اس شفٹ کو کسی اور نے اپ ڈیٹ کیا۔ تازہ ورژن دیکھنے کے لیے دوبارہ لوڈ کریں، پھر کوشش کریں۔",
+      "reload": "دوبارہ لوڈ",
+      "cancel": "منسوخ"
+    },
+    "deactivate": {
+      "title": "شفٹ غیر فعال کریں؟",
+      "description": "“{name}” نئی تفویضات کے لیے دستیاب نہیں رہے گی۔ تاریخی ریکارڈ دستیاب رہیں گے۔"
+    },
+    "new": {
+      "title": "شفٹ بنائیں",
+      "description": "قابلِ استعمال کام کا نمونہ متعین کریں۔",
+      "breadcrumb": "نیا"
     },
     "edit": {
-      "title": "ملازم میں ترمیم",
+      "title": "شفٹ میں ترمیم",
+      "description": "“{name}” کو اپ ڈیٹ کریں۔ اہم شیڈول تبدیلیاں نیا ورژن بناتی ہیں۔",
       "breadcrumb": "ترمیم"
     },
     "detail": {
-      "breadcrumb": "ملازم کی تفصیل",
-      "tabProfile": "پروفائل",
-      "tabPersonal": "ذاتی تفصیلات",
-      "sectionEmployment": "ملازمت",
-      "sectionContact": "رابطہ"
+      "notFound": "شفٹ نہیں ملی۔"
     },
-    "personalDetail": {
-      "notFound": "ابھی تک کوئی ذاتی تفصیلات درج نہیں کی گئیں۔",
-      "sectionDetails": "ذاتی تفصیلات",
-      "sectionNextOfKin": "قریبی رشتہ دار",
+    "pagination": {
+      "showing": "{total} میں سے {from}–{to} دکھا رہے ہیں",
+      "previous": "پچھلا",
+      "next": "اگلا"
+    },
+    "a11y": {
+      "table": "شفٹوں کی جدول"
+    },
+    "assign": {
+      "title": "شفٹ تفویض کریں",
+      "description": "ملازمین یا موجودہ شعبہ کے اراکین کے لیے مؤثر تاریخ والی ڈیفالٹ کام کی ترتیب مقرر کریں۔",
+      "breadcrumb": "تفویض",
+      "sections": {
+        "target": "تفویض کا ہدف",
+        "configuration": "تفویض کی ترتیب"
+      },
+      "mode": {
+        "employees": "ملازمین",
+        "department": "شعبہ"
+      },
       "fields": {
-        "nationality": "قومیت",
-        "countryOfBirth": "ملک پیدائش",
-        "maritalStatus": "ازدواجی حالت",
-        "addressLine1": "پتہ لائن 1",
-        "addressLine2": "پتہ لائن 2",
-        "city": "شہر",
-        "stateProvince": "صوبہ",
-        "postalCode": "پوسٹل کوڈ",
-        "countryCode": "ملک",
-        "nextOfKinName": "مکمل نام",
-        "nextOfKinRelationship": "رشتہ",
-        "nextOfKinPhone": "فون"
+        "employees": "ملازمین",
+        "department": "شعبہ",
+        "departmentPlaceholder": "شعبہ منتخب کریں",
+        "shift": "شفٹ",
+        "shiftPlaceholder": "فعال شفٹ منتخب کریں",
+        "effectiveFrom": "مؤثر از",
+        "effectiveTo": "مؤثر تا",
+        "effectiveToHint": "کھلی مدت کے لیے خالی چھوڑیں۔ اختتامی تاریخ غیر شامل ہے۔",
+        "location": "مقام (برانچ)",
+        "locationPlaceholder": "اختیاری برانچ / مقام"
+      },
+      "employeeSearch": "نام یا ای میل سے ملازمین تلاش کریں…",
+      "selectedEmployees": "منتخب ملازمین",
+      "removeEmployee": "ملازم ہٹائیں",
+      "snapshotHint": "تفویض کے وقت موجودہ فعال شعبہ کے اراکین پر لاگو ہوتا ہے۔ بعد میں شامل ہونے والے ملازمین خود بخود وراثت نہیں پاتے۔",
+      "actions": {
+        "submit": "شفٹ تفویض کریں"
+      },
+      "validation": {
+        "shiftRequired": "شفٹ منتخب کریں۔",
+        "fromRequired": "مؤثر از لازمی ہے۔",
+        "range": "مؤثر تا، مؤثر از کے بعد ہونا چاہیے۔",
+        "employeesRequired": "کم از کم ایک ملازم منتخب کریں۔",
+        "departmentRequired": "شعبہ منتخب کریں۔"
+      },
+      "overlap": {
+        "title": "ہم پوش تفویضات",
+        "description": "ایک یا زیادہ ملازمین کے پاس پہلے سے ڈیفالٹ شفٹ ہے جو اس مدت سے ٹکراتی ہے۔",
+        "row": "ملازم {employeeId}: {from} → {to}",
+        "openEnded": "کھلی",
+        "override": "موجودہ کو منسوخ کر کے تفویض کریں",
+        "noOverridePermission": "آپ کو ہم پوش تفویضات منسوخ کرنے کی اجازت نہیں ہے۔"
+      },
+      "success": {
+        "summary": "{resolved} میں سے {created} ملازمین کو تفویض کیا گیا ({overridden} منسوخی)۔"
+      },
+      "errors": {
+        "assignFailed": "شفٹ تفویض نہیں ہو سکی۔"
       }
+    },
+    "assignments": {
+      "title": "شفٹ تفویضات",
+      "description": "مؤثر تاریخ والی ڈیفالٹ کام کی ترتیبات۔ یہ شائع شدہ روسٹر کیلنڈر نہیں ہے۔",
+      "breadcrumb": "تفویضات",
+      "openEnded": "کھلی",
+      "columns": {
+        "employee": "ملازم",
+        "shift": "شفٹ",
+        "range": "مؤثر مدت",
+        "source": "ماخذ",
+        "location": "مقام (برانچ)"
+      },
+      "actions": {
+        "assign": "شفٹ تفویض کریں"
+      },
+      "empty": {
+        "title": "ابھی کوئی تفویض نہیں",
+        "description": "ملازمین یا شعبے کو ڈیفالٹ شفٹ تفویض کریں۔"
+      },
+      "errors": {
+        "loadFailed": "تفویضات لوڈ نہیں ہو سکیں۔"
+      },
+      "a11y": {
+        "table": "شفٹ تفویضات کی جدول"
+      }
+    }
+  },
+  "roster": {
+    "title": "روسٹر کیلنڈر",
+    "description": "تاریخ وار روسٹر تفویضات کی منصوبہ بندی اور اشاعت۔ ڈرافٹ اشاعت تک حاضری پر اثر نہیں ڈالتے۔",
+    "truncated": "نظر آنے والی مدت صفحہ سائز سے زیادہ قطاریں واپس لائی۔ فلٹر یا تاریخ کی حد تنگ کریں۔",
+    "views": {
+      "label": "کیلنڈر منظر",
+      "day": "دن",
+      "week": "ہفتہ",
+      "month": "مہینہ"
+    },
+    "nav": {
+      "prev": "پچھلی مدت",
+      "next": "اگلی مدت",
+      "today": "آج"
+    },
+    "filters": {
+      "search": "ملازمین تلاش کریں",
+      "department": "شعبہ",
+      "branch": "برانچ"
+    },
+    "actions": {
+      "assign": "شفٹ تفویض",
+      "rest": "آرام کا دن",
+      "applyPattern": "پیٹرن لگائیں",
+      "copyWeek": "ہفتہ کاپی کریں",
+      "copyWeekDeferred": "کاپی ہفتہ موخر ہے — مصنوعات کی تعریف زیر ہے",
+      "publish": "روسٹر شائع کریں",
+      "refresh": "تازہ کریں",
+      "retry": "دوبارہ کوشش"
+    },
+    "legend": {
+      "label": "علامات",
+      "rest": "آرام کا دن",
+      "draft": "ڈرافٹ",
+      "published": "شائع شدہ"
+    },
+    "grid": {
+      "employee": "ملازم"
+    },
+    "empty": {
+      "employees": "موجودہ فلٹرز سے کوئی ملازم نہیں ملا",
+      "employeesHint": "تلاش، شعبہ یا برانچ فلٹر تبدیل کریں۔"
+    },
+    "error": {
+      "title": "روسٹر لوڈ نہیں ہو سکا"
+    },
+    "cell": {
+      "draft": "ڈرافٹ",
+      "published": "شائع شدہ",
+      "restDay": "آرام کا دن",
+      "overnight": "رات بھر",
+      "emptyAria": "{employee} کے لیے {date} پر کوئی روسٹر نہیں۔ تفویض کے لیے فعال کریں۔",
+      "filledAria": "{employee} · {date}: {status}۔ {detail}"
+    },
+    "assign": {
+      "titleAssign": "روسٹر شفٹ تفویض",
+      "titleRest": "آرام کا دن تفویض",
+      "titlePattern": "پیٹرن لگائیں",
+      "draftHint": "ڈرافٹ قطاریں بناتی ہے۔ حاضری کے لیے الگ سے شائع کریں۔",
+      "patternHint": "موجودہ تکرار (روزانہ / ہفتہ وار) استعمال ہوتی ہے۔ قطاریں ڈرافٹ رہتی ہیں۔",
+      "draftNotice": "تمام نئی قطاریں اشاعت تک ڈرافٹ رہتی ہیں۔",
+      "target": "ہدف",
+      "employees": "ملازمین",
+      "department": "شعبے کا سنیپ شاٹ",
+      "selectDepartment": "شعبہ منتخب کریں",
+      "shift": "شفٹ",
+      "selectShift": "شفٹ منتخب کریں",
+      "startDate": "شروع کی تاریخ",
+      "endDate": "اختتام کی تاریخ",
+      "branchOptional": "برانچ (اختیاری)",
+      "selectBranch": "برانچ منتخب کریں",
+      "recurrence": "تکرار",
+      "daily": "روزانہ",
+      "weekly": "ہفتہ وار",
+      "restWeekdays": "ان ہفتہ کے دنوں کو آرام نشان زد کریں",
+      "weekday": {
+        "0": "اتوار",
+        "1": "پیر",
+        "2": "منگل",
+        "3": "بدھ",
+        "4": "جمعرات",
+        "5": "جمعہ",
+        "6": "ہفتہ"
+      },
+      "cancel": "منسوخ",
+      "submit": "ڈرافٹ بنائیں",
+      "overrideConfirm": "اووررائیڈ کر کے ڈرافٹ بنائیں",
+      "success": "ڈرافٹ روسٹر تفویض بن گئی",
+      "conflictTitle": "روسٹر تصادم",
+      "conflictNoOverride": "آپ کے پاس اووررائیڈ اجازت نہیں۔ تاریخیں یا اہداف تبدیل کریں۔",
+      "conflictOverrideHint": "اووررائیڈ موجودہ ڈرافٹ ٹپ کو بدل دیتا ہے یا شائع شدہ کو بعد میں سپرسید کرتا ہے۔",
+      "validation": {
+        "datesRequired": "شروع اور اختتام کی تاریخیں درکار ہیں۔",
+        "range": "اختتام شروع کے برابر یا بعد ہونا چاہیے۔",
+        "employeesRequired": "کم از کم ایک ملازم منتخب کریں۔",
+        "departmentRequired": "شعبہ منتخب کریں۔",
+        "shiftRequired": "شفٹ منتخب کریں۔",
+        "daysOfWeek": "ہفتہ وار تکرار کے لیے کم از کم ایک دن منتخب کریں۔"
+      }
+    },
+    "edit": {
+      "title": "ڈرافٹ روسٹر میں ترمیم",
+      "description": "صرف موجودہ ڈرافٹ ٹپ میں ترمیم ممکن ہے۔",
+      "restDay": "آرام کا دن",
+      "cancel": "منسوخ",
+      "save": "محفوظ کریں",
+      "success": "ڈرافٹ اپ ڈیٹ ہو گیا"
+    },
+    "conflict": {
+      "staleTitle": "روسٹر تبدیل ہو گیا",
+      "staleBody": "اس ڈرافٹ کو کسی اور نے اپ ڈیٹ کیا۔ تازہ ورژن دیکھنے کے لیے دوبارہ لوڈ کریں۔ آپ کی تبدیلیاں محفوظ نہیں ہوئیں۔",
+      "cancel": "منسوخ",
+      "reload": "دوبارہ لوڈ"
+    },
+    "publish": {
+      "title": "روسٹر شائع کریں",
+      "description": "{from} سے {to} تک ڈرافٹ ٹپس شائع کریں۔ حاضری خودکار دوبارہ حساب نہیں ہوتی۔",
+      "noRecalc": "اشاعت صرف مستقبل کی شیڈول قرارداد بدلتی ہے۔ موجودہ حاضری ریکارڈ خودکار دوبارہ حساب نہیں ہوتے۔",
+      "cancel": "منسوخ",
+      "submit": "شائع کریں",
+      "confirmAndPublish": "اثر کی تصدیق کر کے شائع کریں",
+      "overrideLocked": "لاک شدہ حاضری اووررائیڈ کر کے شائع کریں",
+      "confirmAttendance": "موجودہ غیر مقفل حاضری متاثر ہوگی۔ جاری رکھنے کی تصدیق کریں۔",
+      "lockedOverride": "مدت مقفل حاضری متاثر ہے۔ اووررائیڈ کے لیے roster.override درکار ہے۔",
+      "lockedDenied": "مدت مقفل حاضری متاثر ہے۔ جاری رکھنے کے لیے roster.override درکار ہے۔",
+      "success": "{count} روسٹر قطار(یں) شائع ہوئیں"
+    }
+  },
+  "hr": {
+    "dashboard": {
+      "title": "ایچ آر ڈیش بورڈ",
+      "description": "ورک فورس کی صحت اور مطلوبہ اقدامات کا حقیقی وقتی آپریشنل منظر۔",
+      "activeEmployees": "فعال ملازمین",
+      "onboardingInProgress": "آن بورڈنگ جاری",
+      "overdueTasks": "موعود آن بورڈنگ کام",
+      "unresolvedExceptions": "غیر حل شدہ حاضری استثنائات",
+      "presentToday": "آج حاضر",
+      "docsPending": "زیر جائزہ دستاویزات",
+      "docsExpiring": "ختم ہونے والی دستاویزات (۳۰ دن)",
+      "missingManager": "مینجر کے بغیر ملازمین",
+      "importEmployees": "ملازمین درآمد کریں",
+      "dataQuality": "ڈیٹا کوالٹی",
+      "kpis": {
+        "activeEmployees": "فعال ملازمین",
+        "presentToday": "آج حاضر",
+        "onLeaveToday": "چھٹی پر",
+        "pendingApprovals": "زیر التوا منظوریاں",
+        "newJoiners": "نئے شامل شدہ",
+        "exits": "خروج",
+        "probationDue": "پروبیشن قریب",
+        "documentsExpiring": "ختم ہونے والی دستاویزات"
+      },
+      "charts": {
+        "attendanceTrend": "حاضری رجحان",
+        "workforceComposition": "ورک فورس ساخت",
+        "headcountGrowth": "ہیڈکاؤنٹ نمو",
+        "leaveUtilisation": "چھٹی کا استعمال",
+        "empty": "منتخب مدت کے لیے چارٹ ڈیٹا دستیاب نہیں۔",
+        "unassignedDepartment": "غیر تفویض"
+      },
+      "actionCentre": {
+        "title": "ایکشن سینٹر",
+        "empty": "ایچ آر توجہ کی ضرورت والا کوئی کھلا کام نہیں۔",
+        "review": "جائزہ",
+        "items": {
+          "attendanceExceptions": "{count} حاضری استثنائات جائزے کے منتظر",
+          "onboardingJoiners": "{count} نئے شامل شدہ کو آن بورڈنگ درکار",
+          "probationReviews": "{count} پروبیشن جائزے واجب",
+          "documentExpiry": "{count} دستاویز میعاد انتباہات",
+          "leavePending": "{count} چھٹی کی درخواستیں منظوری کے منتظر",
+          "docsPendingReview": "{count} دستاویزات زیر جائزہ"
+        }
+      },
+      "recentActivity": {
+        "title": "حالیہ سرگرمی",
+        "viewAll": "سب دیکھیں",
+        "empty": "کوئی حالیہ ایچ آر سرگرمی نہیں۔",
+        "columns": {
+          "time": "وقت",
+          "event": "واقعہ",
+          "employee": "ملازم",
+          "status": "حالت"
+        }
+      },
+      "quickActions": {
+        "title": "فوری اقدامات",
+        "addEmployee": "ملازم شامل کریں",
+        "startOnboarding": "آن بورڈنگ شروع کریں",
+        "reviewExceptions": "استثنائات کا جائزہ",
+        "approveLeave": "چھٹی منظور کریں",
+        "uploadDocument": "دستاویز اپ لوڈ",
+        "runReports": "رپورٹس چلائیں"
+      },
+      "actions": {
+        "addEmployee": "ملازم شامل کریں"
+      }
+    },
+    "settings": {
+      "title": "ایچ آر ترتیبات",
+      "description": "ایچ آر متعلقہ کنفیگریشن کے شارٹ کٹس۔",
+      "attendancePolicies": "حاضری کی پالیسیاں",
+      "organisation": "تنظیمی ڈھانچہ",
+      "security": "سیکیورٹی پالیسی",
+      "regional": "علاقائی ترتیبات",
+      "dataQuality": "ملازم ڈیٹا کوالٹی"
     }
   }
 }

@@ -10,22 +10,32 @@ import { MfaController } from './controllers/mfa.controller';
 import { PasswordResetController } from './controllers/password-reset.controller';
 import { RoleAssignmentController } from './controllers/role-assignment.controller';
 import { ApiClientController } from './controllers/api-client.controller';
+import { TenantUsersController } from './controllers/tenant-users.controller';
+import { RoleManagementController } from './controllers/role-management.controller';
+import { TenantSessionsController } from './controllers/tenant-sessions.controller';
+import { TenantAuditController } from './controllers/tenant-audit.controller';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ApiClientGuard } from './guards/api-client.guard';
 import { PermissionGuard } from './guards/permission.guard';
 import { NOTIFICATION_GATEWAY } from './interfaces/notification-gateway.interface';
 import { EmailNotificationAdapter } from './notifications/email-notification.adapter';
+import { SmtpEmailClient } from './notifications/smtp-email.client';
 import { AuthRepository } from './repositories/auth.repository';
 import { InvitationRepository } from './repositories/invitation.repository';
 import { MfaRepository } from './repositories/mfa.repository';
 import { RbacRepository } from './repositories/rbac.repository';
 import { ApiClientRepository } from './repositories/api-client.repository';
 import { AuthService } from './services/auth.service';
+import { RefreshCookieService } from './services/refresh-cookie.service';
 import { ApiClientAuthService } from './services/api-client-auth.service';
 import { ApiClientService } from './services/api-client.service';
 import { AuthorizationService } from './services/authorization.service';
 import { PermissionCacheService } from './services/permission-cache.service';
 import { RoleAssignmentService } from './services/role-assignment.service';
+import { RoleManagementService } from './services/role-management.service';
+import { TenantUserService } from './services/tenant-user.service';
+import { TenantSessionAdminService } from './services/tenant-session-admin.service';
+import { TenantAuditQueryService } from './services/tenant-audit-query.service';
 import { ChallengeService } from './services/challenge.service';
 import { InvitationService } from './services/invitation.service';
 import { MfaService } from './services/mfa.service';
@@ -55,6 +65,10 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     PasswordResetController,
     RoleAssignmentController,
     ApiClientController,
+    TenantUsersController,
+    RoleManagementController,
+    TenantSessionsController,
+    TenantAuditController,
   ],
   providers: [
     JwtStrategy,
@@ -70,14 +84,20 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     SessionService,
     ChallengeService,
     AuthService,
+    RefreshCookieService,
     InvitationService,
     MfaService,
     PasswordResetService,
     PermissionCacheService,
     AuthorizationService,
     RoleAssignmentService,
+    RoleManagementService,
+    TenantUserService,
+    TenantSessionAdminService,
+    TenantAuditQueryService,
     ApiClientAuthService,
     ApiClientService,
+    SmtpEmailClient,
     { provide: NOTIFICATION_GATEWAY, useClass: EmailNotificationAdapter },
   ],
   exports: [
@@ -86,6 +106,8 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     JwtStrategy,
     AuthService,
     AuthorizationService,
+    InvitationService,
+    MfaService,
     PermissionGuard,
     ApiClientGuard,
   ],

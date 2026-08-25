@@ -21,7 +21,7 @@ export function NewPolicyPageClient() {
   };
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
+    <div className="mx-auto max-w-3xl">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('create.title')}</h1>
       <div className="rounded-lg border bg-white p-6 shadow-sm">
         <AttendancePolicyForm onSubmit={handleSubmit} isLoading={isPending} />

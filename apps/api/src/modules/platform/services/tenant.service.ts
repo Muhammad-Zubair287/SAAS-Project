@@ -1,9 +1,9 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { TenantStatus, SubscriptionStatus } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { AppException } from '../../../common/exceptions/app.exception';
 import { ERROR_CODES } from '../../../common/constants/error-codes.constants';
-import { AuditEventSeverity, TenantStatus as PlatformTenantStatus } from '../../../common/enums/platform.enum';
+import { AuditEventSeverity, PlatformRole, TenantStatus as PlatformTenantStatus } from '../../../common/enums/platform.enum';
 import { PrismaService } from '../../../database/prisma/prisma.service';
 import { TenantRepository } from '../repositories/tenant.repository';
 import { PlanRepository } from '../repositories/plan.repository';
@@ -18,10 +18,20 @@ import type {
   TenantResponseDto,
   TenantSummaryDto,
   TenantUsageDto,
+  PrimaryAdminInvitationDto,
 } from '../dto/tenant-response.dto';
+import type { PlatformUsageSummaryDto } from '../dto/plan-response.dto';
+import type { TenantWithRelations } from '../repositories/tenant.repository';
+import { parseNumericEntitlement } from '../repositories/tenant.repository';
 import type { PlatformActorContext } from '../../../common/interfaces/platform-actor.interface';
 import { createPaginatedResponse } from '../../../common/utils/response.helper';
 import type { ApiSuccessResponse } from '../../../common/interfaces/api-response.interface';
+import { ensureM07PermissionsForTenant } from '../../../database/seed/m07-permissions.seed';
+import { ensureTenantAdminPermissionsForTenant } from '../../../database/seed/tenant-admin-permissions.seed';
+import { ensureHrConsolePermissionsForTenant } from '../../../database/seed/hr-console-permissions.seed';
+import { ensureEssPermissionsForTenant } from '../../../database/seed/ess-permissions.seed';
+import { InvitationService } from '../../authentication/services/invitation.service';
+import { MfaService } from '../../authentication/services/mfa.service';
 
 function slugify(name: string): string {
   return name
@@ -33,12 +43,53 @@ function slugify(name: string): string {
 
 @Injectable()
 export class TenantService {
+  private readonly logger = new Logger(TenantService.name);
+
   constructor(
     private readonly tenantRepo: TenantRepository,
     private readonly planRepo: PlanRepository,
     private readonly prisma: PrismaService,
     private readonly audit: PlatformAuditService,
+    private readonly invitationService: InvitationService,
+    private readonly mfaService: MfaService,
   ) {}
+
+  async validateSlug(slug: string): Promise<{ available: boolean; slug: string }> {
+    const normalized = slugify(slug);
+    if (!normalized || normalized.length < 2) {
+      throw new AppException({
+        code: ERROR_CODES.VALIDATION_FAILED,
+        message: 'Slug must be at least 2 characters after normalization.',
+        statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      });
+    }
+    const existing = await this.tenantRepo.findBySlug(normalized);
+    return { available: !existing, slug: normalized };
+  }
+
+  async validateAdminEmail(email: string): Promise<{ available: boolean; email: string }> {
+    const normalized = email.trim().toLowerCase();
+    if (!normalized.includes('@')) {
+      throw new AppException({
+        code: ERROR_CODES.VALIDATION_FAILED,
+        message: 'A valid email address is required.',
+        statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      });
+    }
+    const existingUser = await this.prisma.appUser.findFirst({
+      where: { email: { equals: normalized, mode: 'insensitive' } },
+      select: { id: true },
+    });
+    const pendingInvite = await this.prisma.userInvitation.findFirst({
+      where: {
+        email: { equals: normalized, mode: 'insensitive' },
+        acceptedAt: null,
+        expiresAt: { gt: new Date() },
+      },
+      select: { id: true },
+    });
+    return { available: !existingUser && !pendingInvite, email: normalized };
+  }
 
   async create(
     dto: CreateTenantDto,
@@ -90,6 +141,23 @@ export class TenantService {
     const trialEndsAt = dto.trialEndsAt ? new Date(dto.trialEndsAt) : null;
     const periodEnd = trialEndsAt ?? new Date(now.getFullYear(), now.getMonth() + 1, now.getDate());
 
+    const storageEntitlement = await this.prisma.entitlement.findUnique({
+      where: { code: 'storage_limit_gb' },
+    });
+    const planStorage = storageEntitlement
+      ? await this.prisma.planEntitlement.findUnique({
+          where: {
+            planId_entitlementId: {
+              planId: planRecord.id,
+              entitlementId: storageEntitlement.id,
+            },
+          },
+        })
+      : null;
+    const storageLimitGb =
+      dto.storageLimitGb ?? parseNumericEntitlement(planStorage?.defaultValue);
+    const storageSource = dto.storageLimitGb != null ? 'CONTRACT' : 'PLAN';
+
     const tenant = await this.prisma.withTransaction(async (tx) => {
       const created = await tx.tenant.create({
         data: {
@@ -127,6 +195,20 @@ export class TenantService {
         },
       });
 
+      if (storageEntitlement && storageLimitGb != null) {
+        await tx.tenantEntitlement.create({
+          data: {
+            tenantId: created.id,
+            entitlementKey: 'storage_limit_gb',
+            value: String(storageLimitGb),
+            entitlementId: storageEntitlement.id,
+            valueJson: storageLimitGb,
+            source: storageSource,
+            createdBy: actor.actorId,
+          },
+        });
+      }
+
       await this.audit.logWithTx(tx, actor, {
         module: 'platform',
         action: 'tenant.created',
@@ -154,25 +236,86 @@ export class TenantService {
         },
       });
 
+      // M07: seed shift/roster permission catalogue + default HR/Admin roles.
+      await ensureM07PermissionsForTenant(tx, created.id);
+      // Tenant Admin Console permissions on Tenant Admin role.
+      await ensureTenantAdminPermissionsForTenant(tx, created.id);
+      // HR Console Scope A — full M03–M07 + lifecycle on HR Manager.
+      await ensureHrConsolePermissionsForTenant(tx, created.id);
+      await ensureEssPermissionsForTenant(tx, created.id);
+
       return created;
     });
 
-    return this.toResponseDto(tenant);
+    // Post-commit: primary admin invitation + email. Must not roll back tenant provisioning
+    // if SMTP/email delivery fails (invitation service already fire-and-forgets email).
+    const invitation =
+      dto.sendInvitation === false
+        ? null
+        : await this.invitePrimaryAdmin(tenant.id, dto, actor, correlationId);
+
+    const withRelations = await this.tenantRepo.findById(tenant.id);
+    return this.toResponseDto(
+      withRelations ?? tenant,
+      invitation ?? undefined,
+      undefined,
+      storageLimitGb,
+    );
+  }
+
+  private async invitePrimaryAdmin(
+    tenantId: string,
+    dto: CreateTenantDto,
+    actor: PlatformActorContext,
+    correlationId: string,
+  ): Promise<PrimaryAdminInvitationDto | null> {
+    const adminRole = await this.prisma.role.findFirst({
+      where: { tenantId, name: 'Tenant Admin' },
+      select: { id: true },
+    });
+
+    if (!adminRole) {
+      this.logger.error(
+        `Primary admin invitation skipped: Tenant Admin role missing for tenant=${tenantId} correlationId=${correlationId}`,
+      );
+      return null;
+    }
+
+    try {
+      const created = await this.invitationService.createInvitation(
+        {
+          email: dto.primaryAdmin.email,
+          tenantId,
+          displayName: dto.primaryAdmin.name,
+          roleIds: [adminRole.id],
+        },
+        actor.actorId,
+        {
+          correlationId,
+          ipAddress: null,
+          userAgent: null,
+        },
+      );
+      return {
+        email: created.email,
+        status: 'PENDING',
+        expiresAt: created.expiresAt.toISOString(),
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'unknown_error';
+      // Tenant already committed — do not undo provisioning. Tokens are never returned.
+      this.logger.error(
+        `Primary admin invitation failed tenant=${tenantId} email=${dto.primaryAdmin.email} correlationId=${correlationId} error=${message}`,
+      );
+      return null;
+    }
   }
 
   async findMany(
     query: ListTenantsDto,
   ): Promise<ApiSuccessResponse<TenantSummaryDto[]>> {
     const { data, total } = await this.tenantRepo.findMany(query);
-    const summaries: TenantSummaryDto[] = data.map((t) => ({
-      id: t.id,
-      displayName: t.displayName,
-      countryCode: t.countryCode,
-      planId: t.planId ?? null,
-      status: t.status as unknown as PlatformTenantStatus,
-      seatLimit: t.seatLimit,
-      createdAt: t.createdAt.toISOString(),
-    }));
+    const summaries: TenantSummaryDto[] = data.map((t) => this.toSummaryDto(t));
     return createPaginatedResponse(summaries, total, query.page ?? 1, query.pageSize ?? 20);
   }
 
@@ -185,7 +328,10 @@ export class TenantService {
         statusCode: HttpStatus.NOT_FOUND,
       });
     }
-    return this.toResponseDto(tenant);
+    const administrators = await this.invitationService.listByTenant(id);
+    const primary = administrators[0];
+    const storageLimitGb = await this.tenantRepo.resolveStorageLimitGb(id, tenant.planId);
+    return this.toResponseDto(tenant, primary, administrators, storageLimitGb);
   }
 
   async update(
@@ -250,7 +396,7 @@ export class TenantService {
       return t;
     });
 
-    return this.toResponseDto(updated);
+    return this.findById(id);
   }
 
   async activate(
@@ -268,6 +414,42 @@ export class TenantService {
     if (existing.status === TenantStatus.ARCHIVED) {
       throw new AppException({ code: ERROR_CODES.TENANT_ARCHIVED, message: 'Cannot activate an archived tenant.', statusCode: HttpStatus.CONFLICT });
     }
+    if (existing.status === TenantStatus.SUSPENDED) {
+      throw new AppException({
+        code: ERROR_CODES.BAD_REQUEST,
+        message: 'Suspended tenants must be restored, not activated.',
+        statusCode: HttpStatus.BAD_REQUEST,
+      });
+    }
+    if (existing.status === TenantStatus.TRIAL || existing.status === TenantStatus.GRACE) {
+      throw new AppException({
+        code: ERROR_CODES.BAD_REQUEST,
+        message: 'Tenant is already operational. Activation applies to DRAFT tenants, or CLOSED tenants with elevated permission.',
+        statusCode: HttpStatus.BAD_REQUEST,
+      });
+    }
+    if (existing.status === TenantStatus.CLOSED && actor.platformRole !== PlatformRole.SUPER_ADMIN) {
+      throw new AppException({
+        code: ERROR_CODES.PERMISSION_DENIED,
+        message: 'Closed tenants cannot be reactivated without elevated Super Administrator permission.',
+        statusCode: HttpStatus.FORBIDDEN,
+      });
+    }
+    if (!existing.planId) {
+      throw new AppException({
+        code: ERROR_CODES.TENANT_PLAN_REQUIRED,
+        message: 'An activated tenant requires an active commercial plan.',
+        statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      });
+    }
+    const plan = await this.prisma.plan.findUnique({ where: { id: existing.planId } });
+    if (!plan || plan.status !== 'ACTIVE') {
+      throw new AppException({
+        code: ERROR_CODES.TENANT_PLAN_REQUIRED,
+        message: 'An activated tenant requires an active commercial plan.',
+        statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      });
+    }
 
     const activated = await this.prisma.withTransaction(async (tx) => {
       const t = await tx.tenant.update({
@@ -283,10 +465,15 @@ export class TenantService {
           payload: { tenantId: id, actorId: actor.actorId, correlationId },
         },
       });
+      // Idempotent — ensures M07 roles/perms exist even for tenants created before wiring.
+      await ensureM07PermissionsForTenant(tx, id);
+      await ensureTenantAdminPermissionsForTenant(tx, id);
+      await ensureHrConsolePermissionsForTenant(tx, id);
+      await ensureEssPermissionsForTenant(tx, id);
       return t;
     });
 
-    return this.toResponseDto(activated);
+    return this.findById(activated.id);
   }
 
   async suspend(
@@ -295,6 +482,7 @@ export class TenantService {
     actor: PlatformActorContext,
     correlationId: string,
   ): Promise<TenantResponseDto> {
+    await this.mfaService.assertPlatformStepUp(actor.actorId, dto.mfaCode);
     const existing = await this.tenantRepo.findById(id);
     if (!existing) {
       throw new AppException({ code: ERROR_CODES.TENANT_NOT_FOUND, message: 'Tenant not found.', statusCode: HttpStatus.NOT_FOUND });
@@ -305,13 +493,30 @@ export class TenantService {
     if (existing.status === TenantStatus.ARCHIVED) {
       throw new AppException({ code: ERROR_CODES.TENANT_ARCHIVED, message: 'Cannot suspend an archived tenant.', statusCode: HttpStatus.CONFLICT });
     }
+    if (existing.status === TenantStatus.CLOSED) {
+      throw new AppException({
+        code: ERROR_CODES.BAD_REQUEST,
+        message: 'Closed tenants cannot be suspended.',
+        statusCode: HttpStatus.BAD_REQUEST,
+      });
+    }
 
     const suspended = await this.prisma.withTransaction(async (tx) => {
       const t = await tx.tenant.update({
         where: { id },
         data: { status: TenantStatus.SUSPENDED, suspendedAt: new Date(), suspendedReason: dto.reason, suspendedBy: actor.actorId, updatedBy: actor.email, rowVersion: { increment: 1 } },
       });
-      await this.audit.logWithTx(tx, actor, { module: 'platform', action: 'tenant.suspended', resourceType: 'tenant', resourceId: id, tenantId: id, before: { status: existing.status }, after: { status: 'SUSPENDED', reason: dto.reason }, correlationId, severity: AuditEventSeverity.CRITICAL });
+      await this.audit.logWithTx(tx, actor, {
+        module: 'platform',
+        action: 'tenant.suspended',
+        resourceType: 'tenant',
+        resourceId: id,
+        tenantId: id,
+        before: { status: existing.status },
+        after: { status: 'SUSPENDED', reason: dto.reason, userMessage: dto.userMessage ?? null },
+        correlationId,
+        severity: AuditEventSeverity.CRITICAL,
+      });
       await tx.outboxEvent.create({
         data: {
           tenantId: id,
@@ -323,7 +528,7 @@ export class TenantService {
       return t;
     });
 
-    return this.toResponseDto(suspended);
+    return this.findById(suspended.id);
   }
 
   async restore(
@@ -332,6 +537,7 @@ export class TenantService {
     actor: PlatformActorContext,
     correlationId: string,
   ): Promise<TenantResponseDto> {
+    await this.mfaService.assertPlatformStepUp(actor.actorId, dto.mfaCode);
     const existing = await this.tenantRepo.findById(id);
     if (!existing) {
       throw new AppException({ code: ERROR_CODES.TENANT_NOT_FOUND, message: 'Tenant not found.', statusCode: HttpStatus.NOT_FOUND });
@@ -357,7 +563,61 @@ export class TenantService {
       return t;
     });
 
-    return this.toResponseDto(restored);
+    return this.findById(restored.id);
+  }
+
+  async close(
+    id: string,
+    reason: string,
+    actor: PlatformActorContext,
+    correlationId: string,
+    mfaCode?: string,
+  ): Promise<TenantResponseDto> {
+    await this.mfaService.assertPlatformStepUp(actor.actorId, mfaCode);
+    const existing = await this.tenantRepo.findById(id);
+    if (!existing) {
+      throw new AppException({
+        code: ERROR_CODES.TENANT_NOT_FOUND,
+        message: 'Tenant not found.',
+        statusCode: HttpStatus.NOT_FOUND,
+      });
+    }
+    if (
+      existing.status !== TenantStatus.DRAFT &&
+      existing.status !== TenantStatus.SUSPENDED &&
+      existing.status !== TenantStatus.ACTIVE
+    ) {
+      throw new AppException({
+        code: ERROR_CODES.BAD_REQUEST,
+        message: 'Only DRAFT, ACTIVE, or SUSPENDED tenants can be closed.',
+        statusCode: HttpStatus.BAD_REQUEST,
+      });
+    }
+
+    const closed = await this.prisma.withTransaction(async (tx) => {
+      const t = await tx.tenant.update({
+        where: { id },
+        data: {
+          status: TenantStatus.CLOSED,
+          updatedBy: actor.email,
+          rowVersion: { increment: 1 },
+        },
+      });
+      await this.audit.logWithTx(tx, actor, {
+        module: 'platform',
+        action: 'tenant.closed',
+        resourceType: 'tenant',
+        resourceId: id,
+        tenantId: id,
+        before: { status: existing.status },
+        after: { status: 'CLOSED', reason },
+        correlationId,
+        severity: AuditEventSeverity.CRITICAL,
+      });
+      return t;
+    });
+
+    return this.findById(closed.id);
   }
 
   async changePlan(
@@ -401,7 +661,7 @@ export class TenantService {
       return t;
     });
 
-    return this.toResponseDto(updated);
+    return this.findById(updated.id);
   }
 
   async updateEntitlements(
@@ -473,6 +733,7 @@ export class TenantService {
       where: { tenantId: id },
       orderBy: { snapshotDate: 'desc' },
     });
+    const storageLimitGb = await this.tenantRepo.resolveStorageLimitGb(id, tenant.planId);
 
     const active = snapshot?.activeEmployees ?? 0;
     const total = snapshot?.totalEmployees ?? 0;
@@ -488,6 +749,7 @@ export class TenantService {
       seatLimit: seatLimitVal,
       seatUtilisationPct: utilPct,
       storageUsedBytes: snapshot?.storageUsedBytes.toString() ?? '0',
+      storageLimitGb,
       apiCallsMonth: snapshot?.apiCallsMonth ?? 0,
       snapshotDate: snapshot?.snapshotDate.toISOString().split('T')[0],
     };
@@ -496,22 +758,75 @@ export class TenantService {
   async getDashboardStats(): Promise<{
     total: number;
     active: number;
+    trial: number;
     draft: number;
     suspended: number;
     closed: number;
+    grace: number;
+    trialsEndingSoon: number;
+    activeSupportGrants: number;
   }> {
-    const counts = await this.tenantRepo.countByStatus();
+    const [counts, trialsEndingSoon, activeSupportGrants] = await Promise.all([
+      this.tenantRepo.countByStatus(),
+      this.tenantRepo.countTrialsEndingSoon(14),
+      this.tenantRepo.countActiveSupportGrants(),
+    ]);
     return {
       total: Object.values(counts).reduce((a, b) => a + b, 0),
       active: counts['ACTIVE'] ?? 0,
+      trial: counts['TRIAL'] ?? 0,
       draft: counts['DRAFT'] ?? 0,
       suspended: counts['SUSPENDED'] ?? 0,
-      // Aggregate CLOSED (spec) + ARCHIVED (compat) so the stat is correct during migration.
       closed: (counts['CLOSED'] ?? 0) + (counts['ARCHIVED'] ?? 0),
+      grace: counts['GRACE'] ?? 0,
+      trialsEndingSoon,
+      activeSupportGrants,
     };
   }
 
-  private toResponseDto(tenant: NonNullable<Awaited<ReturnType<TenantRepository['findById']>>>): TenantResponseDto {
+  async getPlatformUsageSummary(): Promise<PlatformUsageSummaryDto> {
+    const summary = await this.tenantRepo.getPlatformUsageSummary();
+    const utilPct =
+      summary.totalSeatLimit > 0
+        ? Math.round((summary.totalActiveEmployees / summary.totalSeatLimit) * 100)
+        : 0;
+    return {
+      totalSeatLimit: summary.totalSeatLimit,
+      totalActiveEmployees: summary.totalActiveEmployees,
+      seatUtilisationPct: utilPct,
+      tenantsWithUsageData: summary.tenantsWithUsageData,
+    };
+  }
+
+  private toSummaryDto(t: TenantWithRelations): TenantSummaryDto {
+    const subscription = t.subscriptions?.[0];
+    const usage = t.usageSnapshots?.[0];
+    return {
+      id: t.id,
+      displayName: t.displayName,
+      slug: t.slug,
+      countryCode: t.countryCode,
+      planId: t.planId ?? null,
+      planKey: t.planKey ?? t.plan?.code ?? null,
+      planName: t.plan?.name ?? null,
+      regionName: t.region?.name ?? null,
+      status: t.status as unknown as PlatformTenantStatus,
+      seatLimit: t.seatLimit,
+      activeEmployees: usage?.activeEmployees ?? null,
+      trialEndsAt: subscription?.trialEndsAt?.toISOString() ?? null,
+      currentPeriodEnd: subscription?.currentPeriodEnd?.toISOString() ?? null,
+      subscriptionStatus: subscription?.status ?? null,
+      createdAt: t.createdAt.toISOString(),
+    };
+  }
+
+  private toResponseDto(
+    tenant: TenantWithRelations,
+    primaryAdminInvitation?: PrimaryAdminInvitationDto,
+    administrators?: PrimaryAdminInvitationDto[],
+    storageLimitGb?: number | null,
+  ): TenantResponseDto {
+    const subscription = tenant.subscriptions?.[0];
     return {
       id: tenant.id,
       displayName: tenant.displayName,
@@ -522,8 +837,13 @@ export class TenantService {
       defaultTimezone: tenant.defaultTimezone,
       defaultLocale: tenant.defaultLocale,
       deploymentRegionId: tenant.deploymentRegionId,
+      deploymentRegionCode: tenant.region?.code,
+      deploymentRegionName: tenant.region?.name,
       planId: tenant.planId ?? null,
+      planKey: tenant.planKey ?? tenant.plan?.code ?? null,
+      planName: tenant.plan?.name ?? null,
       seatLimit: tenant.seatLimit,
+      storageLimitGb: storageLimitGb ?? null,
       status: tenant.status as unknown as PlatformTenantStatus,
       activatedAt: tenant.activatedAt?.toISOString(),
       suspendedAt: tenant.suspendedAt?.toISOString(),
@@ -532,6 +852,13 @@ export class TenantService {
       createdBy: tenant.createdBy ?? undefined,
       updatedAt: tenant.updatedAt.toISOString(),
       rowVersion: tenant.rowVersion.toString(),
+      trialEndsAt: subscription?.trialEndsAt?.toISOString() ?? null,
+      currentPeriodEnd: subscription?.currentPeriodEnd?.toISOString() ?? null,
+      subscriptionStatus: subscription?.status ?? null,
+      billingCycle: subscription?.billingCycle ?? null,
+      lastActivityAt: tenant.updatedAt.toISOString(),
+      ...(primaryAdminInvitation ? { primaryAdminInvitation } : {}),
+      ...(administrators ? { administrators } : {}),
     };
   }
 }

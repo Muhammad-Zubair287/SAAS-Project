@@ -6,7 +6,7 @@ import { randomUUID } from 'crypto';
 import { AppException } from '../../../common/exceptions/app.exception';
 import { ERROR_CODES } from '../../../common/constants/error-codes.constants';
 import { PrismaService } from '../../../database/prisma/prisma.service';
-import { InvitationRepository } from '../repositories/invitation.repository';
+import { InvitationRepository, parseRoleIds } from '../repositories/invitation.repository';
 import { PasswordService } from './password.service';
 import { SessionService } from './session.service';
 import { generateSecureToken, hashToken } from '../utils/token.utils';
@@ -16,9 +16,8 @@ import {
 } from '../interfaces/notification-gateway.interface';
 import type { InvitationCreateDto } from '../dto/invitation-create.dto';
 import type { InvitationAcceptDto } from '../dto/invitation-accept.dto';
-import type { AuthResponseDto } from '../dto/auth-response.dto';
 import type { JwtPayload } from '../interfaces/jwt-payload.interface';
-import type { RequestContext } from './auth.service';
+import type { AuthTokenPair, RequestContext } from './auth.service';
 
 export interface InvitationCreatedResponse {
   id: string;
@@ -26,6 +25,15 @@ export interface InvitationCreatedResponse {
   tenantId: string;
   expiresAt: Date;
   createdAt: Date;
+}
+
+export interface InvitationListItem {
+  id: string;
+  email: string;
+  status: 'PENDING' | 'ACCEPTED' | 'EXPIRED';
+  expiresAt: string;
+  createdAt: string;
+  roleIds: string[];
 }
 
 @Injectable()
@@ -46,14 +54,144 @@ export class InvitationService {
     this.accessExpiry = config.getOrThrow<string>('jwt.accessExpiry');
   }
 
+  async listByTenant(tenantId: string): Promise<InvitationListItem[]> {
+    const rows = await this.invitationRepo.listByTenant(tenantId);
+    const now = Date.now();
+    return rows.map((row) => {
+      let status: InvitationListItem['status'] = 'PENDING';
+      if (row.acceptedAt) status = 'ACCEPTED';
+      else if (row.expiresAt.getTime() <= now) status = 'EXPIRED';
+      return {
+        id: row.id,
+        email: row.email,
+        status,
+        expiresAt: row.expiresAt.toISOString(),
+        createdAt: row.createdAt.toISOString(),
+        roleIds: parseRoleIds(row.roleIds),
+      };
+    });
+  }
+
+  async resendInvitation(
+    tenantId: string,
+    invitationId: string,
+    inviterUserId: string,
+    ctx: RequestContext,
+  ): Promise<InvitationCreatedResponse> {
+    const existing = await this.prisma.userInvitation.findFirst({
+      where: { id: invitationId, tenantId },
+    });
+    if (!existing) {
+      throw new AppException({
+        code: ERROR_CODES.INVITATION_NOT_FOUND,
+        message: 'Invitation not found.',
+        statusCode: HttpStatus.NOT_FOUND,
+      });
+    }
+    if (existing.acceptedAt) {
+      throw new AppException({
+        code: ERROR_CODES.INVITATION_ALREADY_ACCEPTED,
+        message: 'Invitation already accepted.',
+        statusCode: HttpStatus.CONFLICT,
+      });
+    }
+
+    const token = generateSecureToken();
+    const tokenHash = hashToken(token);
+    const expiresAt = new Date(Date.now() + this.invitationExpiryHours * 60 * 60 * 1000);
+
+    const updated = await this.prisma.userInvitation.update({
+      where: { id: invitationId },
+      data: { tokenHash, expiresAt, rowVersion: { increment: 1 } },
+    });
+
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { displayName: true },
+    });
+
+    void this.notifier
+      .sendInvitation({
+        to: updated.email,
+        invitationToken: token,
+        expiresAt,
+        tenantName: tenant?.displayName,
+      })
+      .catch(() => undefined);
+
+    await this.emitAudit({
+      tenantId,
+      actorId: inviterUserId,
+      actorEmail: '',
+      action: 'INVITATION_RESENT',
+      resourceId: invitationId,
+      metadata: { inviteeEmail: updated.email },
+      severity: 'INFO',
+      correlationId: ctx.correlationId,
+    });
+
+    return {
+      id: updated.id,
+      email: updated.email,
+      tenantId: updated.tenantId,
+      expiresAt: updated.expiresAt,
+      createdAt: updated.createdAt,
+    };
+  }
+
+  async revokeInvitation(
+    tenantId: string,
+    invitationId: string,
+    actorUserId: string,
+    ctx: RequestContext,
+  ): Promise<void> {
+    const existing = await this.prisma.userInvitation.findFirst({
+      where: { id: invitationId, tenantId },
+    });
+    if (!existing) {
+      throw new AppException({
+        code: ERROR_CODES.INVITATION_NOT_FOUND,
+        message: 'Invitation not found.',
+        statusCode: HttpStatus.NOT_FOUND,
+      });
+    }
+    if (existing.acceptedAt) {
+      throw new AppException({
+        code: ERROR_CODES.INVITATION_ALREADY_ACCEPTED,
+        message: 'Accepted invitations cannot be revoked.',
+        statusCode: HttpStatus.CONFLICT,
+      });
+    }
+
+    await this.prisma.userInvitation.delete({ where: { id: invitationId } });
+    await this.emitAudit({
+      tenantId,
+      actorId: actorUserId,
+      actorEmail: '',
+      action: 'INVITATION_REVOKED',
+      resourceId: invitationId,
+      metadata: { inviteeEmail: existing.email },
+      severity: 'WARNING',
+      correlationId: ctx.correlationId,
+    });
+  }
+
   async createInvitation(
-    dto: InvitationCreateDto,
+    dto: InvitationCreateDto & { tenantId: string },
     inviterUserId: string | null,
     ctx: RequestContext,
   ): Promise<InvitationCreatedResponse> {
     const emailNormalised = dto.email.toLowerCase().trim();
 
-    await this.invitationRepo.findOrCreateUserForInvitation(emailNormalised);
+    await this.invitationRepo.findOrCreateUserForInvitation(
+      emailNormalised,
+      dto.displayName?.trim() || undefined,
+    );
+
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: dto.tenantId },
+      select: { displayName: true },
+    });
 
     const token = generateSecureToken();
     const tokenHash = hashToken(token);
@@ -80,8 +218,14 @@ export class InvitationService {
     });
 
     // Fire-and-forget — notification failure must not fail the invitation creation.
+    // Raw token is only passed transiently into the email adapter; never logged/audited/returned.
     void this.notifier
-      .sendInvitation({ to: emailNormalised, invitationToken: token, expiresAt })
+      .sendInvitation({
+        to: emailNormalised,
+        invitationToken: token,
+        expiresAt,
+        tenantName: tenant?.displayName,
+      })
       .catch(() => undefined);
 
     return {
@@ -93,7 +237,7 @@ export class InvitationService {
     };
   }
 
-  async acceptInvitation(dto: InvitationAcceptDto, ctx: RequestContext): Promise<AuthResponseDto> {
+  async acceptInvitation(dto: InvitationAcceptDto, ctx: RequestContext): Promise<AuthTokenPair> {
     const tokenHash = hashToken(dto.token);
     const invitation = await this.invitationRepo.findInvitationByTokenHash(tokenHash);
 
@@ -132,12 +276,16 @@ export class InvitationService {
 
     const passwordHash = await this.passwordService.hashPassword(dto.password);
     const activateUser = user.status === 'INVITED';
+    const roleIds = parseRoleIds(invitation.roleIds);
 
     await this.invitationRepo.acceptInvitationTransaction(
       invitation.id,
       user.id,
       passwordHash,
       activateUser,
+      roleIds,
+      invitation.tenantId,
+      invitation.invitedBy,
     );
 
     const { session, refreshToken } = await this.sessionService.createSession(
@@ -165,7 +313,14 @@ export class InvitationService {
       correlationId: ctx.correlationId,
     });
 
-    return { accessToken, refreshToken, tokenType: 'Bearer', expiresIn, sessionId: session.id };
+    return {
+      accessToken,
+      refreshToken,
+      tokenType: 'Bearer',
+      expiresIn,
+      sessionId: session.id,
+      sessionExpiresAt: session.expiresAt,
+    };
   }
 
   private issueAccessToken(payload: {

@@ -4,25 +4,50 @@ import { PrismaService } from '../../../database/prisma/prisma.service';
 import { RbacRepository } from '../repositories/rbac.repository';
 import { PermissionCacheService, type ResolvedPermissions } from './permission-cache.service';
 import type { CurrentUserContext } from '../interfaces/current-user-context.interface';
+import {
+  PLATFORM_PERMISSIONS,
+  PLATFORM_ROLE_PERMISSIONS,
+} from '../../../common/constants/permissions.constants';
+import { PlatformRole } from '../../../common/enums/platform.enum';
 
-// Synthetic permission grants for platform-level roles.
-// Platform staff do not have tenant-scoped RoleAssignments; their access is
-// governed by the platformRole string on AppUser.
-const PLATFORM_ROLE_PERMISSIONS: Readonly<Record<string, readonly string[]>> = {
-  PLATFORM_SUPER_ADMIN: ['*'],
-  PLATFORM_SUPPORT_ENGINEER: [
-    'read:tenant:support',
-    'read:subscription:support',
-    'manage:subscription:support',
-    'read:audit:support',
-    'read:user:support',
-  ],
-  PLATFORM_AUDITOR: [
-    'read:tenant:platform',
-    'read:audit:platform',
-    'read:user:platform',
-  ],
-};
+function resolvePlatformRolePermissions(platformRole: string): string[] {
+  // Accept both PLATFORM_SUPER_ADMIN and SUPER_ADMIN style codes.
+  const normalized =
+    platformRole === 'SUPER_ADMIN'
+      ? PlatformRole.SUPER_ADMIN
+      : platformRole === 'SUPPORT_ENGINEER'
+        ? PlatformRole.SUPPORT_ENGINEER
+        : platformRole === 'AUDITOR'
+          ? PlatformRole.AUDITOR
+          : platformRole === 'OPERATIONS'
+            ? PlatformRole.OPERATIONS
+            : platformRole;
+
+  const mapped = PLATFORM_ROLE_PERMISSIONS[normalized as PlatformRole];
+  if (mapped) return [...mapped];
+
+  // Legacy fallback: keep wildcard for unmatched SUPER_ADMIN aliases
+  if (platformRole.includes('SUPER_ADMIN')) {
+    return Object.values(PLATFORM_PERMISSIONS);
+  }
+  return [];
+}
+
+/**
+ * Permission catalogue rows are stored as (action, resource, scope).
+ * - Colon form (M03/M04): action=read, resource=employee, scope=tenant → "read:employee:tenant"
+ * - Dot form (M06 capture/policy contract): action=<full code>, resource=".", scope="." → "attendance.device.read"
+ */
+export function formatPermissionCode(p: {
+  action: string;
+  resource: string;
+  scope: string;
+}): string {
+  if (p.resource === '.' && p.scope === '.') {
+    return p.action;
+  }
+  return `${p.action}:${p.resource}:${p.scope}`;
+}
 
 @Injectable()
 export class AuthorizationService {
@@ -44,8 +69,8 @@ export class AuthorizationService {
     let roles: string[];
 
     if (platformRole && tenantId === null) {
-      // Platform staff: permissions come from the role constant map.
-      permissions = [...(PLATFORM_ROLE_PERMISSIONS[platformRole] ?? [])];
+      // Platform staff: permissions come from the shared platform role map.
+      permissions = resolvePlatformRolePermissions(platformRole);
       roles = [platformRole];
     } else if (tenantId) {
       // Tenant user: load active role assignments + their permissions from DB.
@@ -57,8 +82,7 @@ export class AuthorizationService {
       const permSet = new Set<string>();
       for (const assignment of assignments) {
         for (const rp of assignment.role.permissions) {
-          const p = rp.permission;
-          permSet.add(`${p.action}:${p.resource}:${p.scope}`);
+          permSet.add(formatPermissionCode(rp.permission));
         }
       }
       permissions = [...permSet];

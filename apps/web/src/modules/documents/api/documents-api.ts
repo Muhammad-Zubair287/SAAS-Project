@@ -26,6 +26,7 @@ import type {
   UpdateDocumentRequestItemPayload,
   DocumentRequestItem,
   ListDocumentRequestsParams,
+  OnboardingDashboardResponse,
 } from '../types/documents.types';
 
 export interface PaginatedResponse<T> {
@@ -224,6 +225,30 @@ export const documentsApi = {
           `/document-requests/${id}/items/${itemId}`,
           payload,
         )
+        .then((r) => r.data),
+  },
+
+  library: {
+    list: (params?: { page?: number; pageSize?: number; status?: string; search?: string; employeeId?: string }) =>
+      apiClient
+        .get<PaginatedResponse<EmployeeDocument>>('/documents', { params })
+        .then((r) => r.data),
+
+    approve: (id: string, notes?: string) =>
+      apiClient
+        .post<ApiSuccessResponse<EmployeeDocument>>(`/documents/${id}/approve`, notes ? { notes } : undefined)
+        .then((r) => r.data),
+
+    reject: (id: string, reason: string) =>
+      apiClient
+        .post<ApiSuccessResponse<EmployeeDocument>>(`/documents/${id}/reject`, { reason })
+        .then((r) => r.data),
+  },
+
+  onboardingDashboard: {
+    get: () =>
+      apiClient
+        .get<ApiSuccessResponse<OnboardingDashboardResponse>>('/onboarding/dashboard')
         .then((r) => r.data),
   },
 };

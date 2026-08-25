@@ -68,6 +68,7 @@ export class AuditEventRepository extends BaseRepository {
     tenantId?: string;
     actorId?: string;
     module?: string;
+    action?: string;
     resourceType?: string;
     resourceId?: string;
     fromDate?: Date;
@@ -79,6 +80,7 @@ export class AuditEventRepository extends BaseRepository {
       ...(filters.tenantId !== undefined ? { tenantId: filters.tenantId } : {}),
       ...(filters.actorId ? { actorId: filters.actorId } : {}),
       ...(filters.module ? { module: filters.module } : {}),
+      ...(filters.action ? { action: filters.action } : {}),
       ...(filters.resourceType ? { resourceType: filters.resourceType } : {}),
       ...(filters.resourceId ? { resourceId: filters.resourceId } : {}),
       ...(filters.fromDate || filters.toDate
@@ -104,5 +106,53 @@ export class AuditEventRepository extends BaseRepository {
     ]);
 
     return { data, total };
+  }
+
+  async findById(id: string): Promise<AuditEvent | null> {
+    return this.prisma.auditEvent.findUnique({ where: { id } });
+  }
+
+  async findByCorrelationId(correlationId: string): Promise<AuditEvent[]> {
+    return this.prisma.auditEvent.findMany({
+      where: { correlationId },
+      orderBy: { occurredAt: 'asc' },
+      take: 50,
+    });
+  }
+
+  async summarize(fromDate?: Date, toDate?: Date) {
+    const where: Prisma.AuditEventWhereInput = {
+      ...(fromDate || toDate
+        ? {
+            occurredAt: {
+              ...(fromDate ? { gte: fromDate } : {}),
+              ...(toDate ? { lte: toDate } : {}),
+            },
+          }
+        : {}),
+    };
+
+    const [total, bySeverity, byModule, recent] = await Promise.all([
+      this.prisma.auditEvent.count({ where }),
+      this.prisma.auditEvent.groupBy({
+        by: ['severity'],
+        where,
+        _count: { _all: true },
+      }),
+      this.prisma.auditEvent.groupBy({
+        by: ['module'],
+        where,
+        _count: { _all: true },
+        orderBy: { _count: { module: 'desc' } },
+        take: 10,
+      }),
+      this.prisma.auditEvent.findMany({
+        where,
+        orderBy: { occurredAt: 'desc' },
+        take: 20,
+      }),
+    ]);
+
+    return { total, bySeverity, byModule, recent };
   }
 }

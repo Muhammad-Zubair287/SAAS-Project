@@ -8,11 +8,14 @@ import { PrismaService } from '../../../database/prisma/prisma.service';
 import { SupportGrantRepository } from '../repositories/support-grant.repository';
 import { TenantRepository } from '../repositories/tenant.repository';
 import { PlatformAuditService } from './platform-audit.service';
+import { PlatformSettingsService } from './platform-settings.service';
+import { PlatformNotificationsService } from './platform-notifications.service';
+import { MfaService } from '../../authentication/services/mfa.service';
 import type { CreateSupportGrantDto, RevokeSupportGrantDto } from '../dto/create-support-grant.dto';
 import type { PlatformActorContext } from '../../../common/interfaces/platform-actor.interface';
 import type { SupportGrantResponseDto } from '../dto/tenant-response.dto';
 
-const MAX_GRANT_HOURS = 24;
+const MAX_GRANT_HOURS = 24 * 7;
 
 @Injectable()
 export class SupportGrantService {
@@ -21,6 +24,9 @@ export class SupportGrantService {
     private readonly tenantRepo: TenantRepository,
     private readonly audit: PlatformAuditService,
     private readonly prisma: PrismaService,
+    private readonly settings: PlatformSettingsService,
+    private readonly notifications: PlatformNotificationsService,
+    private readonly mfaService: MfaService,
   ) {}
 
   async create(
@@ -29,6 +35,7 @@ export class SupportGrantService {
     actor: PlatformActorContext,
     correlationId: string,
   ): Promise<SupportGrantResponseDto> {
+    await this.mfaService.assertPlatformStepUp(actor.actorId, dto.mfaCode);
     const tenant = await this.tenantRepo.findById(tenantId);
     if (!tenant) {
       throw new AppException({
@@ -58,25 +65,37 @@ export class SupportGrantService {
       });
     }
 
+    const approvalRequired = await this.settings.isSupportApprovalRequired();
+    const initialStatus = approvalRequired
+      ? SupportGrantStatus.PENDING
+      : SupportGrantStatus.ACTIVE;
+
     const grant = await this.prisma.withTransaction(async (tx) => {
       const g = await this.grantRepo.createWithTx(tx, {
         tenant: { connect: { id: tenantId } },
-        supportUserId: dto.supportUserId,
+        supportUserId: dto.supportUserId ?? actor.actorId,
         requestedByUserId: actor.actorId,
+        approvedByUserId: approvalRequired ? undefined : actor.actorId,
         scope: dto.scope,
         reason: dto.reason,
         startsAt: starts,
         endsAt: ends,
-        status: SupportGrantStatus.ACTIVE,
+        status: initialStatus,
       });
 
       await this.audit.logWithTx(tx, actor, {
         module: 'platform',
-        action: 'support_grant.created',
+        action: approvalRequired ? 'support_grant.requested' : 'support_grant.created',
         resourceType: 'support_grant',
         resourceId: g.id,
         tenantId,
-        after: { id: g.id, supportUserId: g.supportUserId, scope: g.scope, endsAt: g.endsAt },
+        after: {
+          id: g.id,
+          supportUserId: g.supportUserId,
+          scope: g.scope,
+          endsAt: g.endsAt,
+          status: initialStatus,
+        },
         correlationId,
         severity: AuditEventSeverity.CRITICAL,
       });
@@ -85,13 +104,14 @@ export class SupportGrantService {
         data: {
           tenantId,
           eventId: randomUUID(),
-          eventType: 'SupportGrantCreated.v1',
+          eventType: approvalRequired ? 'SupportGrantRequested.v1' : 'SupportGrantCreated.v1',
           payload: {
             grantId: g.id,
             tenantId,
             supportUserId: g.supportUserId,
             scope: g.scope,
             endsAt: g.endsAt,
+            status: initialStatus,
             actorId: actor.actorId,
             correlationId,
           },
@@ -101,7 +121,125 @@ export class SupportGrantService {
       return g;
     });
 
+    await this.notifications.createForUser(actor.actorId, {
+      title: approvalRequired ? 'Support access pending approval' : 'Support access granted',
+      body: `Tenant ${tenant.displayName}: ${dto.reason}`,
+      category: 'support',
+      linkPath: '/platform/support',
+      severity: 'WARNING',
+    });
+
     return this.toResponseDto(grant);
+  }
+
+  async approve(
+    grantId: string,
+    actor: PlatformActorContext,
+    correlationId: string,
+  ): Promise<SupportGrantResponseDto> {
+    const grant = await this.grantRepo.findById(grantId);
+    if (!grant) {
+      throw new AppException({
+        code: ERROR_CODES.SUPPORT_GRANT_NOT_FOUND,
+        message: 'Support grant not found.',
+        statusCode: HttpStatus.NOT_FOUND,
+      });
+    }
+    if (grant.status !== SupportGrantStatus.PENDING) {
+      throw new AppException({
+        code: ERROR_CODES.CONFLICT,
+        message: 'Only PENDING grants can be approved.',
+        statusCode: HttpStatus.CONFLICT,
+      });
+    }
+
+    const updated = await this.prisma.withTransaction(async (tx) => {
+      const r = await tx.supportGrant.update({
+        where: { id: grantId },
+        data: {
+          status: SupportGrantStatus.ACTIVE,
+          approvedByUserId: actor.actorId,
+          updatedBy: actor.actorId,
+          rowVersion: { increment: 1 },
+        },
+      });
+      await this.audit.logWithTx(tx, actor, {
+        module: 'platform',
+        action: 'support_grant.approved',
+        resourceType: 'support_grant',
+        resourceId: grantId,
+        tenantId: grant.tenantId,
+        before: { status: grant.status },
+        after: { status: 'ACTIVE' },
+        correlationId,
+        severity: AuditEventSeverity.CRITICAL,
+      });
+      await tx.outboxEvent.create({
+        data: {
+          tenantId: grant.tenantId,
+          eventId: randomUUID(),
+          eventType: 'SupportGrantCreated.v1',
+          payload: {
+            grantId,
+            tenantId: grant.tenantId,
+            supportUserId: grant.supportUserId,
+            actorId: actor.actorId,
+            correlationId,
+          },
+        },
+      });
+      return r;
+    });
+
+    return this.toResponseDto(updated);
+  }
+
+  async reject(
+    grantId: string,
+    reason: string,
+    actor: PlatformActorContext,
+    correlationId: string,
+  ): Promise<SupportGrantResponseDto> {
+    const grant = await this.grantRepo.findById(grantId);
+    if (!grant) {
+      throw new AppException({
+        code: ERROR_CODES.SUPPORT_GRANT_NOT_FOUND,
+        message: 'Support grant not found.',
+        statusCode: HttpStatus.NOT_FOUND,
+      });
+    }
+    if (grant.status !== SupportGrantStatus.PENDING) {
+      throw new AppException({
+        code: ERROR_CODES.CONFLICT,
+        message: 'Only PENDING grants can be rejected.',
+        statusCode: HttpStatus.CONFLICT,
+      });
+    }
+
+    const updated = await this.prisma.withTransaction(async (tx) => {
+      const r = await tx.supportGrant.update({
+        where: { id: grantId },
+        data: {
+          status: SupportGrantStatus.REJECTED,
+          updatedBy: actor.actorId,
+          rowVersion: { increment: 1 },
+        },
+      });
+      await this.audit.logWithTx(tx, actor, {
+        module: 'platform',
+        action: 'support_grant.rejected',
+        resourceType: 'support_grant',
+        resourceId: grantId,
+        tenantId: grant.tenantId,
+        before: { status: grant.status },
+        after: { status: 'REJECTED', reason },
+        correlationId,
+        severity: AuditEventSeverity.CRITICAL,
+      });
+      return r;
+    });
+
+    return this.toResponseDto(updated);
   }
 
   async revoke(
@@ -110,6 +248,7 @@ export class SupportGrantService {
     actor: PlatformActorContext,
     correlationId: string,
   ): Promise<SupportGrantResponseDto> {
+    await this.mfaService.assertPlatformStepUp(actor.actorId, dto.mfaCode);
     const grant = await this.grantRepo.findById(grantId);
 
     if (!grant) {
@@ -177,24 +316,36 @@ export class SupportGrantService {
     return grants.map((g) => this.toResponseDto(g));
   }
 
-  private toResponseDto(grant: Awaited<ReturnType<SupportGrantRepository['findById']>> & {}): SupportGrantResponseDto {
+  async findMany(filters: {
+    tenantId?: string;
+    status?: SupportGrantStatus;
+    page: number;
+    pageSize: number;
+  }): Promise<{ data: SupportGrantResponseDto[]; total: number }> {
+    const { data, total } = await this.grantRepo.findMany(filters);
+    return { data: data.map((g) => this.toResponseDto(g)), total };
+  }
+
+  private toResponseDto(
+    grant: NonNullable<Awaited<ReturnType<SupportGrantRepository['findById']>>>,
+  ): SupportGrantResponseDto {
     return {
-      id: grant!.id,
-      tenantId: grant!.tenantId,
-      supportUserId: grant!.supportUserId,
-      requestedByUserId: grant!.requestedByUserId,
-      approvedByUserId: grant!.approvedByUserId ?? undefined,
-      scope: (grant!.scope as string[]),
-      reason: grant!.reason,
-      startsAt: grant!.startsAt.toISOString(),
-      endsAt: grant!.endsAt.toISOString(),
-      revokedAt: grant!.revokedAt?.toISOString(),
-      status: grant!.status,
-      createdAt: grant!.createdAt.toISOString(),
-      createdBy: grant!.createdBy ?? undefined,
-      updatedAt: grant!.updatedAt.toISOString(),
-      updatedBy: grant!.updatedBy ?? undefined,
-      rowVersion: grant!.rowVersion.toString(),
+      id: grant.id,
+      tenantId: grant.tenantId,
+      supportUserId: grant.supportUserId,
+      requestedByUserId: grant.requestedByUserId,
+      approvedByUserId: grant.approvedByUserId ?? undefined,
+      scope: grant.scope as string[],
+      reason: grant.reason,
+      startsAt: grant.startsAt.toISOString(),
+      endsAt: grant.endsAt.toISOString(),
+      revokedAt: grant.revokedAt?.toISOString(),
+      status: grant.status,
+      createdAt: grant.createdAt.toISOString(),
+      createdBy: grant.createdBy ?? undefined,
+      updatedAt: grant.updatedAt.toISOString(),
+      updatedBy: grant.updatedBy ?? undefined,
+      rowVersion: grant.rowVersion.toString(),
     };
   }
 }

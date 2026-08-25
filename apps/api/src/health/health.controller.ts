@@ -3,6 +3,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus';
 import { SkipResponseTransform } from '../common/decorators/skip-response-transform.decorator';
 import { DatabaseHealthIndicator } from './indicators/database.health.indicator';
+import { RedisHealthIndicator } from './indicators/redis.health.indicator';
 
 @ApiTags('Health')
 @Controller('health')
@@ -10,6 +11,7 @@ export class HealthController {
   constructor(
     private readonly health: HealthCheckService,
     private readonly dbIndicator: DatabaseHealthIndicator,
+    private readonly redisIndicator: RedisHealthIndicator,
   ) {}
 
   @Get()
@@ -19,6 +21,7 @@ export class HealthController {
   check() {
     return this.health.check([
       () => this.dbIndicator.isHealthy('database'),
+      () => this.redisIndicator.isHealthy('redis'),
     ]);
   }
 
@@ -38,6 +41,7 @@ export class HealthController {
   readiness() {
     return this.health.check([
       () => this.dbIndicator.isHealthy('database'),
+      () => this.redisIndicator.isHealthy('redis'),
     ]);
   }
 }

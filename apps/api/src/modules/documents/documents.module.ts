@@ -16,10 +16,13 @@ import { EmployeeDocumentController } from './controllers/employee-document.cont
 import { OnboardingTemplateController } from './controllers/onboarding-template.controller';
 import { OnboardingInstanceController } from './controllers/onboarding-instance.controller';
 import { DocumentRequestController } from './controllers/document-request.controller';
+import { DocumentLibraryController } from './controllers/document-library.controller';
+import { OnboardingDashboardService } from './services/onboarding-dashboard.service';
 
 @Module({
   imports: [PrismaModule, AuthenticationModule],
   controllers: [
+    DocumentLibraryController,
     DocumentTemplateController,
     EmployeeDocumentController,
     OnboardingTemplateController,
@@ -37,6 +40,7 @@ import { DocumentRequestController } from './controllers/document-request.contro
     OnboardingTemplateService,
     OnboardingInstanceService,
     DocumentRequestService,
+    OnboardingDashboardService,
   ],
   exports: [
     DocumentTemplateService,

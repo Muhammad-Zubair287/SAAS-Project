@@ -6,7 +6,11 @@ import { useTranslations } from 'next-intl';
 import { PageHeader } from '../../../components/common/page-header';
 import { EmployeesTable } from '../../../modules/employee/components/employees-table';
 import { useEmployees } from '../../../modules/employee/hooks/use-employees';
+import { useLegalEntities } from '../../../modules/organisation/hooks/use-legal-entities';
+import { useDepartments } from '../../../modules/organisation/hooks/use-departments';
+import { usePositions } from '../../../modules/organisation/hooks/use-positions';
 import { usePagination } from '../../../hooks/use-pagination';
+import { useDebounce } from '../../../hooks/use-debounce';
 import type { EmployeeStatus, EmploymentType } from '../../../modules/employee/types/employee.types';
 import { ROUTES } from '../../../constants/routes.constants';
 
@@ -18,16 +22,28 @@ interface EmployeesPageClientProps {
 export function EmployeesPageClient({ title, description }: EmployeesPageClientProps) {
   const t = useTranslations();
   const [search, setSearch] = useState('');
+  // Debounced so typing does not fire one request per keystroke.
+  const debouncedSearch = useDebounce(search);
   const [statusFilter, setStatusFilter] = useState<EmployeeStatus | ''>('');
   const [typeFilter, setTypeFilter] = useState<EmploymentType | ''>('');
+  const [legalEntityFilter, setLegalEntityFilter] = useState('');
+  const [departmentFilter, setDepartmentFilter] = useState('');
+  const [positionFilter, setPositionFilter] = useState('');
   const { page, pageSize, goToPage: setPage } = usePagination();
 
-  const { data, isLoading } = useEmployees({
+  const legalEntities = useLegalEntities({ pageSize: 100, status: 'ACTIVE' });
+  const departments = useDepartments({ pageSize: 100, status: 'ACTIVE' });
+  const positions = usePositions({ pageSize: 100, status: 'ACTIVE' });
+
+  const { data, isLoading, isError, refetch } = useEmployees({
     page,
     pageSize,
-    search: search || undefined,
+    search: debouncedSearch || undefined,
     status: statusFilter || undefined,
     employmentType: typeFilter || undefined,
+    legalEntityId: legalEntityFilter || undefined,
+    departmentId: departmentFilter || undefined,
+    positionId: positionFilter || undefined,
     sortBy: 'displayName',
     sortOrder: 'asc',
   });
@@ -45,16 +61,30 @@ export function EmployeesPageClient({ title, description }: EmployeesPageClientP
           { label: title },
         ]}
         actions={
-          <Link
-            href={ROUTES.TENANT.EMPLOYEES.NEW}
-            className="rounded-md bg-brand-blue-600 px-4 py-2 text-body-md font-semibold text-white hover:bg-brand-blue-500 transition-colors"
-          >
-            + {t('employees.createButton')}
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href={ROUTES.TENANT.EMPLOYEES.IMPORT}
+              className="rounded-md border border-border-default bg-surface-primary px-3 py-2 text-body-sm font-medium text-text-primary hover:bg-surface-canvas transition-colors"
+            >
+              {t('employees.import.title')}
+            </Link>
+            <Link
+              href={ROUTES.TENANT.EMPLOYEES.DATA_QUALITY}
+              className="rounded-md border border-border-default bg-surface-primary px-3 py-2 text-body-sm font-medium text-text-primary hover:bg-surface-canvas transition-colors"
+            >
+              {t('employees.dataQuality.title')}
+            </Link>
+            <Link
+              href={ROUTES.TENANT.EMPLOYEES.NEW}
+              className="rounded-md bg-brand-blue-600 px-4 py-2 text-body-md font-semibold text-white hover:bg-brand-blue-500 transition-colors"
+            >
+              + {t('employees.createButton')}
+            </Link>
+          </div>
         }
       />
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <div className="relative flex-1">
           <input
             type="search"
@@ -90,9 +120,39 @@ export function EmployeesPageClient({ title, description }: EmployeesPageClientP
           <option value="CONTRACT">{t('employees.employmentType.CONTRACT')}</option>
           <option value="INTERN">{t('employees.employmentType.INTERN')}</option>
         </select>
+        <select
+          value={legalEntityFilter}
+          onChange={(e) => { setLegalEntityFilter(e.target.value); setPage(1); }}
+          className="rounded-md border border-border-default bg-surface-primary px-3 py-2 text-body-md focus:border-brand-blue-600 focus:outline-none"
+        >
+          <option value="">{t('employees.filters.allLegalEntities')}</option>
+          {(legalEntities.data?.data ?? []).map((entity) => (
+            <option key={entity.id} value={entity.id}>{entity.name}</option>
+          ))}
+        </select>
+        <select
+          value={departmentFilter}
+          onChange={(e) => { setDepartmentFilter(e.target.value); setPage(1); }}
+          className="rounded-md border border-border-default bg-surface-primary px-3 py-2 text-body-md focus:border-brand-blue-600 focus:outline-none"
+        >
+          <option value="">{t('employees.filters.allDepartments')}</option>
+          {(departments.data?.data ?? []).map((department) => (
+            <option key={department.id} value={department.id}>{department.name}</option>
+          ))}
+        </select>
+        <select
+          value={positionFilter}
+          onChange={(e) => { setPositionFilter(e.target.value); setPage(1); }}
+          className="rounded-md border border-border-default bg-surface-primary px-3 py-2 text-body-md focus:border-brand-blue-600 focus:outline-none"
+        >
+          <option value="">{t('employees.filters.allPositions')}</option>
+          {(positions.data?.data ?? []).map((position) => (
+            <option key={position.id} value={position.id}>{position.title}</option>
+          ))}
+        </select>
       </div>
 
-      {!isLoading && (
+      {!isLoading && !isError && (
         <p className="text-body-sm text-text-secondary">
           {t('pagination.showing', {
             from: Math.min((page - 1) * pageSize + 1, total),
@@ -102,16 +162,21 @@ export function EmployeesPageClient({ title, description }: EmployeesPageClientP
         </p>
       )}
 
-      <EmployeesTable data={data?.data ?? []} isLoading={isLoading} />
+      <EmployeesTable
+        data={data?.data ?? []}
+        isLoading={isLoading}
+        isError={isError}
+        onRetry={() => { void refetch(); }}
+      />
 
-      {totalPages > 1 && (
+      {!isError && totalPages > 1 && (
         <div className="flex items-center justify-center gap-2">
           <button type="button" onClick={() => setPage(Math.max(1, page - 1))} disabled={page <= 1}
-            className="rounded-md border border-border-default px-3 py-1.5 text-body-sm disabled:opacity-40"
+            className="flex h-11 min-w-11 items-center justify-center rounded-md border border-border-default px-3 text-body-sm disabled:opacity-40"
             aria-label={t('pagination.previousPage')}>←</button>
           <span className="text-body-sm text-text-secondary">{page} / {totalPages}</span>
           <button type="button" onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page >= totalPages}
-            className="rounded-md border border-border-default px-3 py-1.5 text-body-sm disabled:opacity-40"
+            className="flex h-11 min-w-11 items-center justify-center rounded-md border border-border-default px-3 text-body-sm disabled:opacity-40"
             aria-label={t('pagination.nextPage')}>→</button>
         </div>
       )}

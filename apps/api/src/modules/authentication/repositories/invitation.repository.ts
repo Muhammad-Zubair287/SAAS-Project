@@ -11,6 +11,11 @@ export interface CreateInvitationInput {
   expiresAt: Date;
 }
 
+function parseRoleIds(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((id): id is string => typeof id === 'string' && id.length > 0);
+}
+
 @Injectable()
 export class InvitationRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -19,17 +24,28 @@ export class InvitationRepository {
     return this.prisma.appUser.findFirst({ where: { emailNormalised } });
   }
 
-  async findOrCreateUserForInvitation(emailNormalised: string): Promise<AppUser> {
+  async findOrCreateUserForInvitation(
+    emailNormalised: string,
+    displayName?: string,
+  ): Promise<AppUser> {
     const existing = await this.prisma.appUser.findFirst({ where: { emailNormalised } });
-    if (existing) return existing;
+    if (existing) {
+      if (displayName && existing.displayName !== displayName) {
+        return this.prisma.appUser.update({
+          where: { id: existing.id },
+          data: { displayName, displayNameLegacy: displayName },
+        });
+      }
+      return existing;
+    }
 
-    const displayName = emailNormalised.split('@')[0] ?? emailNormalised;
+    const resolvedName = displayName?.trim() || emailNormalised.split('@')[0] || emailNormalised;
     return this.prisma.appUser.create({
       data: {
         email: emailNormalised,
         emailNormalised,
-        displayName,
-        displayNameLegacy: displayName,
+        displayName: resolvedName,
+        displayNameLegacy: resolvedName,
         userType: 'HUMAN',
         status: 'INVITED',
         isActive: false,
@@ -50,16 +66,43 @@ export class InvitationRepository {
     });
   }
 
+  async listByTenant(tenantId: string): Promise<Array<{
+    id: string;
+    email: string;
+    expiresAt: Date;
+    acceptedAt: Date | null;
+    createdAt: Date;
+    roleIds: unknown;
+  }>> {
+    return this.prisma.userInvitation.findMany({
+      where: { tenantId },
+      select: {
+        id: true,
+        email: true,
+        expiresAt: true,
+        acceptedAt: true,
+        createdAt: true,
+        roleIds: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+  }
+
   async findInvitationByTokenHash(tokenHash: string): Promise<UserInvitation | null> {
     return this.prisma.userInvitation.findFirst({ where: { tokenHash } });
   }
 
-  // Runs as a single atomic transaction: mark invitation accepted, upsert credential, activate user.
+  // Runs as a single atomic transaction: mark invitation accepted, upsert credential,
+  // activate user, and assign invitation roleIds as RoleAssignments.
   async acceptInvitationTransaction(
     invitationId: string,
     userId: string,
     passwordHash: string,
     activateUser: boolean,
+    roleIds: string[],
+    tenantId: string,
+    grantedBy: string | null,
   ): Promise<void> {
     await this.prisma.withTransaction(async (tx) => {
       await tx.userInvitation.update({
@@ -74,6 +117,28 @@ export class InvitationRepository {
         await tx.appUser.update({
           where: { id: userId },
           data: { status: 'ACTIVE', isActive: true },
+        });
+      }
+
+      for (const roleId of roleIds) {
+        const role = await tx.role.findFirst({
+          where: { id: roleId, tenantId },
+          select: { id: true },
+        });
+        if (!role) continue;
+
+        const existing = await tx.roleAssignment.findFirst({
+          where: { userId, roleId, tenantId },
+        });
+        if (existing) continue;
+
+        await tx.roleAssignment.create({
+          data: {
+            tenantId,
+            userId,
+            roleId,
+            grantedBy,
+          },
         });
       }
     });
@@ -117,3 +182,5 @@ export class InvitationRepository {
     });
   }
 }
+
+export { parseRoleIds };

@@ -28,12 +28,25 @@ export class AttendanceRawEventRepository extends BaseRepository {
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(date);
     endOfDay.setHours(23, 59, 59, 999);
+    return this.findByEmployeeAndTimeRange(
+      employeeId,
+      startOfDay,
+      endOfDay,
+      tenantId,
+    );
+  }
 
+  async findByEmployeeAndTimeRange(
+    employeeId: string,
+    fromInclusive: Date,
+    toInclusive: Date,
+    tenantId: string,
+  ): Promise<AttendanceRawEvent[]> {
     return this.prisma.attendanceRawEvent.findMany({
       where: {
         tenantId,
         employeeId,
-        eventTime: { gte: startOfDay, lte: endOfDay },
+        eventTime: { gte: fromInclusive, lte: toInclusive },
       },
       orderBy: { eventTime: 'asc' },
     });

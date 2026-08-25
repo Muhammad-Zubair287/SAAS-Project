@@ -10,9 +10,11 @@ import { ROUTES } from '../../../constants/routes.constants';
 interface CostCentresTableProps {
   data: CostCentre[];
   isLoading?: boolean;
+  isError?: boolean;
+  onRetry?: () => void;
 }
 
-export function CostCentresTable({ data, isLoading }: CostCentresTableProps) {
+export function CostCentresTable({ data, isLoading, isError, onRetry }: CostCentresTableProps) {
   const t = useTranslations();
   const router = useRouter();
 
@@ -48,7 +50,12 @@ export function CostCentresTable({ data, isLoading }: CostCentresTableProps) {
       columns={columns}
       data={data}
       isLoading={isLoading}
+      isError={isError}
+      onRetry={onRetry}
+      errorTitle={t('common.error')}
+      retryLabel={t('common.retry')}
       keyExtractor={(row) => row.id}
+      caption={t('organisation.costCentres.title')}
       emptyTitle={t('organisation.costCentres.empty.title')}
       emptyDescription={t('organisation.costCentres.empty.description')}
       onRowClick={(row) => router.push(ROUTES.TENANT.ORGANISATION.COST_CENTRE_DETAIL(row.id))}

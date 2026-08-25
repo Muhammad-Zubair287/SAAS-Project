@@ -1,0 +1,18 @@
+---
+alwaysApply: true
+---
+---
+description: Clean architecture layer boundaries and module dependency rules
+alwaysApply: true
+---
+
+# Clean Architecture Boundaries
+- **Core:** `domain-entities`, `value-objects`, `domain-services`
+- **App:** `use-cases`, `DTOs`, `mappers`
+- **Infra:** `db-repos`, `ext-apis`, `queues`, `file-storage`
+- **UI:** `pages`, `components`, `hooks`, `stores`
+
+# Import Direction Law
+- **Strict Inward-Only Imports:** `Core` ← `App` ← `Infra` ← `UI`
+- Outer layers may import inner layers; inner layers MUST NEVER import outer layers.
+- Modules must be structured as feature-based / vertical slices.

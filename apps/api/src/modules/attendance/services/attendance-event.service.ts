@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../../../database/prisma/prisma.service';
 import { AppException } from '../../../common/exceptions/app.exception';
@@ -10,11 +10,12 @@ import { AttendanceRawEventRepository } from '../repositories/attendance-raw-eve
 import { AttendanceRecordRepository } from '../repositories/attendance-record.repository';
 import { AttendanceExceptionRepository } from '../repositories/attendance-exception.repository';
 import { AttendanceCalculatorService } from './attendance-calculator.service';
-import { AttendancePolicyService } from './attendance-policy.service';
 import { NullLeaveCheckAdapter } from '../interfaces/leave-check-adapter.interface';
-import { NullShiftCheckAdapter } from '../interfaces/shift-check-adapter.interface';
 import type { LeaveCheckAdapter } from '../interfaces/leave-check-adapter.interface';
-import type { ShiftCheckAdapter } from '../interfaces/shift-check-adapter.interface';
+import {
+  SHIFT_CHECK_ADAPTER,
+  type ShiftCheckAdapter,
+} from '../interfaces/shift-check-adapter.interface';
 import type { CreateAttendanceEventDto } from '../dto/create-attendance-event.dto';
 import type { ListAttendanceDto } from '../dto/list-attendance.dto';
 import type { AttendanceEventResponseDto } from '../dto/attendance-event-response.dto';
@@ -39,19 +40,18 @@ type RawEventRow = {
 export class AttendanceEventService {
   private readonly logger = new Logger(AttendanceEventService.name);
   private readonly leaveAdapter: LeaveCheckAdapter;
-  private readonly shiftAdapter: ShiftCheckAdapter;
 
   constructor(
     private readonly rawEventRepo: AttendanceRawEventRepository,
     private readonly recordRepo: AttendanceRecordRepository,
     private readonly exceptionRepo: AttendanceExceptionRepository,
     private readonly calculator: AttendanceCalculatorService,
-    private readonly policyService: AttendancePolicyService,
     private readonly prisma: PrismaService,
     private readonly employeeRepo: EmployeeRepository,
+    @Inject(SHIFT_CHECK_ADAPTER)
+    private readonly shiftCheck: ShiftCheckAdapter,
   ) {
     this.leaveAdapter = new NullLeaveCheckAdapter();
-    this.shiftAdapter = new NullShiftCheckAdapter();
   }
 
   async ingest(
@@ -165,6 +165,37 @@ export class AttendanceEventService {
     return this.toEventDto(rawEvent);
   }
 
+  /** Worker entry point: trigger attendance calculation for a validated raw event. */
+  async processRawEventCalculation(
+    tenantId: string,
+    rawEventId: string,
+    correlationId: string,
+  ): Promise<void> {
+    const rawEvent = await this.rawEventRepo.findById(rawEventId, tenantId);
+    if (!rawEvent) {
+      this.logger.warn(`Raw event ${rawEventId} not found for calculation`);
+      return;
+    }
+
+    const employee = await this.employeeRepo.findById(rawEvent.employeeId, tenantId);
+    if (!employee) {
+      this.logger.warn(`Employee ${rawEvent.employeeId} not found for raw event ${rawEventId}`);
+      return;
+    }
+
+    await this.triggerCalculation(
+      tenantId,
+      rawEvent.employeeId,
+      employee.legalEntityId,
+      employee.branchId ?? null,
+      new Date(rawEvent.eventTime),
+      'SYSTEM',
+      correlationId,
+    );
+
+    await this.rawEventRepo.markProcessed(rawEventId, tenantId);
+  }
+
   private async triggerCalculation(
     tenantId: string,
     employeeId: string,
@@ -175,25 +206,26 @@ export class AttendanceEventService {
     correlationId: string,
   ): Promise<void> {
     try {
-      // Get work date (date portion of eventTime)
-      const workDate = new Date(eventTime);
-      workDate.setHours(0, 0, 0, 0);
+      // Logical workDate (SHIFT-START-DATE overnight). Raw eventTime unchanged.
+      const { workDate, resolved } =
+        await this.shiftCheck.resolveWorkDateForEvent(
+          tenantId,
+          employeeId,
+          eventTime,
+        );
 
-      // Resolve attendance policy for this employee's context
-      const policy = await this.policyService.resolvePolicy(
-        tenantId,
-        workDate,
-        branchId,
-        legalEntityId,
-      );
-      const policySchedule = this.policyService.policyToSchedule(policy);
-
-      // Load all events for this employee on this date
-      const events = await this.rawEventRepo.findByEmployeeAndDate(
-        employeeId,
-        workDate,
-        tenantId,
-      );
+      const events = resolved
+        ? await this.rawEventRepo.findByEmployeeAndTimeRange(
+            employeeId,
+            resolved.attributionWindowStart,
+            resolved.attributionWindowEnd,
+            tenantId,
+          )
+        : await this.rawEventRepo.findByEmployeeAndDate(
+            employeeId,
+            workDate,
+            tenantId,
+          );
 
       const rawEventInputs = events
         .filter((e) => e.status !== 'ERROR')
@@ -203,19 +235,17 @@ export class AttendanceEventService {
           eventTime: new Date(e.eventTime),
         }));
 
-      // Calculate
       const result = await this.calculator.calculate({
         tenantId,
         employeeId,
+        branchId,
         legalEntityId,
         workDate,
         rawEvents: rawEventInputs,
         leaveAdapter: this.leaveAdapter,
-        shiftAdapter: this.shiftAdapter,
-        policySchedule,
+        preResolved: resolved,
       });
 
-      // Upsert attendance record + exceptions in transaction
       await this.prisma.withTenantTransaction(tenantId, async (tx) => {
         const record = await tx.attendanceRecord.upsert({
           where: {
@@ -243,6 +273,11 @@ export class AttendanceEventService {
             calculatedAt: new Date(),
             createdBy: actorId,
             updatedBy: actorId,
+            scheduleSource: result.provenance.scheduleSource,
+            resolvedShiftId: result.provenance.resolvedShiftId,
+            shiftAssignmentId: result.provenance.shiftAssignmentId,
+            rosterAssignmentId: result.provenance.rosterAssignmentId,
+            attendancePolicyId: result.provenance.attendancePolicyId,
           },
           update: {
             firstCheckIn: result.firstCheckIn,
@@ -260,10 +295,14 @@ export class AttendanceEventService {
             updatedBy: actorId,
             rowVersion: { increment: 1 },
             calculationVersion: { increment: 1 },
+            scheduleSource: result.provenance.scheduleSource,
+            resolvedShiftId: result.provenance.resolvedShiftId,
+            shiftAssignmentId: result.provenance.shiftAssignmentId,
+            rosterAssignmentId: result.provenance.rosterAssignmentId,
+            attendancePolicyId: result.provenance.attendancePolicyId,
           },
         });
 
-        // Delete old exceptions for this record, create new ones
         await tx.attendanceException.deleteMany({
           where: { tenantId, attendanceRecordId: record.id },
         });
@@ -282,25 +321,28 @@ export class AttendanceEventService {
           });
         }
 
-        // Outbox: AttendanceRecordCalculated.v1
         await tx.outboxEvent.create({
           data: {
             tenantId,
             eventId: randomUUID(),
             eventType: 'AttendanceRecordCalculated.v1',
-            payload: {
+              payload: {
               recordId: record.id,
               employeeId,
               workDate: workDate.toISOString(),
               status: result.status,
               tenantId,
               correlationId,
+              scheduleSource: result.provenance.scheduleSource,
+              resolvedShiftId: result.provenance.resolvedShiftId,
+              shiftAssignmentId: result.provenance.shiftAssignmentId,
+              rosterAssignmentId: result.provenance.rosterAssignmentId,
+              attendancePolicyId: result.provenance.attendancePolicyId,
             },
             status: 'PENDING',
           },
         });
 
-        // Outbox: AttendanceExceptionRaised.v1 for each exception
         for (const ex of result.exceptions) {
           await tx.outboxEvent.create({
             data: {
@@ -319,7 +361,6 @@ export class AttendanceEventService {
           });
         }
 
-        // Audit
         await tx.auditEvent.create({
           data: {
             tenantId,
@@ -333,6 +374,7 @@ export class AttendanceEventService {
             after: {
               status: result.status,
               totalWorkedMinutes: result.totalWorkedMinutes,
+              scheduleSource: result.provenance.scheduleSource,
             },
             correlationId,
             severity: 'INFO',
@@ -340,7 +382,6 @@ export class AttendanceEventService {
         });
       });
     } catch (err) {
-      // Log but don't throw — event was already saved
       this.logger.error('[AttendanceCalculator] Calculation failed:', err);
     }
   }

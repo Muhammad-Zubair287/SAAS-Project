@@ -342,3 +342,11 @@ All architecture documentation, module mapping, ADRs (ADR-001–ADR-014), system
 | Backend (api) | 29 |
 | Frontend (web) | 28 |
 | **Total Phase 3 M01** | **57** |
+
+## Super Admin PDF Epic (2026-08-24) ✅ Complete
+
+- Platform permissions expanded (`platform.*` catalogue + AuthorizationService + PlatformRoleGuard)
+- Prisma: platform_setting, platform_notification, user_preference, integration_*, audit_export_job, usage snapshot extensions
+- Jobs: usage snapshots, support grant expiry, integration health probes
+- APIs: plans/entitlements CRUD, usage dashboard, config domains, notifications, search, preferences, integration health, audit detail/export, support approve/reject, tenant close
+- Web: §6.1 chrome (tenant switcher, search, quick create, notifications, help, user menu), config tabs, live plans/usage/audit/support/health/dashboard widgets

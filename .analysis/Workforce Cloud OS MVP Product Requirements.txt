@@ -1,0 +1,3439 @@
+--- Page 1 ---
+Workforce Cloud OS
+Module-by-Module MVP Product Requirements Document
+Document Version: 1.0
+Document Status: Draft for Product, Architecture and Stakeholder Approval
+Product Type: Multi-tenant Workforce Management SaaS
+Primary Launch Market: Pakistan
+Future Expansion: GCC, United Kingdom, Europe and selected global markets
+Prepared For: Product, UX, Engineering, QA, DevOps, Security, Implementation, Sales and Customer
+Success
+Date: July 2026 
+1. Purpose of This Document
+This Product Requirements Document defines the detailed product behaviour required for the first
+commercially usable version of Workforce Cloud OS.
+The document translates the Business Requirements Document into:
+Product modules.
+Features and subfeatures.
+User stories.
+Functional requirements.
+Business rules.
+User workflows.
+Data validations.
+Permissions.
+Notifications.
+Reports.
+Dependencies.
+Acceptance criteria.
+MVP boundaries.
+The primary purpose is to ensure that product, design, engineering, testing and business teams share
+one interpretation of what must be delivered.
+The system is based on the approved concept of a connected, multi-tenant workforce operating
+environment combining employee data, HR processes, attendance, payroll, workflows, reporting and
+self-service capabilities. 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+1
+
+--- Page 2 ---
+2. Product Summary
+Workforce Cloud OS will provide one workforce system of record for organisations that currently
+manage employees through disconnected HR applications, biometric systems, payroll spreadsheets,
+emails, paper forms and separate reporting tools.
+The MVP will focus on the most frequent and commercially valuable workforce processes:
+Tenant and company setup.
+User authentication.
+Role-based access.
+Organisation structures.
+Employee records.
+Employee onboarding.
+Attendance.
+Shifts and rosters.
+Leave.
+Approval workflows.
+Payroll.
+Employee self-service.
+Manager self-service.
+Notifications.
+Reports and exports.
+Data migration and integrations.
+Subscription and module entitlements.
+Audit, privacy and security controls.
+The product must support a connected operating model:
+Employee record → attendance → leave → payroll → approvals → employee self-service
+→ management reporting.
+3. Product Vision
+Workforce Cloud OS will become the secure operating layer through which
+organisations manage employees, attendance, leave, payroll, policies, approvals
+and workforce information.
+The MVP must create a stable foundation for future modules such as TaskOps, assets, expenses,
+benefits, performance, compliance automation and AI insights.
+The approved product roadmap places Core HR, attendance, leave and payroll in Phase One, followed
+by TaskOps, assets, benefits and intelligence in later phases. 
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+2
+
+--- Page 3 ---
+4. Product Goals
+PG-001: Establish a Single Employee Record
+Every employee shall have one authoritative profile used across attendance, leave, payroll, documents,
+approvals and reporting.
+PG-002: Digitise High-Frequency Workforce Processes
+The platform shall replace manual attendance, leave, employee-record and payroll processes with
+digital workflows.
+PG-003: Connect Attendance and Payroll
+Approved attendance, leave and overtime information shall feed payroll calculations.
+PG-004: Enable Employee Self-Service
+Employees shall be able to access routine information and submit common requests without depending
+on HR.
+PG-005: Enable Manager Self-Service
+Managers shall be able to view their teams and process authorised workforce requests.
+PG-006: Support Tenant Configuration
+Each customer shall be able to configure its own organisation structure, policies, workflows, salary
+components and branding.
+PG-007: Maintain Auditability
+Critical employee, attendance, payroll and approval actions shall remain traceable.
+PG-008: Support Commercial SaaS Operations
+The platform shall support customer tenants, plans, seat limits, feature entitlements and usage
+controls.
+PG-009: Support Pakistan Launch Requirements
+The MVP shall support Pakistan-focused payroll configuration, PKR, local holidays, biometric integration
+foundations and English-language operation, with Urdu localisation prepared for controlled rollout.
+3
+
+--- Page 4 ---
+PG-010: Provide an Expandable Architecture
+The product shall allow future modules to use the same employee, organisation, workflow, notification
+and audit foundations.
+5. MVP Non-Goals
+The MVP will not attempt to provide:
+Complete global payroll processing.
+Full accounting or general ledger capabilities.
+Full recruitment and applicant tracking.
+Advanced learning management.
+Advanced project portfolio management.
+AI-based termination or promotion decisions.
+Predictive attrition models.
+Full asset lifecycle management.
+Advanced employee benefits management.
+Full expense reimbursement automation.
+Automated government tax filing.
+Native support for every biometric-device vendor .
+Separate custom codebases for individual customers.
+Complex gamification.
+Advanced compensation planning.
+Full workforce scheduling optimisation.
+These may be introduced in later product phases.
+6. Target Customer Profile
+The MVP shall primarily serve organisations with:
+50–1,000 employees.
+One or more offices, branches or operating locations.
+Manual or biometric attendance.
+Spreadsheet-based or disconnected payroll.
+Formal leave and approval requirements.
+HR or finance staff responsible for payroll.
+A requirement for employee self-service.
+A need for audit-ready workforce records.
+Priority sectors include:
+Technology and software.
+Business-process outsourcing.
+Healthcare.
+Retail.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+4
+
+--- Page 5 ---
+Hospitality.
+Manufacturing.
+Logistics.
+Education.
+Professional services.
+NGOs and development organisations.
+7. Primary User Personas
+7.1 Platform Super Administrator
+A Workforce Cloud OS internal user responsible for:
+Creating tenants.
+Managing subscriptions.
+Activating modules.
+Reviewing platform usage.
+Providing support.
+Managing global configuration.
+7.2 Tenant Administrator
+A customer representative responsible for:
+Configuring the company.
+Managing modules.
+Assigning roles.
+Configuring integrations.
+Maintaining tenant-level settings.
+7.3 HR Administrator
+Responsible for:
+Employee records.
+Onboarding.
+Documents.
+Attendance policies.
+Leave.
+Employee status changes.
+HR reporting.
+7.4 Payroll Administrator
+Responsible for:
+Salary structures.
+Payroll periods.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+5
+
+--- Page 6 ---
+Attendance validation.
+Payroll calculations.
+Payslip publication.
+Payroll reports.
+7.5 Department Manager
+Responsible for:
+Team attendance.
+Leave approvals.
+Attendance corrections.
+Team schedules.
+Workforce visibility.
+7.6 Employee
+Responsible for:
+Maintaining personal information.
+Recording attendance.
+Requesting leave.
+Viewing balances.
+Accessing payslips.
+Tracking requests.
+Acknowledging policies.
+7.7 Auditor or Read-Only User
+Responsible for:
+Reviewing records.
+Inspecting audit logs.
+Accessing approved reports.
+Validating historical actions.
+8. Product-Wide Design Principles
+8.1 Tenant Isolation
+Every record shall be associated with a tenant.
+A customer user shall not access another customer’s data.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+6
+
+--- Page 7 ---
+8.2 Configuration Before Customisation
+Customer differences should be handled through:
+Policies.
+Settings.
+Workflows.
+Fields.
+Roles.
+Reports.
+Integrations.
+Separate customer-specific source-code branches should be avoided.
+8.3 Effective-Dated Information
+Employment, salary, organisation and policy changes shall support effective dates.
+8.4 Audit by Default
+Critical changes shall record:
+User .
+Timestamp.
+Previous value.
+New value.
+Reason.
+Approval reference.
+Source channel.
+8.5 Employee-First Experience
+High-frequency employee actions must be simple, mobile-friendly and understandable without formal
+training.
+8.6 Human Approval for High-Impact Actions
+Payroll approval, employment-status changes, sensitive data changes and future AI recommendations
+shall require authorised human review.
+8.7 Consistent Status Model
+Requests shall use consistent statuses where possible:
+Draft.
+Submitted.
+Under review.
+Approved.
+Rejected.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+7
+
+--- Page 8 ---
+Returned.
+Cancelled.
+Escalated.
+Completed.
+8.8 Responsive Interface
+The web application shall work across supported desktop, tablet and mobile screen sizes.
+9. MVP Module Map
+Module IDModule
+M01 Platform and Tenant Management
+M02 Authentication, Identity and Access
+M03 Organisation Structure
+M04 Employee Core HR
+M05 Employee Onboarding and Documents
+M06 Attendance Management
+M07 Shift and Roster Management
+M08 Leave Management
+M09 Workflow and Approval Engine
+M10 Payroll Management
+M11 Employee Self-Service
+M12 Manager Self-Service
+M13 Notifications and Communication
+M14 Reports, Dashboards and Exports
+M15 Data Migration and Integrations
+M16 Subscription and Feature Entitlements
+M17 Audit, Security, Privacy and Compliance
+• 
+• 
+• 
+• 
+8
+
+--- Page 9 ---
+10. Module M01 — Platform and Tenant
+Management
+10.1 Objective
+Provide Workforce Cloud OS administrators with the ability to create, configure, activate, suspend and
+support customer tenants.
+10.2 Primary Users
+Platform Super Administrator .
+Platform Support Administrator .
+Tenant Administrator .
+10.3 In-Scope Features
+Tenant creation.
+Tenant profile.
+Subscription assignment.
+Enabled modules.
+Employee-seat limits.
+Storage limits.
+Data-hosting region.
+Customer status.
+Tenant branding.
+Primary administrator invitation.
+Tenant activation.
+Tenant suspension.
+Tenant usage summary.
+10.4 Functional Requirements
+Requirement
+ID Requirement
+M01-FR-001 Platform administrators shall be able to create a tenant.
+M01-FR-002 Each tenant shall receive a unique system identifier .
+M01-FR-003 The administrator shall define company name, country, currency, time zone and
+primary language.
+M01-FR-004 A subscription plan and enabled modules shall be assigned during setup.
+M01-FR-005 The system shall allow employee-seat and storage limits to be configured.
+M01-FR-006 A primary tenant administrator shall receive a secure activation invitation.
+M01-FR-007 Tenants may be saved in draft state before activation.
+M01-FR-008 Suspended tenants shall be prevented from normal operational access.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+9
+
+--- Page 10 ---
+Requirement
+ID Requirement
+M01-FR-009 Platform administrators shall see tenant usage and subscription status.
+M01-FR-010 Tenant administrators shall configure branding within permitted limits.
+M01-FR-011 Platform support users shall access tenants only through controlled support
+permissions.
+M01-FR-012 Tenant creation, activation, suspension and plan changes shall be audited.
+10.5 Tenant Statuses
+Draft.
+Trial.
+Active.
+Payment overdue.
+Grace period.
+Suspended.
+Closed.
+Archived.
+10.6 User Stories
+US-M01-001
+As a platform administrator , I want to create a customer tenant so that the customer can begin
+configuration.
+US-M01-002
+As a tenant administrator , I want to add company branding so that employees recognise the platform as
+part of their organisation.
+US-M01-003
+As a platform administrator , I want to suspend a tenant without deleting its data so that access can be
+controlled while records remain protected.
+10.7 Tenant Creation Workflow
+Platform administrator selects “Create Tenant.”
+Administrator enters company information.
+Country, currency, language and time zone are selected.
+Subscription plan is assigned.
+Enabled modules are confirmed.
+Seat and storage limits are configured.
+Primary administrator details are entered.
+Tenant is saved as draft or activated.
+Activation invitation is sent.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10
+
+--- Page 11 ---
+Activity is written to the audit log.
+10.8 Validations
+Company name is mandatory.
+Country is mandatory.
+Time zone is mandatory.
+Primary administrator email must be valid.
+Tenant identifier must be unique.
+Seat limit must be greater than zero.
+Activated tenant must have an active plan.
+Closed tenant cannot be reactivated without elevated permission.
+10.9 Notifications
+Tenant administrator invitation.
+Tenant activation confirmation.
+Trial-expiry warning.
+Seat-limit warning.
+Subscription-expiry warning.
+Suspension notification.
+10.10 Acceptance Criteria
+A new tenant can be created without engineering support.
+The tenant administrator receives a secure invitation.
+Tenant branding is visible after configuration.
+Tenant data is isolated from other tenants.
+Suspended users cannot perform standard operations.
+All tenant-status changes appear in audit history.
+11. Module M02 — Authentication, Identity and
+Access
+11.1 Objective
+Provide secure authentication, user lifecycle management and role-based access control.
+11.2 Primary Users
+All users.
+Tenant Administrator .
+Platform Administrator .
+Security Administrator .
+10. 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+11
+
+--- Page 12 ---
+11.3 In-Scope Features
+Email and password authentication.
+Password reset.
+Account activation.
+Multi-factor authentication capability.
+Session management.
+Role-based access control.
+Permission scopes.
+Manager hierarchy access.
+User deactivation.
+SSO readiness.
+Login audit.
+11.4 Functional Requirements
+Requirement
+ID Requirement
+M02-FR-001 Users shall authenticate through a secure login process.
+M02-FR-002 New users shall activate their accounts through time-limited invitations.
+M02-FR-003 Users shall be able to reset forgotten passwords securely.
+M02-FR-004 The platform shall support configurable password policies.
+M02-FR-005 Tenant administrators shall assign roles to users.
+M02-FR-006 Permissions shall be evaluated at tenant, legal entity, branch, department and
+employee scope where applicable.
+M02-FR-007 Managers shall access only authorised reporting lines.
+M02-FR-008 User accounts may be deactivated without deleting employee history.
+M02-FR-009 Sessions shall expire according to configured security policy.
+M02-FR-010 Login attempts and security-sensitive actions shall be logged.
+M02-FR-011 The architecture shall support OAuth 2.0, JWT and enterprise SSO.
+M02-FR-012 Sensitive roles may be required to use multi-factor authentication.
+The approved technical direction includes OAuth 2.0, JWT, Microsoft Entra ID, Google Workspace and
+enterprise identity integration. 
+11.5 Default Roles
+Platform Super Administrator .
+Platform Support.
+Tenant Administrator .
+HR Administrator .
+Payroll Administrator .
+Finance User .
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+12
+
+--- Page 13 ---
+Department Manager .
+Employee.
+Auditor .
+Read-Only Reporter .
+11.6 Permission Categories
+View.
+Create.
+Edit.
+Delete or archive.
+Approve.
+Export.
+Configure.
+Reopen locked data.
+Impersonate for support.
+Access sensitive information.
+11.7 User Stories
+US-M02-001
+As an employee, I want to activate my account securely so that I can access self-service features.
+US-M02-002
+As a tenant administrator , I want to assign roles so that users only access information required for their
+responsibilities.
+US-M02-003
+As a security administrator , I want sensitive actions to be logged so that suspicious activity can be
+investigated.
+11.8 Business Rules
+One login account may be connected to one employee profile within a tenant.
+The same email may belong to different tenants where permitted.
+Payroll data access must be restricted to authorised roles.
+Bank, tax and identification information shall require enhanced permission.
+Deactivated users shall not be able to sign in.
+Role changes shall take effect according to the approved security design.
+Support impersonation shall require elevated permission and full audit logging.
+11.9 Acceptance Criteria
+Users can activate, log in and reset passwords.
+Unauthorised pages and APIs are blocked.
+Manager access is limited to authorised team members.
+Deactivated users cannot log in.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+13
+
+--- Page 14 ---
+Role changes are audit logged.
+Sensitive screens require appropriate permissions.
+12. Module M03 — Organisation Structure
+12.1 Objective
+Allow each tenant to represent its legal and operational hierarchy.
+12.2 Primary Users
+Tenant Administrator .
+HR Administrator .
+Payroll Administrator .
+Reporting Administrator .
+12.3 In-Scope Features
+Legal entities.
+Business units.
+Branches.
+Locations.
+Departments.
+Sub-departments.
+Teams.
+Cost centres.
+Positions.
+Job titles.
+Grades.
+Reporting lines.
+Effective-dated changes.
+12.4 Functional Requirements
+Requirement IDRequirement
+M03-FR-001 Tenants shall create one or more legal entities.
+M03-FR-002 Legal entities may contain branches and locations.
+M03-FR-003 Tenants shall configure departments and sub-departments.
+M03-FR-004 Cost centres shall be assignable to employees and payroll.
+M03-FR-005 Job titles, positions and grades shall be configurable.
+M03-FR-006 Employees shall be assigned to managers.
+M03-FR-007 Organisation changes shall support effective dates.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+14
+
+--- Page 15 ---
+Requirement IDRequirement
+M03-FR-008 The system shall preserve historical organisation assignments.
+M03-FR-009 Inactive organisation units shall remain available in historical reporting.
+M03-FR-010 Circular reporting relationships shall be prevented.
+12.5 User Stories
+US-M03-001
+As an HR administrator , I want to configure departments and reporting lines so that employee access
+and approvals follow the organisation hierarchy.
+US-M03-002
+As a payroll administrator , I want employees assigned to cost centres so that payroll costs can be
+reported correctly.
+12.6 Validations
+Legal-entity name is mandatory.
+Department name must be unique within its parent scope where configured.
+An employee cannot report directly or indirectly to themselves.
+An inactive location cannot be assigned to a new employee.
+Effective end date cannot be earlier than start date.
+A department with active employees cannot be deleted.
+12.7 Reports
+Organisation hierarchy.
+Headcount by legal entity.
+Headcount by department.
+Headcount by branch.
+Vacant and occupied positions.
+Manager span of control.
+Cost-centre headcount.
+12.8 Acceptance Criteria
+A multi-level organisation can be configured.
+Employees can be assigned to departments, managers and locations.
+Historical assignments remain reportable.
+Circular manager relationships are blocked.
+Inactive units do not appear in new-assignment lists.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+15
+
+--- Page 16 ---
+13. Module M04 — Employee Core HR
+13.1 Objective
+Maintain the authoritative employee record used by all MVP modules.
+13.2 Primary Users
+HR Administrator .
+Tenant Administrator .
+Employee.
+Manager .
+Payroll Administrator .
+13.3 Employee Profile Sections
+Personal information.
+Contact information.
+Emergency contacts.
+Identification.
+Employment information.
+Organisation assignment.
+Contract information.
+Payroll information.
+Bank information.
+Documents.
+Leave eligibility.
+Shift assignment.
+Manager assignment.
+Status history.
+13.4 Functional Requirements
+Requirement
+ID Requirement
+M04-FR-001 HR shall create employees individually or through bulk import.
+M04-FR-002 Each employee shall have a unique employee number within the tenant.
+M04-FR-003 The employee record shall support personal, employment and organisation data.
+M04-FR-004 Sensitive payroll and identification fields shall be permission restricted.
+M04-FR-005 Employee status changes shall be effective dated.
+M04-FR-006 Department, manager , position, grade and location history shall be retained.
+M04-FR-007 Employee records may be archived but not silently deleted when transactional
+history exists.
+M04-FR-008 HR shall identify mandatory fields by country or tenant configuration.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+16
+
+--- Page 17 ---
+Requirement
+ID Requirement
+M04-FR-009 Employees may request updates to selected personal information.
+M04-FR-010 Employee search shall support name, employee number , department, location
+and status.
+M04-FR-011 Employee profile changes shall generate audit records.
+M04-FR-012 The platform shall support configurable custom fields within controlled limits.
+13.5 Employee Statuses
+Pre-boarding.
+Active.
+Probation.
+On extended leave.
+Suspended.
+Resigned.
+Terminated.
+Retired.
+Inactive.
+13.6 User Stories
+US-M04-001
+As an HR administrator , I want one complete employee profile so that I do not maintain duplicate
+records in separate systems.
+US-M04-002
+As an employee, I want to view and request corrections to my information so that my record remains
+accurate.
+US-M04-003
+As a payroll administrator , I want effective-dated employment and salary information so that payroll
+uses the correct data.
+13.7 Business Rules
+Employee number shall be unique within the tenant.
+An active employee must have an organisation assignment.
+An active employee must have a joining date.
+Payroll-enabled employees must have a payroll group or salary structure.
+Termination and resignation dates cannot be before the joining date.
+Historical employment records shall not be overwritten.
+Changes to sensitive information may require approval.
+Bank-detail changes shall be flagged for payroll review.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+17
+
+--- Page 18 ---
+13.8 Reports
+Employee directory.
+Active headcount.
+New joiners.
+Employee status.
+Probation due.
+Contract expiry.
+Missing employee data.
+Department movement.
+Manager changes.
+Employee data-quality report.
+13.9 Acceptance Criteria
+HR can create and update employee records.
+Duplicate employee numbers are blocked.
+Historical organisation assignments remain available.
+Sensitive fields are permission protected.
+Employees can view their authorised profile.
+Employee changes are audited.
+14. Module M05 — Employee Onboarding and
+Documents
+14.1 Objective
+Digitise employee pre-boarding, onboarding tasks, document collection and policy acknowledgement.
+14.2 Primary Users
+HR Administrator .
+Employee.
+Manager .
+Tenant Administrator .
+14.3 In-Scope Features
+Onboarding templates.
+Task assignment.
+Employee invitations.
+Document requests.
+Policy acknowledgements.
+Manager tasks.
+Due dates.
+Reminders.
+Completion tracking.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+18
+
+--- Page 19 ---
+Employee activation.
+14.4 Functional Requirements
+Requirement
+ID Requirement
+M05-FR-001 HR shall create reusable onboarding templates.
+M05-FR-002 Templates may vary by legal entity, role, department or employment type.
+M05-FR-003 Onboarding tasks shall be assigned to HR, employee, manager or another
+authorised role.
+M05-FR-004 Tasks shall include due dates and completion statuses.
+M05-FR-005 Employees shall upload required documents securely.
+M05-FR-006 HR shall approve or reject submitted documents where required.
+M05-FR-007 Employees shall acknowledge assigned policies.
+M05-FR-008 Managers shall receive onboarding responsibilities.
+M05-FR-009 Overdue tasks shall generate reminders and escalation.
+M05-FR-010 HR shall view onboarding completion progress.
+M05-FR-011 Mandatory onboarding steps may block full activation.
+M05-FR-012 Document access shall follow role and privacy permissions.
+14.5 Onboarding Task Statuses
+Not started.
+In progress.
+Submitted.
+Under review.
+Completed.
+Rejected.
+Overdue.
+Waived.
+14.6 Standard Onboarding Workflow
+HR creates the employee.
+HR selects an onboarding template.
+System generates onboarding tasks.
+Employee receives invitation.
+Employee completes profile.
+Employee uploads documents.
+Employee acknowledges policies.
+Manager completes assigned tasks.
+HR reviews submissions.
+Mandatory requirements are completed or waived.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+19
+
+--- Page 20 ---
+Employee status becomes active.
+14.7 Document Categories
+Identification.
+Employment contract.
+Education.
+Professional certification.
+Bank information.
+Tax information.
+Medical or insurance documentation where permitted.
+Visa or work authorisation.
+Company policy.
+Employee letter .
+Other tenant-defined categories.
+14.8 Acceptance Criteria
+HR can assign an onboarding template.
+Employees can securely submit required information.
+Managers can see assigned tasks.
+Overdue tasks generate reminders.
+Mandatory incomplete tasks are visible before activation.
+Document access is permission controlled.
+Policy acknowledgement is timestamped.
+15. Module M06 — Attendance Management
+15.1 Objective
+Record, calculate, review and approve employee attendance from multiple authorised sources.
+15.2 Primary Users
+Employee.
+Manager .
+HR Administrator .
+Payroll Administrator .
+Tenant Administrator .
+15.3 In-Scope Attendance Sources
+Web check-in and check-out.
+Mobile check-in and check-out.
+Geo-fenced mobile attendance.
+Imported biometric records.
+API-based attendance events.
+Approved manual attendance.
+11. 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+20
+
+--- Page 21 ---
+Attendance correction requests.
+15.4 Functional Requirements
+Requirement IDRequirement
+M06-FR-001 Employees shall record check-in and check-out through enabled channels.
+M06-FR-002 Attendance events shall store time, source and employee identity.
+M06-FR-003 Mobile events may store location, device and accuracy information.
+M06-FR-004 Attendance shall be evaluated against the assigned shift.
+M06-FR-005 The system shall calculate attendance status according to tenant policy.
+M06-FR-006 The platform shall support overnight shifts.
+M06-FR-007 Missing or invalid attendance shall generate exceptions.
+M06-FR-008 Employees shall request attendance corrections.
+M06-FR-009 Managers or HR shall approve corrections according to workflow.
+M06-FR-010 Approved attendance shall become available to payroll.
+M06-FR-011 Attendance periods may be locked.
+M06-FR-012 Reopening locked attendance shall require elevated permission.
+M06-FR-013 Manual attendance entries shall require a reason.
+M06-FR-014 Attendance changes shall be audit logged.
+M06-FR-015 Employees shall view their attendance history.
+15.5 Attendance Statuses
+Present.
+Absent.
+Late.
+Early departure.
+Half-day.
+Approved leave.
+Unpaid leave.
+Holiday.
+Rest day.
+Holiday work.
+Rest-day work.
+Overtime.
+Missing check-in.
+Missing check-out.
+Attendance pending review.
+Remote work.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+21
+
+--- Page 22 ---
+15.6 Geo-Fenced Check-In Workflow
+Employee opens the mobile attendance screen.
+Application requests authorised location information.
+Employee identity and device are verified.
+Location is compared with permitted work zones.
+Employee submits check-in.
+System records timestamp and validation outcome.
+Attendance status is calculated against the shift.
+Employee receives confirmation.
+Exception is generated when policy validation fails.
+15.7 Attendance Correction Workflow
+Employee selects an attendance date.
+Existing attendance is displayed.
+Employee enters the requested correction.
+Reason and evidence are added.
+Request is submitted.
+Manager or HR reviews the request.
+Request is approved, rejected or returned.
+Approved correction updates attendance.
+Audit record preserves original and revised values.
+15.8 Business Rules
+System time shall be authoritative for web and mobile events.
+Device-provided time shall not replace trusted server time.
+Attendance calculations shall use the policy effective on the attendance date.
+Overnight shifts shall be treated as one logical work period.
+Duplicate check-ins within the restricted interval shall be prevented or flagged.
+Location collection shall only occur when enabled and legally permitted.
+Manual attendance changes shall require a reason.
+Attendance used in approved payroll cannot be changed without authorised reopening.
+Employee-visible records shall identify pending corrections.
+15.9 Notifications
+Successful check-in.
+Successful check-out.
+Check-in rejected.
+Outside authorised location.
+Missing check-out.
+Attendance correction submitted.
+Correction approved.
+Correction rejected.
+Attendance period locked.
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+22
+
+--- Page 23 ---
+15.10 Reports
+Daily attendance.
+Attendance summary.
+Late arrivals.
+Early departures.
+Absence.
+Overtime.
+Missing attendance.
+Location exceptions.
+Manual attendance changes.
+Attendance by source.
+Attendance correction status.
+15.11 Acceptance Criteria
+Employees can record attendance through enabled channels.
+Attendance is correctly matched to shifts.
+Overnight shifts are processed.
+Exceptions are visible to managers and HR.
+Employees can request corrections.
+Approved corrections update the record.
+Payroll receives only approved attendance.
+Locked attendance cannot be changed without authorisation.
+16. Module M07 — Shift and Roster Management
+16.1 Objective
+Allow organisations to configure working patterns and assign employees to shifts or rosters.
+16.2 Primary Users
+HR Administrator .
+Manager .
+Employee.
+Payroll Administrator .
+16.3 Functional Requirements
+Requirement
+ID Requirement
+M07-FR-001 HR shall create reusable shift templates.
+M07-FR-002 Shift templates shall define start time, end time, breaks and required hours.
+M07-FR-003 Grace periods and attendance windows shall be configurable.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+23
+
+--- Page 24 ---
+Requirement
+ID Requirement
+M07-FR-004 Shifts may cross midnight.
+M07-FR-005 Shifts may be assigned to employees, teams, departments or locations.
+M07-FR-006 The platform shall support recurring and rotating rosters.
+M07-FR-007 Future roster assignments shall be visible to authorised employees and
+managers.
+M07-FR-008 Shift changes may require approval.
+M07-FR-009 Shift assignments shall support effective dates.
+M07-FR-010 Historical shift assignments shall remain available for attendance calculation.
+16.4 Shift Configuration Fields
+Shift name.
+Shift code.
+Start time.
+End time.
+Break duration.
+Paid or unpaid break.
+Required working hours.
+Check-in window.
+Check-out window.
+Late grace period.
+Early-departure grace period.
+Overtime eligibility.
+Weekly rest days.
+Overnight-shift indicator .
+Applicable locations.
+16.5 User Stories
+US-M07-001
+As HR, I want to create reusable shifts so that attendance can be calculated consistently.
+US-M07-002
+As a manager , I want to assign team rosters so that employees know when they are expected to work.
+US-M07-003
+As an employee, I want to view my upcoming roster so that I can plan my work schedule.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+24
+
+--- Page 25 ---
+16.6 Business Rules
+Shift end time may be on the following calendar day.
+Overlapping employee shift assignments shall be blocked or flagged.
+Changes affecting processed attendance shall require review.
+An inactive shift shall remain available for historical records.
+Employee shift assignment on a date determines attendance calculation for that date.
+A default shift may be assigned at tenant, department or employee level.
+16.7 Acceptance Criteria
+HR can create day and overnight shifts.
+Shifts can be assigned individually and in bulk.
+Employees can see future assignments.
+Attendance calculations use the correct shift.
+Overlapping assignments are detected.
+Historical shift data is preserved.
+17. Module M08 — Leave Management
+17.1 Objective
+Provide configurable leave entitlement, balance, request, approval and payroll-impact management.
+17.2 Primary Users
+Employee.
+Manager .
+HR Administrator .
+Payroll Administrator .
+17.3 Functional Requirements
+Requirement IDRequirement
+M08-FR-001 HR shall configure leave types and policies.
+M08-FR-002 Leave policies shall support eligibility and entitlement rules.
+M08-FR-003 The system shall calculate employee leave balances.
+M08-FR-004 Employees shall view available balances.
+M08-FR-005 Employees shall submit leave requests.
+M08-FR-006 Requests shall validate dates, balances and policy conditions.
+M08-FR-007 Supporting documents may be required.
+M08-FR-008 Requests shall follow configurable approvals.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+25
+
+--- Page 26 ---
+Requirement IDRequirement
+M08-FR-009 Approved leave shall update attendance.
+M08-FR-010 Payroll-impacting leave shall be sent to payroll.
+M08-FR-011 Employees shall cancel requests according to policy.
+M08-FR-012 HR shall adjust balances with reason and audit.
+M08-FR-013 Managers shall view authorised team leave calendars.
+M08-FR-014 The platform shall support half-day leave.
+M08-FR-015 Carry-forward and expiry shall be configurable.
+17.4 Leave Policy Configuration
+Leave name.
+Leave code.
+Paid or unpaid.
+Eligibility.
+Entitlement.
+Accrual frequency.
+Carry-forward.
+Expiry.
+Encashment eligibility.
+Minimum duration.
+Maximum duration.
+Half-day support.
+Required notice.
+Attachment rules.
+Probation restrictions.
+Negative balance.
+Approval chain.
+Gender or category eligibility where legally appropriate.
+Applicable legal entity or employee group.
+17.5 Leave Request Workflow
+Employee selects leave type.
+Current balance is displayed.
+Employee selects dates or half-day.
+System calculates requested days.
+Policy validation is completed.
+Employee adds reason and document where required.
+Request is submitted.
+Approvers are notified.
+Request is approved, rejected or returned.
+Employee receives outcome.
+Approved leave updates attendance and payroll inputs.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+26
+
+--- Page 27 ---
+17.6 Validations
+Start date cannot be after end date.
+Leave cannot overlap approved leave.
+Balance must be sufficient unless negative balance is allowed.
+Blackout dates shall be enforced where configured.
+Required notice shall be validated.
+Required documents must be attached.
+Ineligible employees cannot request restricted leave.
+Leave cannot be submitted for dates outside permitted policy windows.
+Cancellation of approved past leave may require HR approval.
+17.7 Reports
+Leave balances.
+Leave utilisation.
+Pending leave.
+Leave calendar .
+Unpaid leave.
+Expiring balances.
+Carry-forward.
+Leave by department.
+Leave adjustments.
+Leave approval time.
+17.8 Acceptance Criteria
+HR can configure leave policies.
+Employee balances calculate correctly.
+Employees can submit and track leave.
+Invalid requests are blocked with clear messages.
+Approval workflows operate.
+Approved leave updates attendance.
+Unpaid leave reaches payroll.
+Balance adjustments are audited.
+18. Module M09 — Workflow and Approval
+Engine
+18.1 Objective
+Provide a reusable approval capability for attendance, leave, employee changes, payroll and future
+modules.
+18.2 Primary Users
+Tenant Administrator .
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+27
+
+--- Page 28 ---
+HR Administrator .
+Manager .
+Payroll Administrator .
+Employee.
+18.3 Supported Approval Types
+Sequential approval.
+Parallel approval.
+Any-one approval.
+All-required approval.
+Conditional approval.
+Manager hierarchy approval.
+Role-based approval.
+Amount-based approval for future financial modules.
+18.4 Functional Requirements
+Requirement
+ID Requirement
+M09-FR-001 Administrators shall configure approval workflows by request type.
+M09-FR-002 Workflows may vary by legal entity, department, grade or employee group.
+M09-FR-003 The system shall support multiple approval levels.
+M09-FR-004 Approvers may approve, reject or return requests.
+M09-FR-005 Approver comments may be mandatory for rejection.
+M09-FR-006 Approvers shall receive notifications.
+M09-FR-007 Users shall view current request status and approval history.
+M09-FR-008 Approvers may delegate authority for approved periods.
+M09-FR-009 Overdue approvals shall support reminders and escalation.
+M09-FR-010 Self-approval shall be prevented where segregation of duties is enabled.
+M09-FR-011 Workflow changes shall not alter requests already in progress unless explicitly
+migrated.
+M09-FR-012 Approval actions shall be audit logged.
+18.5 Workflow Configuration Fields
+Workflow name.
+Request type.
+Applicability.
+Approval levels.
+Approver source.
+Escalation time.
+Reminder frequency.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+28
+
+--- Page 29 ---
+Delegation policy.
+Rejection-comment rule.
+Auto-cancellation period.
+Effective date.
+Active status.
+18.6 Approval Workflow
+User submits a request.
+Applicable workflow is identified.
+First approver is assigned.
+Approver receives notification.
+Approver acts or request becomes overdue.
+Escalation occurs according to policy.
+Remaining levels are completed.
+Final outcome is applied to the source module.
+Requestor receives notification.
+Full approval history is retained.
+18.7 Acceptance Criteria
+Workflows can be configured without code changes.
+Multiple approval levels operate correctly.
+Rejection comments are captured.
+Delegation works only during approved dates.
+Overdue requests generate escalation.
+Request history shows every approval action.
+Workflow changes do not silently alter active requests.
+19. Module M10 — Payroll Management
+19.1 Objective
+Calculate, validate, approve and publish employee payroll using approved employee, attendance and
+leave data.
+19.2 Primary Users
+Payroll Administrator .
+Payroll Reviewer .
+Payroll Approver .
+HR Administrator .
+Finance User .
+Employee.
+19.3 MVP Payroll Scope
+Payroll groups.
+• 
+• 
+• 
+• 
+• 
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+29
+
+--- Page 30 ---
+Salary structures.
+Earnings.
+Deductions.
+Attendance-linked inputs.
+Leave-linked deductions.
+Overtime inputs.
+One-time adjustments.
+Payroll periods.
+Draft calculations.
+Validation exceptions.
+Approval.
+Locking.
+Payslips.
+Bank or finance export.
+Audit history.
+19.4 Functional Requirements
+Requirement IDRequirement
+M10-FR-001 Administrators shall configure payroll groups.
+M10-FR-002 Salary components shall be configurable as earnings or deductions.
+M10-FR-003 Employees shall be assigned effective-dated salary structures.
+M10-FR-004 Payroll periods shall be opened and closed by authorised users.
+M10-FR-005 Payroll shall consume approved attendance and leave data.
+M10-FR-006 Payroll shall support overtime, unpaid leave and one-time adjustments.
+M10-FR-007 Payroll may be recalculated before final approval.
+M10-FR-008 Validation errors and warnings shall be displayed.
+M10-FR-009 Payroll shall support reviewer and approver roles.
+M10-FR-010 Approved payroll shall be locked.
+M10-FR-011 Payslips shall be generated securely.
+M10-FR-012 Employees shall access only their own payslips.
+M10-FR-013 Approved payroll data shall be exportable.
+M10-FR-014 Retroactive changes shall be handled through adjustments.
+M10-FR-015 Payroll reopening shall require elevated permission and a reason.
+M10-FR-016 All calculation, approval and reopening actions shall be audited.
+19.5 Salary Component Fields
+Component name.
+Code.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+30
+
+--- Page 31 ---
+Earning or deduction.
+Fixed or calculated.
+Taxable indicator .
+Recurring or one-time.
+Attendance linked.
+Percentage or amount.
+Calculation order .
+Effective date.
+Applicable payroll group.
+Payslip display.
+General-ledger mapping placeholder .
+19.6 Payroll Statuses
+Not opened.
+Open.
+Data collection.
+Draft calculated.
+Validation failed.
+Under review.
+Approved.
+Locked.
+Published.
+Reopened.
+Closed.
+19.7 Payroll Processing Workflow
+Payroll administrator opens the payroll period.
+Eligible employees are identified.
+Effective salary structures are loaded.
+Attendance and leave inputs are collected.
+Overtime and adjustments are added.
+Draft payroll is calculated.
+Validation exceptions are displayed.
+Administrator resolves exceptions.
+Payroll is recalculated.
+Reviewer compares totals and variances.
+Approver approves payroll.
+Payroll is locked.
+Payslips are generated.
+Employee payslips are published.
+Bank or finance export is generated.
+Payroll period is closed.
+19.8 Validation Exceptions
+Blocking Errors
+Employee has no salary structure.
+Salary structure is not effective.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+• 
+• 
+31
+
+--- Page 32 ---
+Duplicate payroll record.
+Employee has invalid payroll status.
+Net salary is negative without authorised override.
+Required attendance period is not approved.
+Payroll period overlaps an existing approved period.
+Warnings
+Large variance from previous month.
+Missing bank account.
+Missing tax identifier .
+High overtime.
+New joiner with partial period.
+Employee exit within payroll period.
+One-time adjustment above threshold.
+Unresolved attendance exception.
+19.9 Payroll Business Rules
+Payroll shall use effective-dated employee and salary data.
+Approved payroll shall not be directly edited.
+Corrections after approval shall use authorised adjustment or reopening.
+Reopening shall require reason and elevated permission.
+Payslips shall reflect the approved payroll version.
+An employee shall not access another employee’s payslip.
+Calculation formulas shall be version controlled.
+Pakistan tax, social-security and statutory calculations included in production shall require
+specialist validation.
+The product shall not represent its payroll configuration as legally complete without jurisdiction
+review.
+19.10 Payroll Reports
+Payroll register .
+Payroll summary.
+Earnings summary.
+Deductions summary.
+Overtime summary.
+Unpaid-leave deduction.
+Department payroll cost.
+Cost-centre payroll.
+Bank-transfer export.
+Payroll variance.
+New joiner payroll.
+Exit payroll.
+Payroll exception report.
+Payroll approval history.
+19.11 Acceptance Criteria
+Salary components and structures can be configured.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+32
+
+--- Page 33 ---
+Payroll uses approved attendance and leave.
+Blocking errors prevent approval.
+Warnings remain visible to reviewers.
+Draft payroll can be recalculated.
+Approved payroll is locked.
+Payslips are securely published.
+Exports reflect approved values.
+Reopening is restricted and audited.
+Parallel payroll can be reconciled against customer calculations.
+20. Module M11 — Employee Self-Service
+20.1 Objective
+Provide employees with secure access to attendance, leave, payslips, profile information, documents
+and requests.
+20.2 Primary User
+Employee.
+20.3 Employee Dashboard
+The employee dashboard shall display authorised information such as:
+Current attendance status.
+Check-in or check-out action.
+Today’s shift.
+Leave balances.
+Upcoming leave.
+Pending requests.
+Latest payslip.
+Onboarding tasks.
+Company announcements.
+Documents requiring acknowledgement.
+Profile-completion status.
+20.4 Functional Requirements
+Requirement IDRequirement
+M11-FR-001 Employees shall view their profile.
+M11-FR-002 Employees shall request updates to permitted profile fields.
+M11-FR-003 Employees shall record attendance through enabled channels.
+M11-FR-004 Employees shall view attendance history.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+33
+
+--- Page 34 ---
+Requirement IDRequirement
+M11-FR-005 Employees shall submit attendance corrections.
+M11-FR-006 Employees shall view leave balances.
+M11-FR-007 Employees shall submit and cancel leave requests according to policy.
+M11-FR-008 Employees shall view request status and approval history.
+M11-FR-009 Employees shall access their payslips.
+M11-FR-010 Employees shall view and acknowledge assigned policies.
+M11-FR-011 Employees shall complete onboarding tasks.
+M11-FR-012 Employees shall receive notifications.
+M11-FR-013 Employee screens shall be responsive for mobile use.
+M11-FR-014 Employees shall not access another employee’s private records.
+20.5 User Stories
+US-M11-001
+As an employee, I want to see my leave balance so that I can plan leave without contacting HR.
+US-M11-002
+As an employee, I want to track request approval status so that I know whether action is pending.
+US-M11-003
+As an employee, I want secure access to my payslips so that I do not need printed copies.
+20.6 Acceptance Criteria
+Employees can access the platform on supported mobile and desktop screens.
+Dashboard data is personalised.
+Employees can view attendance, leave and payslips.
+Employees can submit supported requests.
+Request status is visible.
+Employees cannot view unauthorised records.
+Sensitive documents require secure access.
+21. Module M12 — Manager Self-Service
+21.1 Objective
+Provide managers with controlled visibility and approval capabilities for their authorised teams.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+34
+
+--- Page 35 ---
+21.2 Primary User
+Department Manager .
+Line Manager .
+Delegated Approver .
+21.3 Manager Dashboard
+Team headcount.
+Employees present.
+Employees absent.
+Employees late.
+Employees on leave.
+Pending approvals.
+Upcoming leave.
+Missing attendance.
+Probation or contract reminders.
+Team roster .
+21.4 Functional Requirements
+Requirement
+ID Requirement
+M12-FR-001 Managers shall view authorised direct and indirect reports according to access
+policy.
+M12-FR-002 Managers shall see team attendance summaries.
+M12-FR-003 Managers shall review attendance corrections.
+M12-FR-004 Managers shall approve or reject leave requests.
+M12-FR-005 Managers shall view team leave calendars.
+M12-FR-006 Managers shall view team rosters.
+M12-FR-007 Managers shall receive approval notifications.
+M12-FR-008 Managers shall view approval history.
+M12-FR-009 Delegated managers shall access approvals only during the delegation period.
+M12-FR-010 Manager access shall update when reporting relationships change.
+21.5 Business Rules
+Managers may only access authorised employees.
+Sensitive payroll details shall remain hidden unless separately permitted.
+Delegated approval shall not automatically provide full manager access.
+A manager shall not approve their own request where segregation is enabled.
+Former managers shall lose access after effective reporting-line changes.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+35
+
+--- Page 36 ---
+21.6 Acceptance Criteria
+Managers can see authorised team members.
+Pending approvals are clearly displayed.
+Leave and attendance actions update source modules.
+Managers cannot access teams outside their scope.
+Delegation starts and ends according to configured dates.
+22. Module M13 — Notifications and
+Communication
+22.1 Objective
+Deliver timely system and workflow communications through configured channels.
+22.2 Notification Channels
+In-app.
+Email.
+Mobile push.
+SMS through configured provider in later MVP iteration.
+22.3 Functional Requirements
+Requirement
+ID Requirement
+M13-FR-001 The platform shall generate event-based notifications.
+M13-FR-002 Notification templates shall support tenant branding.
+M13-FR-003 Templates shall support localisation.
+M13-FR-004 Users shall view unread and historical in-app notifications.
+M13-FR-005 Administrators shall enable or disable configurable notification events.
+M13-FR-006 Mandatory security and payroll notifications shall not be disabled by ordinary
+users.
+M13-FR-007 Delivery attempts and failures shall be logged where available.
+M13-FR-008 Notifications shall link users to the relevant record where authorised.
+M13-FR-009 Reminder and escalation schedules shall be supported.
+M13-FR-010 Sensitive information shall not be unnecessarily exposed in notification content.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+36
+
+--- Page 37 ---
+22.4 Initial Notification Events
+Account invitation.
+Password reset.
+Successful account activation.
+Attendance check-in.
+Missing check-out.
+Attendance correction submitted.
+Attendance correction decision.
+Leave request submitted.
+Leave request decision.
+Approval reminder .
+Approval escalation.
+Payroll published.
+Payslip available.
+Onboarding task assigned.
+Onboarding task overdue.
+Document rejected.
+Policy acknowledgement required.
+Subscription nearing limit.
+22.5 Acceptance Criteria
+Events create notifications for correct recipients.
+Links open authorised records.
+Failed notifications are visible to administrators.
+Payroll and security messages do not reveal excessive sensitive data.
+Users can mark in-app messages as read.
+Templates display tenant branding.
+23. Module M14 — Reports, Dashboards and
+Exports
+23.1 Objective
+Provide role-based operational and management reporting across workforce data.
+23.2 Report Categories
+HR.
+Attendance.
+Leave.
+Payroll.
+Organisation.
+Workflow.
+Audit.
+Subscription and usage.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+37
+
+--- Page 38 ---
+23.3 Functional Requirements
+Requirement IDRequirement
+M14-FR-001 Reports shall respect tenant and role permissions.
+M14-FR-002 Reports shall support filters relevant to their data.
+M14-FR-003 Authorised users shall export reports.
+M14-FR-004 Large exports may be generated asynchronously.
+M14-FR-005 Reports shall display data-generation time and applied filters.
+M14-FR-006 Sensitive fields shall be masked or excluded according to permission.
+M14-FR-007 Dashboards shall show summary metrics and exceptions.
+M14-FR-008 Report exports shall be audit logged where sensitive.
+M14-FR-009 Scheduled reports may be introduced for selected reports.
+M14-FR-010 Historical reports shall use effective-dated records where applicable.
+23.4 MVP Reports
+HR
+Employee directory.
+Active headcount.
+Joiners and exits.
+Employee status.
+Contract expiry.
+Probation due.
+Missing employee information.
+Attendance
+Daily attendance.
+Attendance summary.
+Late arrivals.
+Absence.
+Overtime.
+Missing check-in or check-out.
+Attendance corrections.
+Location exceptions.
+Leave
+Leave balances.
+Leave utilisation.
+Pending requests.
+Unpaid leave.
+Team leave calendar .
+Expiring balances.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+38
+
+--- Page 39 ---
+Payroll
+Payroll register .
+Payroll summary.
+Earnings and deductions.
+Department cost.
+Payroll variance.
+Bank export.
+Payroll exception report.
+Workflow
+Pending approvals.
+Approval ageing.
+Escalated requests.
+Average approval time.
+Audit
+Employee changes.
+Attendance modifications.
+Payroll actions.
+Role changes.
+Login and security events.
+23.5 Standard Filters
+Date range.
+Legal entity.
+Branch.
+Department.
+Team.
+Manager .
+Employee.
+Status.
+Employment type.
+Location.
+Payroll group.
+Shift.
+23.6 Export Formats
+CSV.
+Excel.
+PDF for selected formatted reports.
+23.7 Acceptance Criteria
+Reports display only authorised data.
+Filters return correct results.
+Exports match displayed data.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+39
+
+--- Page 40 ---
+Sensitive exports are audit logged.
+Large reports do not block normal application usage.
+Historical reports use correct organisation and policy records.
+24. Module M15 — Data Migration and
+Integrations
+24.1 Objective
+Support controlled employee-data migration and secure connectivity with external systems.
+24.2 MVP Integration Scope
+Employee CSV or Excel import.
+Organisation import.
+Salary structure import.
+Opening leave balances.
+Attendance import.
+Biometric connector framework.
+Identity-provider integration readiness.
+Payroll export.
+Finance export.
+REST API foundations.
+Webhook foundations.
+24.3 Functional Requirements
+Requirement IDRequirement
+M15-FR-001 Administrators shall download approved import templates.
+M15-FR-002 Imports shall validate mandatory fields and formats.
+M15-FR-003 Imports shall identify duplicate and invalid records.
+M15-FR-004 Users shall preview import results before commitment.
+M15-FR-005 Import errors shall be downloadable.
+M15-FR-006 Successful imports shall generate summary reports.
+M15-FR-007 Import actions shall be audited.
+M15-FR-008 The platform shall expose secured APIs for approved integrations.
+M15-FR-009 Integration credentials shall be stored securely.
+M15-FR-010 Integration failures shall be logged.
+M15-FR-011 Failed integrations shall support controlled retry.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+40
+
+--- Page 41 ---
+Requirement IDRequirement
+M15-FR-012 External records shall preserve source identifiers.
+M15-FR-013 Duplicate attendance events shall be detected.
+M15-FR-014 Integration status shall be visible to authorised administrators.
+24.4 Employee Import Workflow
+Administrator downloads template.
+Customer prepares data.
+File is uploaded.
+System validates file format.
+Records are validated.
+Errors and warnings are shown.
+User downloads error report where required.
+Corrected file is uploaded.
+User previews valid records.
+User confirms import.
+Records are created or updated according to permission.
+Import summary is generated.
+Audit log is created.
+24.5 Biometric Attendance Flow
+Biometric connector retrieves or receives events.
+Source device is authenticated.
+External employee identifier is mapped.
+Attendance event is normalised.
+Duplicate check is performed.
+Event is stored.
+Shift processing calculates status.
+Unmapped or invalid events enter an exception queue.
+Administrator reviews integration exceptions.
+24.6 Acceptance Criteria
+Valid employee files can be imported.
+Invalid records are clearly identified.
+Partial silent imports do not occur without clear reporting.
+Duplicate employee and attendance records are detected.
+Integration errors are visible.
+Credentials are not exposed in normal screens.
+Imported records retain source references.
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+41
+
+--- Page 42 ---
+25. Module M16 — Subscription and Feature
+Entitlements
+25.1 Objective
+Control commercial access to plans, modules, employee seats and selected enterprise capabilities.
+25.2 Initial Plans
+Essential.
+Growth.
+Enterprise.
+Trial.
+25.3 Functional Requirements
+Requirement IDRequirement
+M16-FR-001 Plans shall define enabled modules and limits.
+M16-FR-002 The platform shall enforce employee-seat limits.
+M16-FR-003 Tenant administrators shall view usage.
+M16-FR-004 Platform administrators shall change plans.
+M16-FR-005 Plan changes shall preserve customer data.
+M16-FR-006 Disabled modules shall not be accessible.
+M16-FR-007 Trial tenants shall have expiry dates.
+M16-FR-008 Customers shall receive limit and expiry warnings.
+M16-FR-009 Enterprise features may require separate entitlement.
+M16-FR-010 Plan and entitlement changes shall be audited.
+25.4 Possible Plan Entitlements
+Capability Essential Growth Enterprise
+Core HR Yes Yes Yes
+Attendance Yes Yes Yes
+Leave Yes Yes Yes
+Basic payroll Optional Yes Yes
+Advanced workflowsLimited Yes Yes
+SSO No Optional Yes
+• 
+• 
+• 
+• 
+42
+
+--- Page 43 ---
+Capability Essential Growth Enterprise
+API access Limited Optional Yes
+Custom reports Limited Yes Yes
+Regional hosting No No Optional
+Premium support No Optional Yes
+Final commercial packaging remains subject to business approval.
+25.5 Acceptance Criteria
+Features appear according to plan.
+Seat-limit warnings are generated.
+Disabled modules cannot be accessed through the interface or API.
+Plan upgrades preserve data.
+Trial expiry follows configured rules.
+All entitlement changes are audited.
+26. Module M17 — Audit, Security, Privacy and
+Compliance
+26.1 Objective
+Protect workforce information and provide traceability across critical system activities.
+26.2 Functional Requirements
+Requirement IDRequirement
+M17-FR-001 Critical create, update, approval and deletion actions shall be audited.
+M17-FR-002 Audit records shall identify user , time, action and affected record.
+M17-FR-003 Previous and new values shall be stored where appropriate.
+M17-FR-004 Tenant users shall not modify audit records.
+M17-FR-005 Sensitive data shall be encrypted in transit and at rest.
+M17-FR-006 Access shall be controlled through roles and permissions.
+M17-FR-007 The platform shall support configurable data-retention rules.
+M17-FR-008 Document access shall be logged where required.
+M17-FR-009 Security events shall be monitorable.
+M17-FR-010 Privacy requests shall support controlled export or correction workflows.
+• 
+• 
+• 
+• 
+• 
+• 
+43
+
+--- Page 44 ---
+Requirement IDRequirement
+M17-FR-011 Data-hosting region shall be associated with the tenant.
+M17-FR-012 Policy records shall support versioning and effective dates.
+M17-FR-013 High-risk administrative actions shall require elevated permissions.
+M17-FR-014 Audit reports shall be available to authorised users.
+The approved architecture principles require tenant isolation, encryption, fine-grained permissions,
+immutable audit trails, backup controls, data retention and rate limiting. 
+26.3 Audited Activities
+Tenant creation.
+Subscription changes.
+User activation and deactivation.
+Role changes.
+Employee profile changes.
+Bank-detail changes.
+Attendance changes.
+Leave-balance adjustments.
+Approval actions.
+Salary changes.
+Payroll calculation.
+Payroll approval.
+Payroll reopening.
+Payslip publication.
+Import execution.
+Integration-credential changes.
+Policy changes.
+Document access where required.
+26.4 Privacy Requirements
+Users shall access only information required for their role.
+Sensitive fields shall be masked in lists where appropriate.
+Exports shall follow access permissions.
+Employees shall be able to request correction of permitted personal information.
+Data retention shall be configurable.
+Country-specific privacy controls shall be introduced through reviewed policy packs.
+Location data shall only be collected for defined attendance purposes.
+Location history shall not be exposed beyond authorised roles.
+26.5 Compliance Boundaries
+The product may support:
+Pakistan employment-record administration.
+Provincial attendance and leave policy configuration.
+Payroll components.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+44
+
+--- Page 45 ---
+EOBI or social-security fields where applicable.
+Local holiday calendars.
+Employee document records.
+GDPR-aligned privacy controls for future markets.
+The system shall not make unconditional legal-compliance claims without qualified review.
+26.6 Acceptance Criteria
+Critical actions generate audit records.
+Ordinary users cannot alter audit history.
+Sensitive fields are permission restricted.
+Cross-tenant access tests fail securely.
+Payroll reopening is fully traceable.
+Location and document access follow privacy permissions.
+Policy versions remain historically accessible.
+27. Cross-Module End-to-End Journeys
+27.1 New Employee Journey
+HR creates employee.
+Organisation and manager are assigned.
+Onboarding workflow is generated.
+Employee activates account.
+Employee completes required information.
+Documents are reviewed.
+Shift and leave policy are assigned.
+Salary structure is assigned.
+Employee becomes active.
+Employee can record attendance.
+Employee appears in payroll when eligible.
+All events remain audit logged.
+Success Outcome
+The employee is operational across HR, attendance, leave, payroll and self-service without duplicate
+manual setup.
+27.2 Monthly Payroll Journey
+Attendance period is reviewed.
+Attendance corrections are resolved.
+Leave requests are finalised.
+Attendance is locked.
+Payroll period is opened.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+1. 
+2. 
+3. 
+4. 
+5. 
+45
+
+--- Page 46 ---
+Salary and attendance data are loaded.
+Payroll is calculated.
+Exceptions are resolved.
+Reviewer checks variance.
+Approver approves.
+Payroll is locked.
+Payslips are published.
+Finance export is generated.
+Payroll period is closed.
+Success Outcome
+Only approved and traceable workforce data is used for payroll.
+27.3 Employee Exit Journey
+The full asset and final-settlement workflow is not part of the initial MVP , but the core exit process shall
+support:
+HR records resignation or termination.
+Last working date is approved.
+Employee status change is scheduled.
+Manager and payroll are notified.
+Future attendance and leave eligibility are updated.
+Final payroll adjustment is prepared.
+User access is disabled according to policy.
+Historical records remain available.
+Future asset and clearance integrations can attach to the exit event.
+28. Product Analytics Requirements
+The MVP shall capture product-usage events to support adoption analysis.
+28.1 Product Events
+User invited.
+User activated.
+User logged in.
+Employee created.
+Employee imported.
+Check-in submitted.
+Check-out submitted.
+Attendance exception created.
+Leave request submitted.
+Approval completed.
+Payroll calculated.
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+46
+
+--- Page 47 ---
+Payroll approved.
+Payslip viewed.
+Report exported.
+Integration failed.
+Notification opened.
+28.2 Business Metrics
+Monthly active employees.
+Monthly active managers.
+Attendance adoption rate.
+Mobile check-in rate.
+Employee self-service completion rate.
+Leave approval time.
+Attendance correction rate.
+Payroll error rate.
+Payroll-processing duration.
+Payslip-view rate.
+Customer implementation duration.
+Support cases per tenant.
+Tenant module adoption.
+28.3 Privacy Rule
+Product analytics shall not expose employee-sensitive details beyond what is necessary for product and
+operational measurement.
+29. Non-Functional Product Requirements
+29.1 Availability
+Production availability target: 99.9% excluding approved maintenance.
+Critical workforce functions shall be monitored.
+Planned maintenance shall be communicated.
+29.2 Performance
+Initial targets:
+Action Target
+Standard page load Within 3 seconds under supported conditions
+Check-in acknowledgement Within 2 seconds
+Employee search Within 3 seconds
+Standard report Within 30 seconds
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+47
+
+--- Page 48 ---
+Action Target
+Large export Asynchronous processing
+Payroll calculation Batch processing without blocking routine access
+29.3 Scalability
+The system shall support:
+Increasing tenants.
+Increasing employee seats.
+High attendance-event volume.
+Payroll batch workloads.
+Large report exports.
+Multi-region expansion.
+Horizontal application scaling.
+29.4 Accessibility
+The product should support:
+Keyboard navigation.
+Screen-reader-friendly labels.
+Clear focus states.
+Sufficient contrast.
+Accessible error messages.
+Responsive layouts.
+Urdu and future right-to-left interfaces.
+29.5 Browser Support
+The MVP should support current stable versions of:
+Google Chrome.
+Microsoft Edge.
+Safari.
+Firefox.
+Detailed version support shall be defined before release.
+29.6 Mobile Support
+The responsive application shall support current common Android and iOS screen sizes.
+Native or React Native applications may be introduced according to the delivery roadmap.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+48
+
+--- Page 49 ---
+29.7 Backup and Recovery
+The production design shall define:
+Automated backup frequency.
+Retention period.
+Restore procedures.
+Recovery-point objective.
+Recovery-time objective.
+Restore testing.
+Final values shall be approved in the Solution Architecture Document.
+29.8 Observability
+The platform shall provide:
+Centralised logs.
+Application metrics.
+Infrastructure metrics.
+Error monitoring.
+Integration monitoring.
+Security monitoring.
+Audit-event monitoring.
+Alerting.
+Health checks.
+30. Proposed Technical Direction
+The approved product direction includes:
+Node.js with NestJS.
+React and Next.js.
+PostgreSQL.
+Tenant-aware data design.
+Row-level security.
+OAuth 2.0 and JWT.
+Enterprise SSO.
+REST and GraphQL where justified.
+Kubernetes.
+Automated CI/CD.
+Centralised observability.
+30.1 MVP Architecture Recommendation
+The MVP should begin as a modular monolith with clean domain boundaries for:
+Tenant management.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+49
+
+--- Page 50 ---
+Identity.
+Core HR.
+Attendance.
+Leave.
+Payroll.
+Workflow.
+Notifications.
+Reporting.
+Integrations.
+Audit.
+This provides lower delivery and operational complexity while preserving the ability to extract services
+later .
+30.2 Initial Environments
+Local development.
+Shared development.
+QA.
+UAT or staging.
+Production.
+30.3 Service Extraction Candidates
+Potential future independent services include:
+Attendance-event ingestion.
+Payroll calculation.
+Notification delivery.
+File processing.
+Reporting.
+Integration connectors.
+AI analytics.
+31. MVP Release Plan
+Release Scope
+Release 0 Architecture, environments, repositories, CI/CD and design foundations
+Release 1 Tenant, authentication, roles and organisation structure
+Release 2 Employee Core HR, onboarding and documents
+Release 3 Attendance, shifts and corrections
+Release 4 Leave and workflow engine
+Release 5 Payroll calculation, approval and payslips
+Release 6 Employee and manager self-service
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+50
+
+--- Page 51 ---
+Release Scope
+Release 7 Reports, notifications, imports and integration foundations
+Release 8 Security hardening, performance testing and pilot readiness
+Release 9 Design-partner migration, parallel payroll and UAT
+Release 10Controlled commercial launch
+32. MVP Prioritisation
+Must Have
+Tenant management.
+Authentication.
+Role-based access.
+Organisation structure.
+Employee records.
+Onboarding.
+Attendance.
+Shifts.
+Leave.
+Approvals.
+Payroll.
+Payslips.
+Employee self-service.
+Manager self-service.
+Notifications.
+Reports.
+Audit logs.
+Imports.
+Security controls.
+Responsive web interface.
+Should Have
+Geo-fenced attendance.
+Biometric import.
+Enterprise SSO.
+Urdu localisation.
+Scheduled reports.
+Payroll bank export.
+Custom employee fields.
+Subscription usage dashboard.
+Could Have
+Native mobile application.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+51
+
+--- Page 52 ---
+Expense claims.
+Performance reviews.
+Basic assets.
+Advanced workflow conditions.
+Partner portal.
+Benefits summary.
+Not in MVP
+AI insights.
+Gamification.
+Advanced TaskOps.
+Full asset lifecycle.
+Full benefits administration.
+Global payroll.
+Complete accounting.
+Automated legal filing.
+Automated adverse employment decisions.
+33. Quality-Assurance Requirements
+33.1 Testing Types
+Unit testing.
+API testing.
+Integration testing.
+User-interface testing.
+Role and permission testing.
+Tenant-isolation testing.
+Payroll-calculation testing.
+Attendance edge-case testing.
+Data-import testing.
+Performance testing.
+Security testing.
+Accessibility testing.
+User-acceptance testing.
+Backup and recovery testing.
+33.2 Critical Test Areas
+Cross-tenant access.
+Manager access boundaries.
+Overnight shifts.
+Missing check-in and check-out.
+Leave overlap.
+Leave carry-forward.
+Attendance lock.
+Payroll calculation.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+52
+
+--- Page 53 ---
+Payroll reopening.
+Payslip access.
+Effective-dated salary.
+Employee exit.
+Duplicate imports.
+Failed biometric mapping.
+Notification failure.
+Role changes.
+Audit immutability.
+33.3 Payroll Test Library
+The payroll test library shall include:
+Full-month employee.
+Mid-month joiner .
+Mid-month exit.
+Paid leave.
+Unpaid leave.
+Overtime.
+Holiday work.
+Rest-day work.
+Salary revision.
+One-time bonus.
+Loan deduction.
+Missing attendance.
+Retroactive correction.
+Negative net-pay prevention.
+Payroll reopening.
+34. User Acceptance Testing
+Customer UAT shall cover:
+Tenant configuration.
+Organisation setup.
+Employee import.
+Employee activation.
+Attendance.
+Shift assignment.
+Attendance correction.
+Leave request.
+Leave approval.
+Payroll calculation.
+Payroll review.
+Payslip publication.
+Employee self-service.
+Manager self-service.
+Reports.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+53
+
+--- Page 54 ---
+Exports.
+Notifications.
+Roles.
+Audit history.
+Integration exceptions.
+UAT Exit Conditions
+No unresolved critical defects.
+No unresolved high-severity payroll defects.
+Tenant-isolation testing completed.
+Customer data reconciliation completed.
+Parallel payroll completed within agreed tolerance.
+Customer sign-off received.
+Training materials available.
+Support process operational.
+Backup and monitoring validated.
+35. MVP Business Acceptance Criteria
+The MVP shall be considered commercially ready when:
+Tenants can be created without engineering intervention.
+Tenant data is isolated.
+Users can securely activate accounts.
+Roles and permissions operate correctly.
+Organisation structures can be configured.
+Employees can be created and imported.
+Onboarding tasks can be completed.
+Attendance can be recorded and calculated.
+Shifts and overnight work are supported.
+Attendance corrections follow approval.
+Leave balances are calculated.
+Leave requests follow policy and approval.
+Payroll uses approved attendance and leave.
+Payroll exceptions are visible.
+Payroll can be approved and locked.
+Payslips are securely published.
+Employees can use self-service.
+Managers can process authorised requests.
+Notifications are delivered.
+Reports and exports are available.
+Critical actions are audited.
+Security testing is complete.
+Backup and recovery procedures are validated.
+Parallel payroll is accepted by the design partner .
+Product, support and implementation documentation is available.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+54
+
+--- Page 55 ---
+36. Product Dependencies
+Final Pakistan payroll rules.
+Qualified payroll specialist.
+Security architecture approval.
+Cloud-provider selection.
+Data-hosting region.
+Email provider .
+Mobile push provider .
+Biometric connector strategy.
+Design-partner data.
+Customer attendance policies.
+Customer leave policies.
+Customer salary structures.
+Urdu localisation resources.
+Legal and privacy review.
+Support and implementation team.
+Monitoring and incident-management tools.
+37. Open Product Decisions
+Which cloud provider will host the initial production environment?
+Will the MVP include a responsive web application only or a React Native application?
+Will Urdu be available at first launch or the first post-launch release?
+Which biometric devices or file formats will be supported first?
+Which Pakistan tax and statutory calculations will be included?
+Will payroll generate bank files for specific banks?
+What payroll-calculation precision and rounding rules will apply?
+What are the final Essential, Growth and Enterprise plan limits?
+Will SSO be included in the first enterprise release?
+What attendance data can managers access?
+What is the approved location-data retention period?
+Can employees edit bank details directly or only request changes?
+How many parallel payroll cycles will be required?
+Which reports must support PDF formatting?
+Which events require SMS?
+What is the final production availability commitment?
+What are the recovery-point and recovery-time objectives?
+What custom-field limits apply per tenant?
+Which data exports require additional approval?
+Which actions require mandatory multi-factor authentication?
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+55
+
+--- Page 56 ---
+38. Requirement-to-Module Traceability
+Business Need Product Module
+Secure customer isolationM01, M02, M17
+One workforce record M03, M04
+Faster onboarding M05
+Accurate attendance M06, M07
+Transparent leave M08, M11
+Configurable approvalsM09
+Attendance-linked payrollM06, M08, M10
+Employee transparencyM11
+Manager control M12
+Timely communication M13
+Management visibility M14
+Legacy-system connectivityM15
+SaaS monetisation M16
+Audit and compliance M17
+39. Future Product Modules
+After MVP validation, the platform may expand into:
+Phase Two
+TaskOps.
+Performance management.
+Workload management.
+SLA tracking.
+Sprint and backlog management.
+Phase Three
+Asset lifecycle.
+Expense claims.
+Finance integration.
+Procurement requests.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+56
+
+--- Page 57 ---
+Phase Four
+Employee benefits.
+Compliance automation.
+Policy packs.
+Insurance and allowance integrations.
+Phase Five
+AI workforce insights.
+Attrition indicators.
+Absenteeism forecasting.
+Workload imbalance detection.
+Gamified recognition.
+Global expansion packs.
+The source vision identifies AI insights, employee-first dashboards, cross-module automation and
+configurable workflows as long-term differentiators. 
+40. Final Product Recommendation
+Workforce Cloud OS should enter the market with a focused and dependable MVP rather than
+attempting to launch every planned workforce module simultaneously.
+The first product must perform six things exceptionally well:
+Maintain accurate employee records.
+Record and calculate attendance.
+Manage shifts and leave.
+Calculate and approve payroll.
+provide employee and manager self-service.
+Maintain security and auditability.
+Once these foundations have been validated with real customers and parallel payroll cycles, the
+platform can expand into TaskOps, assets, finance, benefits, compliance automation and AI.
+The central product principle shall remain:
+One employee identity, one organisation structure, one policy foundation, one
+approval framework and one connected workforce operating environment.
+This PRD provides the detailed product baseline required to begin user-flow design, wireframing, data
+modelling, solution architecture, backlog creation, engineering estimation and design-partner
+implementation.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+57

@@ -10,9 +10,11 @@ import { ROUTES } from '../../../constants/routes.constants';
 interface LegalEntitiesTableProps {
   data: LegalEntity[];
   isLoading?: boolean;
+  isError?: boolean;
+  onRetry?: () => void;
 }
 
-export function LegalEntitiesTable({ data, isLoading }: LegalEntitiesTableProps) {
+export function LegalEntitiesTable({ data, isLoading, isError, onRetry }: LegalEntitiesTableProps) {
   const t = useTranslations();
   const router = useRouter();
 
@@ -71,7 +73,12 @@ export function LegalEntitiesTable({ data, isLoading }: LegalEntitiesTableProps)
       columns={columns}
       data={data}
       isLoading={isLoading}
+      isError={isError}
+      onRetry={onRetry}
+      errorTitle={t('common.error')}
+      retryLabel={t('common.retry')}
       keyExtractor={(row) => row.id}
+      caption={t('organisation.legalEntities.title')}
       emptyTitle={t('organisation.legalEntities.empty.title')}
       emptyDescription={t('organisation.legalEntities.empty.description')}
       onRowClick={(row) => router.push(ROUTES.TENANT.ORGANISATION.LEGAL_ENTITY_DETAIL(row.id))}

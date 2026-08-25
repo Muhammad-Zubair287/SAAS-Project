@@ -1,0 +1,218 @@
+{
+  "info": {
+    "name": "Workforce Cloud OS — Tenant Admin Console",
+    "description": "Tenant Admin APIs (SCR-TEN / Settings / IAM). Auth via Bearer JWT from tenant login. Never send tenantId from clients for scoped routes — JWT supplies it.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "{{API_BASE_URL}}" },
+    { "key": "accessToken", "value": "" },
+    { "key": "userId", "value": "" },
+    { "key": "roleId", "value": "" },
+    { "key": "sessionId", "value": "" },
+    { "key": "invitationId", "value": "" },
+    { "key": "auditEventId", "value": "" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Profile",
+      "item": [
+        {
+          "name": "GET profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/tenant/profile"
+          }
+        },
+        {
+          "name": "PATCH profile",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayName\": \"Acme Corp\",\n  \"legalName\": \"Acme Corporation Ltd\",\n  \"contactEmail\": \"admin@acme.example\"\n}"
+            },
+            "url": "{{baseUrl}}/tenant/profile"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Branding & Regional",
+      "item": [
+        {
+          "name": "GET branding",
+          "request": { "method": "GET", "url": "{{baseUrl}}/tenant/branding" }
+        },
+        {
+          "name": "PUT branding",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"primaryColor\": \"#0F766E\",\n  \"secondaryColor\": \"#134E4A\",\n  \"applicationName\": \"Acme Workforce\"\n}"
+            },
+            "url": "{{baseUrl}}/tenant/branding"
+          }
+        },
+        {
+          "name": "POST branding logo",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": [] }
+              ]
+            },
+            "url": "{{baseUrl}}/tenant/branding/logo?kind=logo"
+          }
+        },
+        {
+          "name": "GET regional",
+          "request": { "method": "GET", "url": "{{baseUrl}}/tenant/regional" }
+        },
+        {
+          "name": "PUT regional",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"defaultLocale\": \"en\",\n  \"enabledLocales\": [\"en\", \"ur\"],\n  \"dateFormat\": \"DD/MM/YYYY\",\n  \"weekStart\": 1\n}"
+            },
+            "url": "{{baseUrl}}/tenant/regional"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Modules / Setup / Subscription",
+      "item": [
+        { "name": "GET modules", "request": { "method": "GET", "url": "{{baseUrl}}/tenant/modules" } },
+        { "name": "GET setup-status", "request": { "method": "GET", "url": "{{baseUrl}}/tenant/setup-status" } },
+        { "name": "GET subscription", "request": { "method": "GET", "url": "{{baseUrl}}/tenant/subscription" } },
+        { "name": "GET usage", "request": { "method": "GET", "url": "{{baseUrl}}/tenant/usage" } },
+        {
+          "name": "POST upgrade-requests",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requestedPlanKey\": \"growth\",\n  \"note\": \"Need more seats\",\n  \"billingContactEmail\": \"billing@acme.example\"\n}"
+            },
+            "url": "{{baseUrl}}/tenant/upgrade-requests"
+          }
+        },
+        { "name": "GET upgrade-requests", "request": { "method": "GET", "url": "{{baseUrl}}/tenant/upgrade-requests" } },
+        { "name": "GET security-policy", "request": { "method": "GET", "url": "{{baseUrl}}/tenant/security-policy" } },
+        {
+          "name": "PUT security-policy",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"passwordMinLength\": 12,\n  \"mfaRequiredForAdmins\": true,\n  \"sessionTtlHours\": 8\n}"
+            },
+            "url": "{{baseUrl}}/tenant/security-policy"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users & Invitations",
+      "item": [
+        { "name": "GET users", "request": { "method": "GET", "url": "{{baseUrl}}/users?page=1&pageSize=20" } },
+        { "name": "GET user", "request": { "method": "GET", "url": "{{baseUrl}}/users/{{userId}}" } },
+        {
+          "name": "POST deactivate",
+          "request": { "method": "POST", "url": "{{baseUrl}}/users/{{userId}}/deactivate" }
+        },
+        {
+          "name": "POST require-password-reset",
+          "request": { "method": "POST", "url": "{{baseUrl}}/users/{{userId}}/require-password-reset" }
+        },
+        {
+          "name": "POST require-mfa",
+          "request": { "method": "POST", "url": "{{baseUrl}}/users/{{userId}}/require-mfa" }
+        },
+        { "name": "GET invitations", "request": { "method": "GET", "url": "{{baseUrl}}/auth/invitations" } },
+        {
+          "name": "POST invitation",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"new.admin@acme.example\",\n  \"displayName\": \"New Admin\",\n  \"roleIds\": [\"{{roleId}}\"]\n}"
+            },
+            "url": "{{baseUrl}}/auth/invitations"
+          }
+        },
+        {
+          "name": "POST invitation resend",
+          "request": { "method": "POST", "url": "{{baseUrl}}/auth/invitations/{{invitationId}}/resend" }
+        },
+        {
+          "name": "DELETE invitation",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/auth/invitations/{{invitationId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Roles & Sessions & Audit",
+      "item": [
+        { "name": "GET roles", "request": { "method": "GET", "url": "{{baseUrl}}/roles" } },
+        { "name": "GET permissions", "request": { "method": "GET", "url": "{{baseUrl}}/permissions" } },
+        {
+          "name": "POST role",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Custom Auditor\",\n  \"permissionCodes\": [\"read:audit_event:tenant\"]\n}"
+            },
+            "url": "{{baseUrl}}/roles"
+          }
+        },
+        {
+          "name": "PATCH role",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"permissionCodes\": [\"read:audit_event:tenant\", \"read:user:tenant\"]\n}"
+            },
+            "url": "{{baseUrl}}/roles/{{roleId}}"
+          }
+        },
+        {
+          "name": "DELETE role",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/roles/{{roleId}}" }
+        },
+        { "name": "GET sessions", "request": { "method": "GET", "url": "{{baseUrl}}/sessions" } },
+        {
+          "name": "DELETE session",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/sessions/{{sessionId}}" }
+        },
+        { "name": "GET audit-events", "request": { "method": "GET", "url": "{{baseUrl}}/audit-events?page=1&pageSize=20" } },
+        {
+          "name": "GET audit-event",
+          "request": { "method": "GET", "url": "{{baseUrl}}/audit-events/{{auditEventId}}" }
+        }
+      ]
+    }
+  ]
+}

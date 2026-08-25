@@ -98,6 +98,36 @@ export class EmployeeService {
         },
       });
 
+      await tx.employmentRecord.create({
+        data: {
+          tenantId,
+          employeeId: created.id,
+          legalEntityId: created.legalEntityId,
+          branchId: created.branchId,
+          departmentId: created.departmentId,
+          positionId: created.positionId,
+          managerId: created.managerId,
+          employmentType: created.employmentType,
+          changeType: 'INITIAL',
+          effectiveFrom: created.hireDate,
+          createdBy: userId,
+          updatedBy: userId,
+        },
+      });
+
+      await tx.employeeTimelineEvent.create({
+        data: {
+          tenantId,
+          employeeId: created.id,
+          eventType: 'CREATED',
+          summary: 'Employee record created',
+          metadata: { employeeNumber: created.employeeNumber },
+          occurredAt: new Date(),
+          actorId: userId,
+          visibility: 'HR',
+        },
+      });
+
       await tx.auditEvent.create({
         data: {
           tenantId,
@@ -315,32 +345,41 @@ export class EmployeeService {
   }
 
   private toDto(e: Employee | EmployeeRow): EmployeeResponseDto {
+    const row = e as Employee;
     return {
-      id: e.id,
-      tenantId: e.tenantId,
-      legalEntityId: e.legalEntityId,
-      branchId: e.branchId,
-      departmentId: e.departmentId,
-      positionId: e.positionId,
-      managerId: e.managerId,
-      employeeNumber: e.employeeNumber,
-      firstName: e.firstName,
-      lastName: e.lastName,
-      displayName: e.displayName,
-      gender: e.gender,
-      dateOfBirth: e.dateOfBirth ? (e.dateOfBirth.toISOString().split('T')[0] ?? null) : null,
-      nationalId: e.nationalId,
-      emailWork: e.emailWork,
-      emailPersonal: e.emailPersonal,
-      phoneWork: e.phoneWork,
-      phoneMobile: e.phoneMobile,
-      hireDate: e.hireDate.toISOString().split('T')[0] ?? '',
-      terminationDate: e.terminationDate ? (e.terminationDate.toISOString().split('T')[0] ?? null) : null,
-      status: e.status,
-      employmentType: e.employmentType,
-      createdAt: e.createdAt.toISOString(),
-      updatedAt: e.updatedAt.toISOString(),
-      rowVersion: e.rowVersion.toString(),
+      id: row.id,
+      tenantId: row.tenantId,
+      legalEntityId: row.legalEntityId,
+      branchId: row.branchId,
+      departmentId: row.departmentId,
+      positionId: row.positionId,
+      managerId: row.managerId,
+      gradeId: row.gradeId ?? null,
+      costCentreId: row.costCentreId ?? null,
+      attendancePolicyId: row.attendancePolicyId ?? null,
+      defaultShiftId: row.defaultShiftId ?? null,
+      preferredName: row.preferredName ?? null,
+      employeeNumber: row.employeeNumber,
+      firstName: row.firstName,
+      lastName: row.lastName,
+      displayName: row.displayName,
+      gender: row.gender,
+      dateOfBirth: row.dateOfBirth ? (row.dateOfBirth.toISOString().split('T')[0] ?? null) : null,
+      nationalId: row.nationalId,
+      emailWork: row.emailWork,
+      emailPersonal: row.emailPersonal,
+      phoneWork: row.phoneWork,
+      phoneMobile: row.phoneMobile,
+      hireDate: row.hireDate.toISOString().split('T')[0] ?? '',
+      terminationDate: row.terminationDate
+        ? (row.terminationDate.toISOString().split('T')[0] ?? null)
+        : null,
+      status: row.status,
+      statusReason: row.statusReason ?? null,
+      employmentType: row.employmentType,
+      createdAt: row.createdAt.toISOString(),
+      updatedAt: row.updatedAt.toISOString(),
+      rowVersion: row.rowVersion.toString(),
     };
   }
 }

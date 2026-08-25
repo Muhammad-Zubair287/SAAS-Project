@@ -1,0 +1,23 @@
+/** Must match apps/api TENANT_ADMIN_PERMISSIONS — UI gating only; API enforces. */
+export const TENANT_ADMIN_PERMISSIONS = {
+  PROFILE_READ: 'read:tenant_profile:tenant',
+  PROFILE_MANAGE: 'manage:tenant_profile:tenant',
+  BRANDING_READ: 'read:tenant_branding:tenant',
+  BRANDING_MANAGE: 'manage:tenant_branding:tenant',
+  SETTINGS_READ: 'read:tenant_settings:tenant',
+  SETTINGS_MANAGE: 'manage:tenant_settings:tenant',
+  MODULES_READ: 'read:tenant_modules:tenant',
+  SUBSCRIPTION_READ: 'read:subscription:tenant',
+  UPGRADE_REQUEST: 'request:upgrade:tenant',
+  SECURITY_POLICY_READ: 'read:security_policy:tenant',
+  SECURITY_POLICY_MANAGE: 'manage:security_policy:tenant',
+  USER_READ: 'read:user:tenant',
+  USER_INVITE: 'invite:user:tenant',
+  USER_DEACTIVATE: 'deactivate:user:tenant',
+  USER_MANAGE: 'manage:user:tenant',
+  ROLE_READ: 'read:role:tenant',
+  ROLE_MANAGE: 'manage:role:tenant',
+  SESSION_READ: 'read:session:tenant',
+  SESSION_REVOKE: 'revoke:session:tenant',
+  AUDIT_READ: 'read:audit_event:tenant',
+} as const;

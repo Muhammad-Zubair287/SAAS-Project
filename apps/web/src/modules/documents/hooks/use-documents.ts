@@ -26,6 +26,9 @@ import type {
 
 export const DOCUMENTS_KEYS = {
   all: ['documents'] as const,
+  library: (params?: { page?: number; pageSize?: number; status?: string; search?: string; employeeId?: string }) =>
+    [...DOCUMENTS_KEYS.all, 'library', params] as const,
+  onboardingDashboard: () => [...DOCUMENTS_KEYS.all, 'onboarding-dashboard'] as const,
 
   templates: {
     all: ['document-templates'] as const,
@@ -348,5 +351,43 @@ export function useUpdateDocumentRequestItem(requestId: string) {
         queryKey: DOCUMENTS_KEYS.documentRequests.detail(requestId),
       });
     },
+  });
+}
+
+export function useDocumentLibrary(params?: { page?: number; pageSize?: number; status?: string; search?: string; employeeId?: string }) {
+  return useQuery({
+    queryKey: DOCUMENTS_KEYS.library(params),
+    queryFn: () => documentsApi.library.list(params),
+    staleTime: 60_000,
+  });
+}
+
+export function useApproveDocument() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, notes }: { id: string; notes?: string }) =>
+      documentsApi.library.approve(id, notes),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: DOCUMENTS_KEYS.all });
+    },
+  });
+}
+
+export function useRejectDocument() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) =>
+      documentsApi.library.reject(id, reason),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: DOCUMENTS_KEYS.all });
+    },
+  });
+}
+
+export function useOnboardingDashboard() {
+  return useQuery({
+    queryKey: DOCUMENTS_KEYS.onboardingDashboard(),
+    queryFn: () => documentsApi.onboardingDashboard.get(),
+    staleTime: 60_000,
   });
 }

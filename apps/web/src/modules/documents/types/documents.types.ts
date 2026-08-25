@@ -322,3 +322,13 @@ export interface ListDocumentRequestsParams {
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
 }
+
+export interface OnboardingDashboardResponse {
+  employeesOnboarding: number;
+  completionPercentage: number;
+  overdueTasks: number;
+  documentsPendingReview: number;
+  employeesAwaitingActivation: number;
+  upcomingJoiningDates: number;
+  generatedAt: string;
+}

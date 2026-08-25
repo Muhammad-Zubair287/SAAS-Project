@@ -8,14 +8,24 @@ export class InvitationCreateDto {
   @Transform(({ value }: { value: string }) => value.toLowerCase().trim())
   email!: string;
 
-  @ApiProperty({ description: 'Tenant to invite the user into' })
+  @ApiProperty({ description: 'Tenant to invite the user into (ignored when JWT has tenantId)' })
+  @IsOptional()
   @IsUUID()
-  tenantId!: string;
+  tenantId?: string;
+
+  @ApiProperty({
+    required: false,
+    example: 'Alice Khan',
+    description: 'Optional display name for the invited user account',
+  })
+  @IsOptional()
+  @IsString()
+  displayName?: string;
 
   @ApiProperty({
     required: false,
     type: [String],
-    description: 'Role UUIDs to pre-assign (applied by RBAC in Batch 7)',
+    description: 'Role UUIDs to assign when the invitation is accepted',
   })
   @IsOptional()
   @IsArray()

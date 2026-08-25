@@ -1,0 +1,1054 @@
+
+===== PAGE 3 =====
+Workforce Cloud OS | Low-Fidelity Wireframe Pack and Figma Prototype Backlog | 3
+1. Design Strategy and Low-Fidelity Conventions
+1.1 Design Outcomes
+Outcome Low-Fidelity Requirement
+Clarity Every screen must make the current status, next action 
+and responsible role visible.
+Connected workflows Source records, approval actions and downstream 
+impacts must be linked rather than represented as 
+isolated screens.
+Error prevention Validation, readiness checks and impact summaries 
+appear before high-impact submission or approval.
+Mobile employee experience Attendance, leave, requests, notifications and payslips are 
+designed mobile first.
+Secure administration Sensitive payroll, bank, identity, audit and support-access 
+screens use explicit permissions and confirmation states.
+Scalable configuration Tenant policy differences are represented through 
+settings, rules and workflows rather than customer-
+specific layouts.
+1.2 Fidelity Rules
+ Use greyscale only. Colour is reserved for later semantic and brand design decisions.
+ Use realistic field labels and data categories, but use synthetic names and values.
+ Represent charts as simple bars, lines or labelled placeholders; the goal is hierarchy, not final data 
+visualisation.
+ Show one primary action per screen. Secondary actions belong in contextual menus or outlined buttons.
+ Annotate permission differences, system-generated values, background processing and integration 
+dependencies.
+ Create empty, loading, error, warning, success, disabled and read-only states for reusable components before 
+duplicating screens.
+1.3 Frame Naming Convention
+Element Convention Example
+Page NN - Domain 07 - Attendance
+Frame [Device]-[Screen ID]-[State]-[Version] D-SCR-ATT-07-Default-v1
+Mobile frame M-[Screen ID]-[State]-[Version] M-SCR-ATT-01-CheckedIn-v1
+Component CMP/[Family]/[Variant]/[State] CMP/Button/Primary/Loading
+Prototype flow FLOW-[Number]-[Name] FLOW-06-Monthly-Payroll
+Annotation ANN/[Type]/[Number] ANN/BusinessRule/03
+
+===== PAGE 4 =====
+Workforce Cloud OS | Low-Fidelity Wireframe Pack and Figma Prototype Backlog | 4
+1.4 Priority Model
+Priority Meaning Design Gate
+P0 Pilot-blocking user journey or security 
+requirement.
+Must be approved before design-
+partner UAT.
+P1 Required for a controlled commercial 
+MVP.
+Must be approved before commercial 
+launch.
+P2 Useful supporting or optimisation 
+screen.
+May be completed after the first 
+validated release.
+2. Information Architecture and Role Navigation
+2.1 Shared Product Domains
+Domain Primary Objects Main Roles
+Platform Tenant, plan, entitlement, support 
+session
+Platform administrator
+Organisation Legal entity, branch, location, 
+department, position, grade
+Tenant administrator, HR
+People Employee, employment assignment, 
+document, onboarding task
+HR, manager, employee
+Time Attendance event, shift, roster, 
+exception, correction
+Employee, manager, HR, payroll
+Leave Leave policy, balance, request, approval Employee, manager, HR, payroll
+Payroll Payroll group, salary structure, period, 
+adjustment, payslip
+Payroll, finance, employee
+Workflow Request, stage, delegation, escalation, 
+approval history
+All authorised roles
+Insights Dashboard, report, export, product 
+usage
+Managers, administrators, auditors
+Trust Role, permission, audit, security setting, 
+retention rule
+Administrators, auditors
+2.2 Role Navigation Map
+Role Primary Navigation Mobile Priority
+Platform Administrator Overview, Tenants, Plans, Usage, Support, 
+Audit, Integration Health
+Low
+Tenant Administrator Home, Organisation, People, Attendance, 
+Leave, Payroll, Approvals, Reports, 
+Integrations, Settings, Subscription, Audit
+Medium
+
+===== PAGE 5 =====
+Workforce Cloud OS | Low-Fidelity Wireframe Pack and Figma Prototype Backlog | 5
+Role Primary Navigation Mobile Priority
+HR Administrator HR Dashboard, Employees, Onboarding, 
+Attendance, Shifts, Leave, Approvals, 
+Documents, Reports, HR Settings
+Medium
+Payroll Administrator Payroll Dashboard, Periods, Structures, 
+Adjustments, Validation, Payslips, Reports, 
+Settings
+Low
+Manager Dashboard, Team, Attendance, Team 
+Leave, Roster, Approvals, Reports
+High
+Employee Home, Attendance, Leave, Requests, 
+Payslips, Documents, Profile, Notifications
+Very high
+Auditor Dashboard, Employees, Attendance, Leave, 
+Payroll History, Approval History, Audit, 
+Reports
+Low
+2.3 Shell Rules
+ Desktop uses a persistent left navigation and top utility bar. The current tenant and current module must 
+always remain visible.
+ Employee mobile uses a five-item bottom navigation: Home, Attendance, Requests, Payslips and More.
+ Manager mobile uses Home, Team, Approvals, Notifications and More.
+ Screens available through multiple roles use one shared frame with permission annotations, not separate 
+duplicated designs.
+ High-impact actions such as payroll approval, tenant suspension, payroll reopening and role changes require 
+a review or confirmation state.
+
+===== PAGE 10 =====
+Workforce Cloud OS | Low-Fidelity Wireframe Pack and Figma Prototype Backlog | 10
+Wireframe Plate 5: Employee Profile
+Purpose: Create one permission-based employee workspace across HR, attendance, leave, payroll, documents and 
+history.
+Figure 5. Employee Profile - low-fidelity layout reference
+ Hide unavailable tabs instead of showing inaccessible blank pages.
+ Effective-dated changes use dedicated actions such as Transfer or Change Status.
+ Summary cards surface missing data and operational exceptions.
+
+===== PAGE 16 =====
+Workforce Cloud OS | Low-Fidelity Wireframe Pack and Figma Prototype Backlog | 16
+Wireframe Plate 11: Payroll Approval
+Purpose: Create a high-confidence review and locking step for payroll approvers.
+Figure 11. Payroll Approval - low-fidelity layout reference
+ Show reviewed status, blocking-error status, variance and financial totals.
+ Approval confirmation states the employee count and consequences.
+ MFA may be required by tenant security policy.
+
+===== PAGE 18 =====
+Workforce Cloud OS | Low-Fidelity Wireframe Pack and Figma Prototype Backlog | 18
+Wireframe Plate 13: Report Viewer
+Purpose: Provide permission-aware filters, summary metrics, data tables and exports.
+Figure 13. Report Viewer - low-fidelity layout reference
+ Display applied filters and generation timestamp.
+ Large exports run in the background and appear in the Export Centre.
+ Charts require accessible tabular alternatives.
+
+===== PAGE 20 =====
+Workforce Cloud OS | Low-Fidelity Wireframe Pack and Figma Prototype Backlog | 20
+Wireframe Plate 15: Audit Log
+Purpose: Provide immutable, searchable evidence of sensitive actions and security events.
+Figure 15. Audit Log - low-fidelity layout reference
+ Sensitive previous/new values may be masked based on permission.
+ Audit detail must identify actor, time, source, action, record and result.
+ Ordinary tenant users cannot edit or remove audit events.
+4. Complete Screen Catalogue
+The catalogue converts the UX specification into Figma production frames. “Plate” identifies the recommended 
+starting layout. “States” lists the minimum variants required before the screen can be considered complete.
+Authentication
+Screen ID Screen Role Device Priority Pattern Minimum states
+SCR-AUTH-01 Sign-In All Desktop + Mobile P0 Shell Default; invalid 
+credentials; locked; 
+suspended tenant; 
+SSO-only; 
+maintenance
+SCR-AUTH-02 Account Invitation All Responsive P0 Form Valid; expired; 
+activated; password 
+error
+SCR-AUTH-03 Forgot Password All Responsive P0 Form Default; submitted; 
+rate limited
+SCR-AUTH-04 Reset Password All Responsive P0 Form Valid; expired; used; 
+success
+
+===== PAGE 21 =====
+Workforce Cloud OS | Low-Fidelity Wireframe Pack and Figma Prototype Backlog | 21
+Screen ID Screen Role Device Priority Pattern Minimum states
+SCR-AUTH-05 Multi-Factor 
+Authentication
+Sensitive roles Responsive P1 Form Default; invalid 
+code; resend; locked
+SCR-AUTH-06 Session Expired All Responsive P0 System state Default; safe 
+redirect
+Platform
+Screen ID Screen Role Device Priority Pattern Minimum states
+SCR-PLT-01 Platform Overview Platform admin Desktop P1 Plate 1 Default; loading; 
+alert state
+SCR-PLT-02 Tenant Directory Platform admin Desktop P0 Plate 4 Default; filtered; 
+empty; loading
+SCR-PLT-03 Create Tenant Platform admin Desktop P0 Wizard Draft; validation; 
+review; success
+SCR-PLT-04 Tenant Detail Platform admin Desktop P0 Profile tabs Active; trial; 
+overdue; suspended
+SCR-PLT-05 Tenant Suspension Platform admin Desktop P0 Confirmation Review; confirmed; 
+failure
+SCR-PLT-06 Controlled Support 
+Access
+Platform support Desktop P1 High-impact form Request; approved; 
+active banner; 
+expired
+Tenant Setup
+Screen ID Screen Role Device Priority Pattern Minimum states
+SCR-TEN-01 Tenant Setup 
+Checklist
+Tenant admin Desktop + Tablet P0 Plate 3 In progress; 
+blocked; complete
+SCR-TEN-02 Company Profile Tenant admin Desktop P0 Form View; edit; 
+validation; saved
+SCR-TEN-03 Branding Settings Tenant admin Desktop P1 Form + preview Default; upload 
+error; contrast 
+warning
+SCR-TEN-04 Language and 
+Regional Settings
+Tenant admin Desktop P1 Form LTR preview; RTL 
+preview
+SCR-TEN-05 Tenant 
+Administrators
+Tenant admin Desktop P0 Plate 4 Invited; active; MFA 
+required; 
+deactivated
+SCR-TEN-06 Module Settings Tenant admin Desktop P1 Card catalogue Enabled; disabled; 
+upgrade required
+Organisation
+Screen ID Screen Role Device Priority Pattern Minimum states
+SCR-ORG-01 Organisation 
+Overview
+Tenant admin, HR Desktop P0 Plate 1 Default; incomplete 
+structure
+SCR-ORG-02 Legal Entity List Tenant admin, HR Desktop P0 Plate 4 Default; empty; 
+inactive records
+SCR-ORG-03 Create/Edit Legal 
+Entity
+Tenant admin Desktop P0 Form Create; edit; 
+validation
+SCR-ORG-04 Department 
+Hierarchy
+Tenant admin, HR Desktop + Tablet P0 Tree + list Default; search; 
+move impact
+SCR-ORG-05 Department Form Tenant admin, HR Desktop P0 Form Create; edit; move 
+
+===== PAGE 22 =====
+Workforce Cloud OS | Low-Fidelity Wireframe Pack and Figma Prototype Backlog | 22
+Screen ID Screen Role Device Priority Pattern Minimum states
+confirmation
+SCR-ORG-06 Location Directory Tenant admin, HR Desktop P0 Plate 4 Default; geo-fence 
+enabled
+SCR-ORG-07 Position and Grade 
+Catalogue
+HR Desktop P1 Tabs + table Positions; titles; 
+grades; pay-band 
+restricted
+SCR-ORG-08 Organisation 
+History
+HR, auditor Desktop P1 Timeline Default; filtered; 
+read-only
+Core HR
+Screen ID Screen Role Device Priority Pattern Minimum states
+SCR-EMP-01 Employee Directory HR, manager Desktop + Mobile P0 Plate 4 Default; filtered; 
+empty; bulk 
+selection
+SCR-EMP-02 Add Employee 
+Wizard
+HR Desktop P0 Wizard Draft; validation; 
+review; invited
+SCR-EMP-03 Employee Profile 
+Overview
+HR, manager, 
+employee
+Desktop + Mobile P0 Plate 5 Permission variants; 
+incomplete data
+SCR-EMP-04 Personal 
+Information
+HR, employee Responsive P0 Profile form View; edit; change 
+request
+SCR-EMP-05 Employment 
+Information
+HR Desktop P0 Profile form Current; future 
+effective change
+SCR-EMP-06 Transfer Employee HR Desktop P1 Impact form Draft; impact 
+warning; approval
+SCR-EMP-07 Change Employee 
+Status
+HR Desktop P0 High-impact form Resign; terminate; 
+suspend; 
+confirmation
+SCR-EMP-08 Employee Timeline HR, auditor Desktop P1 Timeline Permission-filtered; 
+empty
+SCR-EMP-09 Bulk Employee 
+Import
+HR Desktop P0 Import wizard Upload; validating; 
+errors; preview; 
+complete
+SCR-EMP-10 Employee Data 
+Quality
+HR Desktop P1 Exception 
+dashboard
+Default; filtered; 
+resolved
+Onboarding and Documents
+Screen ID Screen Role Device Priority Pattern Minimum states
+SCR-ONB-01 Onboarding 
+Dashboard
+HR Desktop P1 Plate 1 Default; overdue 
+alerts
+SCR-ONB-02 Onboarding 
+Template List
+HR Desktop P1 Plate 4 Default; empty; 
+inactive
+SCR-ONB-03 Onboarding 
+Template Builder
+HR Desktop P1 Builder Draft; validation; 
+preview; active
+SCR-ONB-04 Employee 
+Onboarding 
+Workspace
+HR, manager Desktop P0 Profile workspace In progress; 
+blocked; ready to 
+activate
+SCR-ONB-05 Employee 
+Onboarding Home
+Employee Mobile P0 Plate 2 Not started; in 
+progress; complete
+SCR-DOC-01 Document Library HR Desktop P1 Plate 4 Default; expiry 
+filtered; confidential
+SCR-DOC-02 Upload Document HR, employee Responsive P0 Form Uploading; scan 
+failure; submitted
+
+===== PAGE 24 =====
+Workforce Cloud OS | Low-Fidelity Wireframe Pack and Figma Prototype Backlog | 24
+Leave
+Screen ID Screen Role Device Priority Pattern Minimum states
+SCR-LVE-01 Employee Leave 
+Home
+Employee Mobile P0 Plate 2 Balances; pending 
+request; no policy
+SCR-LVE-02 Leave Request Form Employee Mobile + Desktop P0 Plate 8 Draft; valid; 
+warning; error
+SCR-LVE-03 Leave Validation 
+Result
+Employee Responsive P0 Inline state Blocking error; 
+warning; valid
+SCR-LVE-04 My Leave Requests Employee Responsive P0 List/cards Default; filtered; 
+empty
+SCR-LVE-05 Leave Request 
+Detail
+Employee, approver Responsive P0 Detail timeline Pending; approved; 
+rejected; cancelled
+SCR-LVE-06 Manager Team 
+Leave Calendar
+Manager Desktop + Tablet P0 Calendar Coverage warning; 
+filtered
+SCR-LVE-07 Leave Approval Manager, HR Desktop + Mobile P0 Plate 9 Pending; approved; 
+rejected; returned
+SCR-LVE-08 Leave Policy List HR Desktop P0 Plate 4 Default; inactive; 
+future policy
+SCR-LVE-09 Leave Policy Builder HR Desktop P0 Rules builder Draft; calculation 
+preview; active 
+version
+SCR-LVE-10 Leave Balance 
+Adjustment
+HR Desktop P1 High-impact form Draft; approval; 
+completed
+Workflow
+Screen ID Screen Role Device Priority Pattern Minimum states
+SCR-WFL-01 Approval Inbox All approvers Desktop + Mobile P0 List/cards Assigned; delegated; 
+submitted; 
+completed; 
+escalated
+SCR-WFL-02 Approval Detail All approvers Desktop + Mobile P0 Plate 9 Pending; loading 
+source; action result
+SCR-WFL-03 Workflow List Tenant admin Desktop P0 Plate 4 Default; inactive; 
+active requests
+SCR-WFL-04 Workflow Builder Tenant admin Desktop P0 Builder Draft; invalid; 
+preview; activated
+SCR-WFL-05 Delegation Settings Approver, admin Responsive P1 Form Active; scheduled; 
+expired
+SCR-WFL-06 Approval History All authorised Desktop P1 Timeline Default; filtered; 
+read-only
+Payroll
+Screen ID Screen Role Device Priority Pattern Minimum states
+SCR-PAY-01 Payroll Dashboard Payroll, finance Desktop P0 Plate 1 Current period; 
+blocked; approved
+SCR-PAY-02 Payroll Period List Payroll Desktop P0 Plate 4 Default; empty; 
+filtered
+SCR-PAY-03 Create Payroll 
+Period
+Payroll Desktop P0 Form Draft; overlap error; 
+created
+SCR-PAY-04 Salary Component 
+Catalogue
+Payroll Desktop P0 Plate 4 Default; inactive; 
+formula restricted
+SCR-PAY-05 Salary Component Payroll Desktop P0 Form Fixed; percentage; 
+
+===== PAGE 25 =====
+Workforce Cloud OS | Low-Fidelity Wireframe Pack and Figma Prototype Backlog | 25
+Screen ID Screen Role Device Priority Pattern Minimum states
+Form calculated; 
+validation
+SCR-PAY-06 Employee Salary 
+Structure
+Payroll, HR Desktop P0 Profile form Current; future 
+revision; approval 
+pending
+SCR-PAY-07 Payroll Data 
+Readiness
+Payroll Desktop P0 Checklist dashboard Ready; warning; 
+blocked
+SCR-PAY-08 Payroll Calculation 
+Workspace
+Payroll Desktop P0 Plate 10 Not calculated; 
+processing; 
+warnings; errors; 
+review-ready
+SCR-PAY-09 Payroll Employee 
+Detail
+Payroll Desktop P0 Tabbed detail Ready; warning; 
+override
+SCR-PAY-10 Payroll Exception 
+Centre
+Payroll Desktop P0 Exception table Blocking; warning; 
+assigned; resolved
+SCR-PAY-11 Add Payroll 
+Adjustment
+Payroll Desktop P0 Form Draft; threshold 
+warning; approved
+SCR-PAY-12 Payroll Review Reviewer Desktop P0 Review workspace Variance; returned; 
+reviewed
+SCR-PAY-13 Payroll Approval Approver Desktop + Tablet P0 Plate 11 Ready; MFA; 
+approved; rejected
+SCR-PAY-14 Payroll Locked 
+Summary
+Payroll, finance Desktop P0 Read-only summary Locked; published; 
+export ready
+SCR-PAY-15 Reopen Payroll Authorised 
+approver
+Desktop P0 High-impact form Request; approved; 
+reopened
+SCR-PAY-16 Payslip Preview Payroll Desktop P0 Document preview Draft; validated; 
+published
+SCR-PAY-17 Employee Payslip 
+List
+Employee Mobile + Desktop P0 Mobile cards Empty; available; 
+secure open
+SCR-PAY-18 Bank/Finance 
+Export
+Payroll, finance Desktop P0 Export form Validation; 
+generated; 
+downloaded; 
+transmitted
+Employee Self-Service
+Screen ID Screen Role Device Priority Pattern Minimum states
+SCR-ESS-01 Employee Home Employee Mobile + Desktop P0 Plate 2 Attendance states; 
+pending actions
+SCR-ESS-02 My Requests Employee Mobile + Desktop P0 List/cards Default; filtered; 
+empty
+SCR-ESS-03 Request Detail Employee Responsive P0 Detail timeline Pending; returned; 
+completed
+SCR-ESS-04 My Profile Employee Responsive P0 Profile View; editable fields; 
+restricted fields
+SCR-ESS-05 Request Profile 
+Change
+Employee Responsive P1 Form Draft; evidence 
+required; submitted
+SCR-ESS-06 My Documents Employee Mobile + Desktop P0 Cards/list Available; expired; 
+replacement 
+required
+SCR-ESS-07 Policy 
+Acknowledgement
+Employee Responsive P0 Document + 
+confirmation
+Unread; 
+acknowledged; new 
+version
+
+===== PAGE 26 =====
+Workforce Cloud OS | Low-Fidelity Wireframe Pack and Figma Prototype Backlog | 26
+Manager Self-Service
+Screen ID Screen Role Device Priority Pattern Minimum states
+SCR-MGR-01 Manager Dashboard Manager Desktop + Mobile P0 Plate 12 Default; exception 
+heavy; empty team
+SCR-MGR-02 My Team Manager Desktop + Mobile P0 Plate 4 Default; filtered; 
+empty
+SCR-MGR-03 Team Member 
+Summary
+Manager Responsive P1 Limited profile Default; permission-
+limited
+SCR-MGR-04 Team Attendance Manager Desktop + Tablet P0 Attendance table Today; week; 
+exceptions
+SCR-MGR-05 Team Leave 
+Calendar
+Manager Desktop + Tablet P0 Calendar Default; coverage 
+warning
+SCR-MGR-06 Team Roster Manager Desktop + Tablet P1 Calendar Draft; published; 
+conflict
+SCR-MGR-07 Manager Approval 
+Queue
+Manager Mobile + Desktop P0 Approval list Assigned; delegated; 
+overdue
+Notifications
+Screen ID Screen Role Device Priority Pattern Minimum states
+SCR-NTF-01 Notification Centre All Mobile + Desktop P0 List/cards Unread; read; 
+empty; failed link
+SCR-NTF-02 Notification 
+Preferences
+All Responsive P1 Settings form Mandatory locked; 
+saved
+SCR-NTF-03 Notification 
+Template List
+Tenant admin Desktop P1 Plate 4 Default; language 
+filtered
+SCR-NTF-04 Notification 
+Template Editor
+Tenant admin Desktop P1 Editor + preview Draft; invalid 
+variable; preview; 
+active
+Reports
+Screen ID Screen Role Device Priority Pattern Minimum states
+SCR-RPT-01 Report Centre Authorised roles Desktop + Tablet P0 Card catalogue Default; favourites; 
+no access
+SCR-RPT-02 Report Viewer Authorised roles Desktop P0 Plate 13 Loading; data; 
+empty; failed
+SCR-RPT-03 Report Filters Authorised roles Responsive P0 Drawer/sheet Default; applied; 
+saved preset
+SCR-RPT-04 Export Centre Authorised roles Desktop + Mobile P0 Job list Queued; processing; 
+ready; failed; 
+expired
+SCR-RPT-05 Dashboard 
+Configuration
+Authorised roles Desktop P2 Widget builder Edit; invalid widget; 
+saved
+Integrations
+Screen ID Screen Role Device Priority Pattern Minimum states
+SCR-INT-01 Integration 
+Directory
+Tenant admin Desktop P0 Card catalogue Healthy; warning; 
+unavailable
+SCR-INT-02 Integration Setup Tenant admin Desktop P0 Wizard Draft; test failure; 
+active
+
+===== PAGE 27 =====
+Workforce Cloud OS | Low-Fidelity Wireframe Pack and Figma Prototype Backlog | 27
+Screen ID Screen Role Device Priority Pattern Minimum states
+SCR-INT-03 Biometric Connector 
+Setup
+Tenant admin, HR Desktop P0 Wizard File; API; device; test
+SCR-INT-04 Biometric Mapping HR Desktop P0 Mapping table Mapped; unmapped; 
+ignored
+SCR-INT-05 Integration Health Tenant admin Desktop P0 Plate 14 Healthy; warning; 
+failed; retrying
+SCR-INT-06 API Credentials Tenant admin Desktop P1 Secure table Created; secret 
+shown once; 
+rotated; revoked
+Subscription
+Screen ID Screen Role Device Priority Pattern Minimum states
+SCR-SUB-01 Subscription 
+Overview
+Tenant admin Desktop P1 Usage cards Normal; warning; 
+overdue
+SCR-SUB-02 Plan Comparison Tenant admin Responsive P1 Comparison table Current plan; 
+unavailable feature
+SCR-SUB-03 Upgrade Request Tenant admin Responsive P1 Form Draft; submitted; 
+approved
+SCR-SUB-04 Usage Details Tenant admin Desktop P1 Usage dashboard Normal; nearing 
+limit; exceeded
+Audit and Security
+Screen ID Screen Role Device Priority Pattern Minimum states
+SCR-AUD-01 Audit Dashboard Auditor, admin Desktop P1 Plate 1 Default; alert state
+SCR-AUD-02 Audit Log Auditor, admin Desktop P0 Plate 15 Default; filtered; 
+export restricted
+SCR-AUD-03 Audit Event Detail Auditor, admin Desktop P0 Detail Masked; full 
+permission; related 
+events
+SCR-AUD-04 Role and Permission 
+Matrix
+Tenant admin Desktop P0 Matrix View; edit; impact 
+review
+SCR-AUD-05 Security Settings Tenant admin Desktop P0 Settings form Default; policy 
+warning; saved
+SCR-AUD-06 Active Sessions Tenant admin, 
+security
+Desktop P1 Table Current; ended; 
+suspicious
+Settings
+Screen ID Screen Role Device Priority Pattern Minimum states
+SCR-SET-01 Settings Home Tenant admin Desktop P0 Settings catalogue Complete; 
+incomplete; 
+warning
+SCR-SET-02 Custom Fields Tenant admin, HR Desktop P1 Builder Default; limit 
+reached; inactive
+SCR-SET-03 Holiday Calendar HR Desktop + Tablet P0 Calendar/list Default; import; 
+conflict
+SCR-SET-04 Payroll Calendar Payroll Desktop P0 Calendar/form Draft; overlap; 
+published
+
+===== PAGE 28 =====
+Workforce Cloud OS | Low-Fidelity Wireframe Pack and Figma Prototype Backlog | 28
+5. State and Responsive Matrix
+5.1 Required Reusable States
+State When Required Design Expectation
+Empty No records, no configuration or no search 
+results.
+Explain why the page is empty and 
+provide the next permitted action.
+Loading Initial page load, background job, payroll 
+calculation, import or export.
+Use skeletons for pages and explicit 
+progress for jobs.
+Validation error User input violates data or business rules. Show field-level message and preserve 
+valid inputs.
+Business warning Action is allowed but has operational 
+impact.
+Explain consequence and require 
+acknowledgement where appropriate.
+System failure API, integration or infrastructure action 
+fails.
+State whether data was saved and provide 
+retry or support reference.
+Success Create, submit, approve, publish or export 
+completes.
+Confirm the exact result and update source 
+status immediately.
+Read-only Locked payroll, auditor view, historical 
+policy or inactive record.
+Remove edit controls and explain why the 
+record is locked.
+No permission User opens an inaccessible deep link. Use a controlled access message without 
+exposing record details.
+Offline/network interruption Mobile attendance or employee action 
+cannot reach the service.
+Avoid duplicate submission; provide safe 
+retry and current local status.
+5.2 Responsive Rules
+Pattern Desktop Tablet Mobile
+Navigation Persistent sidebar and top bar. Collapsed sidebar or drawer. Bottom navigation for 
+employee/manager; drawer for 
+secondary items.
+Tables Full columns with sticky 
+header.
+Priority columns; optional 
+horizontal scroll.
+Record cards; no compressed 
+desktop table.
+Filters Inline panel or drawer. Drawer. Full-screen sheet.
+Details Page with right-side activity 
+panel.
+Stacked content and drawer. Separate pages with sticky 
+action bar.
+Forms Multi-column where related. One or two columns. Single column and step-based 
+for long forms.
+Payroll Full administration experience. Review and approval 
+supported.
+Payslip view and limited 
+approval only; no complex 
+calculation workspace.
+Charts Chart plus table. Simplified chart. Summary value plus accessible 
+list/table.
+
+===== PAGE 29 =====
+Workforce Cloud OS | Low-Fidelity Wireframe Pack and Figma Prototype Backlog | 29
+6. Structured Figma Prototype Backlog
+The backlog is ordered to minimise redesign. Foundations and shared components are completed before domain 
+screens. Each workstream should produce annotated low-fidelity frames, required state variants and a reviewable 
+prototype segment.
+ID Workstream Priority Scope Definition of Done
+WF-00 Research Alignment and 
+Source Map
+P0 Confirm personas, MVP 
+scope, role permissions, 
+business-rule questions 
+and frame traceability.
+Approved screen 
+inventory; open-decision 
+log; user-flow map.
+WF-01 Foundations and Figma 
+File Setup
+P0 Create pages, naming, 
+grids, spacing, greyscale 
+tokens, text styles and 
+annotation components.
+Figma structure; cover; 
+frame templates; 
+annotation legend.
+WF-02 Shared Desktop and Mobile 
+Shells
+P0 Design role navigation, 
+desktop page header, 
+mobile bottom navigation, 
+global search, notifications 
+and user menu.
+Desktop shell; employee 
+mobile shell; manager 
+mobile shell; permission 
+variants.
+WF-03 Core Components and 
+States
+P0 Create forms, buttons, 
+tables, cards, badges, 
+drawers, modals, alerts, 
+empty states, loading, error 
+and confirmation patterns.
+Component library with all 
+required low-fidelity 
+variants.
+WF-04 Authentication and 
+Identity
+P0 Design sign-in, invitation, 
+password reset, MFA and 
+session-expiry journeys.
+Six responsive screens and 
+clickable activation flow.
+WF-05 Platform and Tenant Setup P0 Design tenant directory, 
+create tenant, tenant detail, 
+setup checklist, company 
+profile and admin 
+management.
+Platform admin flow and 
+new-customer setup 
+prototype.
+WF-06 Organisation and Core HR P0 Design legal entities, 
+department hierarchy, 
+locations, employee 
+directory, employee wizard 
+and profile.
+Organisation setup and 
+employee creation 
+prototype.
+WF-07 Onboarding and 
+Documents
+P0 Design templates, 
+employee onboarding 
+workspace, mobile 
+onboarding and document 
+review.
+Employee invitation-to-
+activation prototype.
+WF-08 Attendance and Shifts P0 Design employee mobile 
+attendance, HR dashboard, 
+register, exceptions, 
+corrections, policies, shifts 
+and rosters.
+Check-in and attendance-
+correction prototype.
+WF-09 Leave and Approval Engine P0 Design balances, leave 
+request, team calendar, 
+policy builder, approval 
+inbox, approval detail and 
+workflow builder.
+Leave request-to-approval 
+prototype.
+WF-10 Payroll Administration P0 Design structures, 
+readiness, calculation, 
+exceptions, employee 
+detail, review, approval, 
+locking, payslips and 
+export.
+Monthly payroll prototype.
+WF-11 Employee and Manager P0 Complete home, requests, Employee self-service and 
+
+===== PAGE 30 =====
+Workforce Cloud OS | Low-Fidelity Wireframe Pack and Figma Prototype Backlog | 30
+ID Workstream Priority Scope Definition of Done
+Self-Service profile, documents, 
+manager team, attendance, 
+roster and approval mobile 
+variants.
+manager action prototype.
+WF-12 Reports, Imports and 
+Integrations
+P1 Design report centre, 
+filters, viewer, export jobs, 
+imports, biometric 
+mapping and integration 
+health.
+Report export and 
+biometric reconciliation 
+prototypes.
+WF-13 Subscription, Audit and 
+Security
+P1 Design usage, plan 
+comparison, upgrade, audit 
+dashboard, event detail, 
+role matrix, security 
+settings and sessions.
+Audit investigation and 
+role-change review 
+prototypes.
+WF-14 Responsive, Urdu and RTL 
+Pass
+P1 Validate mobile 
+transformations, text 
+expansion, mirrored 
+navigation, mixed numeric 
+content and accessible 
+reading order.
+Responsive matrix; Urdu 
+sample screens; RTL shell.
+WF-15 Prototype Assembly and 
+Usability Validation
+P0 Connect six critical 
+journeys, prepare tasks, 
+capture findings and 
+revise.
+Clickable prototype; test 
+script; issues log; revised 
+frames.
+WF-16 Engineering Handoff P0 Add measurements, 
+component references, 
+state notes, content rules, 
+analytics events and edge 
+cases.
+Ready-for-build Figma 
+pages and handoff 
+checklist.
+6.1 Recommended Design Iterations
+Iteration Primary Focus Reviewers Exit Gate
+Iteration A Foundations, shells, 
+authentication, tenant setup 
+and organisation.
+Product, UX, architecture, 
+security.
+Navigation and configuration 
+model approved.
+Iteration B Employee, onboarding, 
+attendance, shifts, leave and 
+approvals.
+HR specialists, managers, pilot 
+customers.
+Daily employee and manager 
+journeys approved.
+Iteration C Payroll, reports, imports and 
+integrations.
+Payroll specialists, finance, QA, 
+security.
+Parallel-payroll design and 
+exception handling approved.
+Iteration D Responsive, Urdu/RTL, 
+accessibility and prototype 
+validation.
+Employees, managers, 
+accessibility reviewer, 
+implementation team.
+Usability findings resolved and 
+handoff accepted.
+7. Critical Clickable Prototype Journeys
+Flow Journey Frame sequence Success condition
+FLOW-01 New Tenant Implementation SCR-AUTH-02  SCR-TEN-01  → →
+SCR-TEN-02  SCR-ORG-03  SCR-→ →
+ORG-04  SCR-TEN-05  SCR-→ →
+ATT-11  SCR-LVE-09  SCR-→ →
+EMP-09  SCR-INT-05  go-live → →
+Tenant administrator can always 
+identify the next required action 
+and blocked dependency.
+
+===== PAGE 31 =====
+Workforce Cloud OS | Low-Fidelity Wireframe Pack and Figma Prototype Backlog | 31
+Flow Journey Frame sequence Success condition
+completion
+FLOW-02 Employee Onboarding SCR-EMP-02  SCR-ONB-04  SCR-→ →
+AUTH-02  SCR-ONB-05  SCR-→ →
+DOC-02  SCR-DOC-03  employee→ →  
+activation
+Employee, manager and HR tasks 
+remain visible with owners, due 
+dates and completion status.
+FLOW-03 Mobile Attendance and Correction SCR-ESS-01  SCR-ATT-02  → →
+success/geo failure  SCR-ATT-04 →
+ SCR-ATT-05  SCR-ATT-06  → → →
+SCR-WFL-02  approved result→
+No duplicate attendance event is 
+created during network retry; 
+source and corrected values 
+remain traceable.
+FLOW-04 Leave Request and Approval SCR-LVE-01  SCR-LVE-02  SCR-→ →
+LVE-03  SCR-LVE-05  SCR-→ →
+LVE-07/SCR-WFL-02  approved →
+calendar update
+Employee sees balance, policy 
+impact and approval path before 
+submission; manager sees team 
+coverage.
+FLOW-05 Monthly Payroll SCR-ATT-12  SCR-PAY-03  SCR-→ →
+PAY-07  SCR-PAY-08  SCR-→ →
+PAY-10  SCR-PAY-12  SCR-→ →
+PAY-13  SCR-PAY-14  SCR-→ →
+PAY-16  SCR-PAY-18→
+Blocking issues prevent approval; 
+approval clearly locks the 
+employee population and 
+calculation version.
+FLOW-06 Employee Self-Service SCR-ESS-01  SCR-ATT-04  SCR-→ →
+LVE-01  SCR-PAY-17  SCR-→ →
+ESS-04  SCR-ESS-05  SCR-ESS-02→ →
+Employee completes common 
+tasks without needing HR and sees 
+request status throughout.
+FLOW-07 Manager Daily Operations SCR-MGR-01  SCR-MGR-04  SCR-→ →
+MGR-05  SCR-MGR-07  SCR-→ →
+WFL-02  SCR-MGR-02→
+Manager access is restricted to 
+authorised team scope and private 
+payroll data remains hidden.
+FLOW-08 Biometric Reconciliation SCR-INT-01  SCR-INT-03  SCR-→ →
+INT-04  SCR-INT-05  SCR-→ →
+ATT-09  corrected event→
+Unmapped external events remain 
+in an exception queue and are 
+never silently attributed.
+FLOW-09 Audit Investigation SCR-AUD-01  SCR-AUD-02  SCR-→ →
+AUD-03  related →
+employee/payroll record
+Auditor can reconstruct who 
+changed what, when, why and 
+with which approval.
+7.1 Prototype Interaction Rules
+ Use overlays for confirmations, rejection comments and compact review actions; use full frames for long 
+forms and record details.
+ Prototype at least one validation failure and one system/integration failure inside each critical journey.
+ Use variables or clearly labelled duplicated frames for role and status differences; do not make invisible 
+prototype logic difficult to maintain.
+ Every prototype end state should show the updated source record, not only a temporary success toast.
+ For payroll, use realistic but synthetic employee counts and PKR values. Never use customer or employee 
+production data.
+8. Figma File Structure and Naming
+Page Contents
+00 - Cover and Read Me Document purpose, owners, version, status, links and change 
+log.
+01 - Foundations Grid, spacing, typography placeholders, greyscale tokens and 
+annotation legend.
+02 - Components All low-fidelity component families and states.
+03 - Navigation Desktop shell, employee mobile shell, manager mobile shell 
+
+===== PAGE 32 =====
+Workforce Cloud OS | Low-Fidelity Wireframe Pack and Figma Prototype Backlog | 32
+Page Contents
+and role menus.
+04 - Authentication SCR-AUTH frames.
+05 - Platform and Tenant SCR-PLT and SCR-TEN frames.
+06 - Organisation SCR-ORG frames.
+07 - Core HR SCR-EMP frames.
+08 - Onboarding and Documents SCR-ONB and SCR-DOC frames.
+09 - Attendance and Shifts SCR-ATT and SCR-SHF frames.
+10 - Leave and Workflow SCR-LVE and SCR-WFL frames.
+11 - Payroll SCR-PAY frames.
+12 - Employee Self-Service SCR-ESS frames and mobile variants.
+13 - Manager Self-Service SCR-MGR frames and mobile variants.
+14 - Notifications and Reports SCR-NTF and SCR-RPT frames.
+15 - Integrations and Subscription SCR-INT and SCR-SUB frames.
+16 - Audit, Security and Settings SCR-AUD and SCR-SET frames.
+17 - Responsive and RTL Tablet, mobile, Urdu and RTL variants.
+18 - Prototype Flows FLOW-01 through FLOW-09 starting points and test notes.
+99 - Archive Rejected or superseded concepts only.
+8.1 Annotation Layer
+Annotation Type Use
+Business Rule Calculation, policy or effective-dated behaviour that design 
+alone cannot express.
+Permission Role or scope required to see data or perform an action.
+Validation Blocking rule, warning or accepted input format.
+Integration External source, mapping, background job or retry 
+dependency.
+Analytics Product event emitted by the interaction.
+Responsive How the pattern changes across desktop, tablet and mobile.
+Open Decision Unresolved product, legal, payroll or security question.
+9. Component Backlog
+Family Required Components
+Navigation Desktop sidebar; collapsed rail; top bar; breadcrumb; mobile 
+bottom navigation; mobile drawer; tenant switcher
+
+===== PAGE 33 =====
+Workforce Cloud OS | Low-Fidelity Wireframe Pack and Figma Prototype Backlog | 33
+Family Required Components
+Actions Primary, secondary, tertiary and destructive buttons; icon button; 
+split action; sticky mobile action bar
+Inputs Text, number, email, phone, password, textarea, search, select, 
+multi-select, checkbox, radio, toggle, date, date range, time, 
+currency
+Data display Status badge, KPI card, employee identity row, key-value pair, 
+summary card, timeline, progress indicator, usage meter
+Tables Standard table, selectable table, sticky header, column chooser, 
+bulk actions, pagination, expandable row, permission-masked 
+value
+Mobile records Employee card, request card, payslip card, notification card, 
+approval card, roster card
+Feedback Inline error, business warning, success alert, system error, toast, 
+empty state, skeleton, progress job, retry state
+Overlays Confirmation modal, destructive confirmation, rejection modal, 
+filter drawer, activity drawer, mobile full-screen sheet
+Workflow Approval path, approval timeline, SLA indicator, comments, 
+delegation badge, escalation badge
+Attendance Attendance status card, check-in/out control, location validation, 
+shift summary, attendance event timeline, exception badge
+Leave Balance card, leave-day calculator, policy warning, team 
+coverage summary, calendar event
+Payroll Payroll KPI, variance indicator, blocking-error badge, employee 
+payroll row, component row, payslip section, approval 
+confirmation
+Documents Upload drop zone, file row, secure preview, scan status, 
+confidentiality badge, expiry indicator
+Integrations Connection card, health badge, sync log row, mapping row, secret 
+display-once pattern
+Audit Audit event row, before/after comparison, masked-value 
+indicator, related-event link
+9.1 Component Definition of Done
+ Uses auto layout and design variables where appropriate.
+ Includes default, hover, focus, active, disabled, loading, error and read-only states when relevant.
+ Includes compact and comfortable density for data-heavy administration screens.
+ Supports long English text and representative Urdu/RTL content.
+ Has an accessibility note for keyboard focus, labels and screen-reader behaviour.
+ Has a linked example in at least one production screen frame.
+
+===== PAGE 34 =====
+Workforce Cloud OS | Low-Fidelity Wireframe Pack and Figma Prototype Backlog | 34
+10. Review, Acceptance and Handoff Checklist
+10.1 Product Review
+Check Acceptance
+Scope Every P0 screen and critical state in the catalogue has a frame 
+or an approved shared-pattern reference.
+Business rules Attendance, leave, payroll and approval rules are annotated 
+and traceable to product requirements.
+Status clarity Every request and operational process displays current status 
+and next responsible action.
+Error prevention High-impact actions include readiness, impact or 
+confirmation states.
+Cross-module updates Prototype end states show the affected source and 
+downstream records.
+10.2 UX and Accessibility Review
+Check Acceptance
+Navigation Each role reaches its high-frequency tasks without unrelated 
+modules or duplicate menu items.
+Responsive Employee and manager mobile journeys are intentionally 
+redesigned, not compressed desktop screens.
+Accessibility Labels, focus order, errors, status text and non-colour 
+indicators are defined.
+RTL readiness Shell, forms, cards, tables and directional icons have 
+representative RTL validation.
+Content Actions use specific verbs and errors explain the correction 
+required.
+10.3 Engineering and QA Handoff
+Check Acceptance
+Frame IDs Every frame uses the approved screen ID and state naming 
+convention.
+Components Screens use library components rather than detached copies.
+States Loading, empty, error, disabled, no-permission and read-only 
+behaviours are specified.
+Permissions Role and scope variants are annotated at component and 
+screen level.
+Analytics Critical interaction events are identified without including 
+sensitive employee data.
+QA traceability Acceptance states can be converted directly into test cases.

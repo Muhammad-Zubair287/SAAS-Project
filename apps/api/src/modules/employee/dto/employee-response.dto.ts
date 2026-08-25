@@ -6,6 +6,11 @@ export class EmployeeResponseDto {
   departmentId!: string | null;
   positionId!: string | null;
   managerId!: string | null;
+  gradeId!: string | null;
+  costCentreId!: string | null;
+  attendancePolicyId!: string | null;
+  defaultShiftId!: string | null;
+  preferredName!: string | null;
   employeeNumber!: string;
   firstName!: string;
   lastName!: string;
@@ -20,6 +25,7 @@ export class EmployeeResponseDto {
   hireDate!: string;
   terminationDate!: string | null;
   status!: string;
+  statusReason!: string | null;
   employmentType!: string;
   createdAt!: string;
   updatedAt!: string;

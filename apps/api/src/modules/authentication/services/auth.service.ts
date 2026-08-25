@@ -6,26 +6,36 @@ import { AppException } from '../../../common/exceptions/app.exception';
 import { ERROR_CODES } from '../../../common/constants/error-codes.constants';
 import { PrismaService } from '../../../database/prisma/prisma.service';
 import { AuthRepository } from '../repositories/auth.repository';
+import { RbacRepository } from '../repositories/rbac.repository';
 import { PasswordService } from './password.service';
 import { SessionService } from './session.service';
 import { MfaService } from './mfa.service';
 import { ChallengeService } from './challenge.service';
+import { AuthorizationService } from './authorization.service';
 import type { LoginDto } from '../dto/login.dto';
-import type { RefreshTokenDto } from '../dto/refresh-token.dto';
 import type { AuthResponseDto } from '../dto/auth-response.dto';
+import type { SessionUserDto } from '../dto/session-user.dto';
 import type { JwtPayload } from '../interfaces/jwt-payload.interface';
+import type { CurrentUserContext } from '../interfaces/current-user-context.interface';
 
 export interface MfaChallengeResponse {
   mfaRequired: true;
   challengeToken: string;
 }
 
-export type LoginResponse = AuthResponseDto | MfaChallengeResponse;
+export type LoginResponse = AuthTokenPair | MfaChallengeResponse;
 
 export interface RequestContext {
   ipAddress: string | null;
   userAgent: string | null;
   correlationId: string;
+}
+
+/** Full token pair including refresh — controllers decide cookie vs body transport. */
+export interface AuthTokenPair extends AuthResponseDto {
+  refreshToken: string;
+  /** Absolute session expiry — used for refresh cookie maxAge. */
+  sessionExpiresAt: Date;
 }
 
 // Nil UUID used as actorId for audit events where the user cannot be identified.
@@ -43,6 +53,8 @@ export class AuthService {
     private readonly passwordService: PasswordService,
     private readonly mfaService: MfaService,
     private readonly challengeService: ChallengeService,
+    private readonly authorizationService: AuthorizationService,
+    private readonly rbacRepo: RbacRepository,
     private readonly jwtService: JwtService,
     private readonly config: ConfigService,
     private readonly prisma: PrismaService,
@@ -52,12 +64,14 @@ export class AuthService {
 
   async login(dto: LoginDto, ctx: RequestContext): Promise<LoginResponse> {
     const emailNormalised = dto.email.toLowerCase().trim();
+    // Prefer public slug (tenant login URL) over raw UUID; keep tenantId for API/scripts.
+    const tenantId = await this.resolveLoginTenantId(dto);
     const user = await this.authRepo.findUserByEmail(emailNormalised);
 
     // Guard: user not found or no password credential (constant-time path).
     if (!user || !user.passwordCredential) {
       await this.emitAudit({
-        tenantId: dto.tenantId ?? null,
+        tenantId: tenantId ?? null,
         actorId: user?.id ?? NIL_UUID,
         actorEmail: emailNormalised,
         action: 'LOGIN_FAILED',
@@ -79,7 +93,7 @@ export class AuthService {
 
     if (!passwordValid) {
       await this.emitAudit({
-        tenantId: dto.tenantId ?? null,
+        tenantId: tenantId ?? null,
         actorId: user.id,
         actorEmail: user.email,
         action: 'LOGIN_FAILED',
@@ -118,30 +132,14 @@ export class AuthService {
       });
     }
 
-    if (dto.tenantId) {
-      const tenant = await this.authRepo.findTenantStatus(dto.tenantId);
-      if (!tenant) {
-        throw new AppException({
-          code: ERROR_CODES.AUTHENTICATION_REQUIRED,
-          message: 'Tenant not found.',
-          statusCode: HttpStatus.UNAUTHORIZED,
-        });
-      }
-      if (BLOCKED_TENANT_STATUSES.has(tenant.status)) {
-        throw new AppException({
-          code: ERROR_CODES.TENANT_SUSPENDED,
-          message: 'Tenant is not accessible.',
-          statusCode: HttpStatus.FORBIDDEN,
-        });
-      }
-    }
+    await this.assertLoginScope(user.id, user.platformRole ?? null, tenantId ?? null);
 
     // Check for active MFA — if enrolled, issue a short-lived challenge token instead of a session.
     const hasMfa = await this.mfaService.hasActiveMfa(user.id);
     if (hasMfa) {
       const challengeToken = this.challengeService.issueChallengeToken(
         user.id,
-        dto.tenantId ?? null,
+        tenantId ?? null,
         user.email,
       );
       return { mfaRequired: true as const, challengeToken };
@@ -149,7 +147,7 @@ export class AuthService {
 
     const { session, refreshToken } = await this.sessionService.createSession(
       user.id,
-      dto.tenantId ?? null,
+      tenantId ?? null,
       { userAgent: ctx.userAgent, ipAddress: ctx.ipAddress },
     );
 
@@ -157,14 +155,14 @@ export class AuthService {
 
     const { accessToken, expiresIn } = this.issueAccessToken({
       userId: user.id,
-      tenantId: dto.tenantId ?? null,
+      tenantId: tenantId ?? null,
       email: user.email,
       platformRole: user.platformRole ?? null,
       sessionId: session.id,
     });
 
     await this.emitAudit({
-      tenantId: dto.tenantId ?? null,
+      tenantId: tenantId ?? null,
       actorId: user.id,
       actorEmail: user.email,
       action: 'LOGIN_SUCCESS',
@@ -174,12 +172,27 @@ export class AuthService {
       correlationId: ctx.correlationId,
     });
 
-    return { accessToken, refreshToken, tokenType: 'Bearer', expiresIn, sessionId: session.id };
+    return {
+      accessToken,
+      refreshToken,
+      tokenType: 'Bearer',
+      expiresIn,
+      sessionId: session.id,
+      sessionExpiresAt: session.expiresAt,
+    };
   }
 
-  async refresh(dto: RefreshTokenDto, ctx: RequestContext): Promise<AuthResponseDto> {
-    const { session, refreshToken } = await this.sessionService.validateAndRotate(
-      dto.refreshToken,
+  async refresh(refreshToken: string, ctx: RequestContext): Promise<AuthTokenPair> {
+    if (!refreshToken) {
+      throw new AppException({
+        code: ERROR_CODES.INVALID_TOKEN,
+        message: 'Refresh token is required.',
+        statusCode: HttpStatus.UNAUTHORIZED,
+      });
+    }
+
+    const { session, refreshToken: rotated } = await this.sessionService.validateAndRotate(
+      refreshToken,
       { userAgent: ctx.userAgent, ipAddress: ctx.ipAddress },
     );
 
@@ -221,7 +234,14 @@ export class AuthService {
       correlationId: ctx.correlationId,
     });
 
-    return { accessToken, refreshToken, tokenType: 'Bearer', expiresIn, sessionId: session.id };
+    return {
+      accessToken,
+      refreshToken: rotated,
+      tokenType: 'Bearer',
+      expiresIn,
+      sessionId: session.id,
+      sessionExpiresAt: session.expiresAt,
+    };
   }
 
   async logout(
@@ -246,7 +266,101 @@ export class AuthService {
     });
   }
 
-  private issueAccessToken(payload: {
+  async getSessionUser(user: CurrentUserContext): Promise<SessionUserDto> {
+    const appUser = await this.authRepo.findUserById(user.userId);
+    if (!appUser) {
+      throw new AppException({
+        code: ERROR_CODES.AUTHENTICATION_REQUIRED,
+        message: 'User not found.',
+        statusCode: HttpStatus.UNAUTHORIZED,
+      });
+    }
+
+    const resolved = await this.authorizationService.getEffectivePermissions(
+      user.userId,
+      user.tenantId,
+      user.platformRole,
+    );
+
+    const mfaEnabled = await this.mfaService.hasActiveMfa(user.userId);
+
+    return {
+      userId: appUser.id,
+      email: appUser.email,
+      displayName: appUser.displayName,
+      tenantId: user.tenantId,
+      scope: user.scope,
+      platformRole: user.platformRole,
+      roles: resolved.roles,
+      permissions: resolved.permissions,
+      sessionId: user.sessionId,
+      mfaEnabled,
+    };
+  }
+
+  /** Resolve optional tenantSlug (preferred) or tenantId into a tenant UUID. */
+  private async resolveLoginTenantId(dto: LoginDto): Promise<string | undefined> {
+    if (dto.tenantSlug) {
+      const id = await this.authRepo.findTenantIdBySlug(dto.tenantSlug);
+      if (!id) {
+        throw new AppException({
+          code: ERROR_CODES.TENANT_NOT_FOUND,
+          message: 'Tenant is not accessible.',
+          statusCode: HttpStatus.UNAUTHORIZED,
+        });
+      }
+      return id;
+    }
+    return dto.tenantId;
+  }
+
+  /**
+   * Tenant login requires an active RoleAssignment in that tenant.
+   * Platform login (no tenantId) requires a platformRole.
+   */
+  private async assertLoginScope(
+    userId: string,
+    platformRole: string | null,
+    tenantId: string | null,
+  ): Promise<void> {
+    if (tenantId) {
+      const tenant = await this.authRepo.findTenantStatus(tenantId);
+      if (!tenant) {
+        throw new AppException({
+          code: ERROR_CODES.TENANT_NOT_FOUND,
+          message: 'Tenant not found.',
+          statusCode: HttpStatus.UNAUTHORIZED,
+        });
+      }
+      if (BLOCKED_TENANT_STATUSES.has(tenant.status)) {
+        throw new AppException({
+          code: ERROR_CODES.TENANT_SUSPENDED,
+          message: 'Tenant is not accessible.',
+          statusCode: HttpStatus.FORBIDDEN,
+        });
+      }
+
+      const member = await this.rbacRepo.hasActiveTenantMembership(userId, tenantId);
+      if (!member) {
+        throw new AppException({
+          code: ERROR_CODES.TENANT_MEMBERSHIP_REQUIRED,
+          message: 'You do not have access to this organisation.',
+          statusCode: HttpStatus.FORBIDDEN,
+        });
+      }
+      return;
+    }
+
+    if (!platformRole) {
+      throw new AppException({
+        code: ERROR_CODES.AUTHENTICATION_REQUIRED,
+        message: 'A tenant context is required for this account.',
+        statusCode: HttpStatus.UNAUTHORIZED,
+      });
+    }
+  }
+
+  issueAccessToken(payload: {
     userId: string;
     tenantId: string | null;
     email: string;

@@ -37,16 +37,26 @@ export class EmployeeRepository extends BaseRepository {
   ): Promise<{ data: Employee[]; total: number }> {
     const { skip, take } = toPrismaSkipTake(query);
 
-    const statusFilter = query.status ?? 'ACTIVE';
+    const statusFilter = query.status;
 
     const where: Prisma.EmployeeWhereInput = {
       tenantId,
-      status: statusFilter,
+      ...(statusFilter ? { status: statusFilter } : {}),
       ...(query.legalEntityId ? { legalEntityId: query.legalEntityId } : {}),
       ...(query.branchId ? { branchId: query.branchId } : {}),
       ...(query.departmentId ? { departmentId: query.departmentId } : {}),
       ...(query.managerId ? { managerId: query.managerId } : {}),
+      ...(query.positionId ? { positionId: query.positionId } : {}),
+      ...(query.gradeId ? { gradeId: query.gradeId } : {}),
       ...(query.employmentType ? { employmentType: query.employmentType } : {}),
+      ...(query.hireDateFrom || query.hireDateTo
+        ? {
+            hireDate: {
+              ...(query.hireDateFrom ? { gte: new Date(query.hireDateFrom) } : {}),
+              ...(query.hireDateTo ? { lte: new Date(query.hireDateTo) } : {}),
+            },
+          }
+        : {}),
       ...(query.search
         ? {
             OR: [

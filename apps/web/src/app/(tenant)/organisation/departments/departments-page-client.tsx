@@ -7,8 +7,10 @@ import { PageHeader } from '../../../../components/common/page-header';
 import { DepartmentsTable } from '../../../../modules/organisation/components/departments-table';
 import { useDepartments } from '../../../../modules/organisation/hooks/use-departments';
 import { useLegalEntities } from '../../../../modules/organisation/hooks/use-legal-entities';
+import { useDepartmentTree } from '../../../../modules/organisation/hooks/use-org-overview';
 import { usePagination } from '../../../../hooks/use-pagination';
-import type { OrgEntityStatus } from '../../../../modules/organisation/types/organisation.types';
+import { useDebounce } from '../../../../hooks/use-debounce';
+import type { DepartmentTreeNode, OrgEntityStatus } from '../../../../modules/organisation/types/organisation.types';
 import { ROUTES } from '../../../../constants/routes.constants';
 
 interface DepartmentsPageClientProps {
@@ -19,15 +21,18 @@ interface DepartmentsPageClientProps {
 export function DepartmentsPageClient({ title, description }: DepartmentsPageClientProps) {
   const t = useTranslations();
   const [search, setSearch] = useState('');
+  // Debounced so typing does not fire one request per keystroke.
+  const debouncedSearch = useDebounce(search);
   const [statusFilter, setStatusFilter] = useState<OrgEntityStatus | ''>('');
   const [legalEntityId, setLegalEntityId] = useState('');
   const { page, pageSize, goToPage: setPage } = usePagination();
 
   const { data: leData } = useLegalEntities();
-  const { data, isLoading } = useDepartments({
+  const departmentTree = useDepartmentTree(legalEntityId || undefined);
+  const { data, isLoading, isError, refetch } = useDepartments({
     page,
     pageSize,
-    search: search || undefined,
+    search: debouncedSearch || undefined,
     status: statusFilter || undefined,
     legalEntityId: legalEntityId || undefined,
     sortBy: 'name',
@@ -37,6 +42,20 @@ export function DepartmentsPageClient({ title, description }: DepartmentsPageCli
   const totalPages = data?.meta?.totalPages ?? 1;
   const total = data?.meta?.total ?? 0;
   const legalEntities = leData?.data ?? [];
+
+  function TreeNode({ node, depth = 0 }: { node: DepartmentTreeNode; depth?: number }) {
+    return (
+      <div className="space-y-2">
+        <div className="rounded-md border border-border-default bg-surface-primary p-3" style={{ marginLeft: depth * 16 }}>
+          <p className="text-body-sm font-semibold text-text-primary">{node.name}</p>
+          <p className="text-caption text-text-secondary">{node.code}</p>
+        </div>
+        {node.children.map((child) => (
+          <TreeNode key={child.id} node={child} depth={depth + 1} />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -58,7 +77,7 @@ export function DepartmentsPageClient({ title, description }: DepartmentsPageCli
         }
       />
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <div className="relative flex-1">
           <input
             type="search"
@@ -84,22 +103,42 @@ export function DepartmentsPageClient({ title, description }: DepartmentsPageCli
         </select>
       </div>
 
-      {!isLoading && (
+      {!isLoading && !isError && (
         <p className="text-body-sm text-text-secondary">
           {t('pagination.showing', { from: Math.min((page - 1) * pageSize + 1, total), to: Math.min(page * pageSize, total), total })}
         </p>
       )}
 
-      <DepartmentsTable data={data?.data ?? []} isLoading={isLoading} />
+      <DepartmentsTable
+        data={data?.data ?? []}
+        isLoading={isLoading}
+        isError={isError}
+        onRetry={() => { void refetch(); }}
+      />
 
-      {totalPages > 1 && (
+      <div className="rounded-xl border border-border-default bg-surface-primary p-6">
+        <h3 className="mb-4 text-heading-h3 font-semibold text-text-primary">Department hierarchy</h3>
+        {departmentTree.isLoading ? (
+          <p className="text-body-sm text-text-secondary">{t('common.loading')}</p>
+        ) : (departmentTree.data?.data ?? []).length > 0 ? (
+          <div className="space-y-2">
+            {(departmentTree.data?.data ?? []).map((node) => (
+              <TreeNode key={node.id} node={node} />
+            ))}
+          </div>
+        ) : (
+          <p className="text-body-sm text-text-secondary">{t('common.noData')}</p>
+        )}
+      </div>
+
+      {!isError && totalPages > 1 && (
         <div className="flex items-center justify-center gap-2">
           <button type="button" onClick={() => setPage(Math.max(1, page - 1))} disabled={page <= 1}
-            className="rounded-md border border-border-default px-3 py-1.5 text-body-sm disabled:opacity-40"
+            className="flex h-11 min-w-11 items-center justify-center rounded-md border border-border-default px-3 text-body-sm disabled:opacity-40"
             aria-label={t('pagination.previousPage')}>←</button>
           <span className="text-body-sm text-text-secondary">{page} / {totalPages}</span>
           <button type="button" onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page >= totalPages}
-            className="rounded-md border border-border-default px-3 py-1.5 text-body-sm disabled:opacity-40"
+            className="flex h-11 min-w-11 items-center justify-center rounded-md border border-border-default px-3 text-body-sm disabled:opacity-40"
             aria-label={t('pagination.nextPage')}>→</button>
         </div>
       )}

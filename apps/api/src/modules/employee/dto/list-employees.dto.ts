@@ -37,6 +37,26 @@ export class ListEmployeesDto extends PaginationDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsUUID()
+  positionId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
+  gradeId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  hireDateFrom?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  hireDateTo?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
   @MaxLength(200)
   search?: string;

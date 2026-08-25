@@ -1,0 +1,3086 @@
+--- Page 1 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 1
+WORKFORCE CLOUD OS
+API and Event Contract 
+Specification
+REST APIs, OpenAPI schemas, permissions, errors, idempotency, asynchronous 
+operations, domain events and webhooks
+Contract outcome
+Engineering teams and integration partners can implement clients, controllers, workers, webhooks and 
+compatibility tests without inventing public behaviour.
+Document control Value
+Version 1.0
+Status Build-ready contract baseline for review
+Primary launch Pakistan SaaS; GCC/global-ready contract conventions
+API style REST-first JSON over HTTPS
+Event style Transactional outbox, at-least-once delivery, versioned 
+event envelope
+Prepared for Product, backend, frontend, mobile, QA, security, DevOps 
+and integration partners
+One tenant context. Stable business contracts. Reliable events. Auditable high-impact actions.
+
+--- Page 2 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 2
+1. Document Purpose and Scope
+Build-ready external and internal contract rules for the approved MVP.
+This document defines the public REST API, reusable schemas, endpoint-level security, error model, 
+idempotency, concurrency, asynchronous operation model, domain-event envelope, event catalogue, outbound 
+webhook delivery and contract-governance practices for Workforce Cloud OS. It covers tenant administration, 
+identity, organisation, Core HR, onboarding, documents, attendance, shifts, leave, workflow, payroll, 
+notifications, reporting, integrations, subscription controls, audit and platform operations.
+Source-derived baseline
+The approved architecture requires REST-first versioned APIs, stable validation and error contracts, idempotency 
+for external writes, signed webhooks, generated OpenAPI documentation, transaction-scoped tenant context, 
+PostgreSQL RLS and a transactional outbox. Exact route names, DTO field sets, error codes, rate-limit classes and 
+event payload details in this document are proposed implementation contracts derived from that baseline.
+Audience Use
+Product and business analysts Confirm use-case behaviour, state transitions and source-of-
+truth ownership.
+Frontend/mobile Generate typed clients and map field-level errors to approved 
+UX.
+Backend Implement controllers and application services against stable 
+contracts.
+Integration partners Use scoped APIs, webhooks and delivery/reconciliation rules.
+QA Build contract, compatibility, idempotency, tenant-isolation and 
+negative tests.
+Security Review authentication, permission, sensitive fields, downloads, 
+signing and abuse controls.
+DevOps/SRE Operate API gateways, queues, delivery retry, telemetry and 
+SLOs.
+2. Contract Principles and Non-Negotiable Rules
+ Tenant context comes from trusted authentication and routing context; normal tenant endpoints never 
+accept an arbitrary tenant_id parameter.
+ APIs represent business resources and commands, not generic CRUD access to database tables.
+ The API is the authoritative permission boundary even when the user interface hides an action.
+ High-impact writes use optimistic concurrency, explicit confirmation, audit evidence and MFA where 
+configured.
+ External and retryable writes are idempotent. At-least-once event consumers are also idempotent.
+ Money is a fixed-precision decimal string plus currency. Floating-point values are prohibited.
+ Business dates and UTC timestamps are distinct. Date/time values use ISO 8601 and explicit offsets when 
+provided by a source.
+ Sensitive salary, bank, identification, medical, location and document data is minimised, masked and 
+excluded from logs and notification bodies.
+ Breaking contract changes require a new major API or event version; additive changes follow documented 
+compatibility rules.
+
+--- Page 3 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 3
+ OpenAPI/AsyncAPI specifications are source controlled and participate in CI compatibility tests.
+Figure 1 - Authorised request path and defence-in-depth contract checks.
+3. Contract Artefacts and Ownership
+Figure 2 - Contract layers, ownership and generated artefacts.
+Artefact Owner Source of truth Generated consumers
+OpenAPI 3.1 specification Domain API owner packages/contracts/openapi TypeScript client, server 
+
+--- Page 4 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 4
+Artefact Owner Source of truth Generated consumers
+interfaces, docs, test stubs
+JSON Schema components Contract platform team packages/contracts/schemas Validation fixtures and 
+event/webhook validation
+AsyncAPI 3.0 specification Domain/event owner packages/contracts/asyncapi Event types, consumer fixtures 
+and partner docs
+Webhook catalogue Integration owner Public event subset + delivery 
+policy
+Partner portal and replay 
+tooling
+Error catalogue Platform/API governance Shared contract package UX mapping, support playbooks 
+and tests
+Permission catalogue Identity/security owner Permission registry Navigation, API guards and 
+audit reporting
+Examples and golden fixtures QA + domain owner Versioned examples Contract tests and partner 
+sandbox
+4. Protocol, Base URL and Representation
+Concern Contract
+Transport HTTPS only. TLS policy is controlled by the platform edge.
+Base path /api/v1 for the first stable API generation.
+Media type application/json; charset=utf-8. File bytes use signed object-
+storage URLs.
+Dates Business dates: YYYY-MM-DD. Date/time: RFC 3339 / ISO 8601 
+with timezone offset when source-local.
+Identifiers Opaque UUID or time-sortable IDs. Clients must not infer type, 
+chronology or permission from an ID.
+Naming camelCase JSON properties; plural resource collections; 
+command sub-resources for high-impact transitions.
+Nullability Omitted means not provided; null is accepted only where the 
+schema explicitly allows clearing.
+Unknown fields Rejected on strict command DTOs; may be ignored in 
+event/webhook consumers according to compatibility policy.
+Compression gzip/br supported at edge for suitable payloads.
+Caching Private authorised reads may use ETag. Sensitive responses use 
+Cache-Control: no-store.
+Example API root and content negotiation
+GET https://app.workforcecloudos.example/api/v1/employees
+Authorization: Bearer <access-token>
+Accept: application/json
+Accept-Language: en-PK
+X-Correlation-ID: cor_client_123
+
+--- Page 5 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 5
+5. Authentication, Tenant Context and Authorisation
+Layer Required behaviour
+Authentication OIDC/OAuth 2.0 access token or secure web session. API clients 
+use scoped client credentials or rotated API keys where 
+approved.
+Tenant resolution Tenant comes from verified host/membership/session claim. 
+Platform endpoints explicitly identify a target tenant only for 
+authorised platform operations.
+Membership Token user must have an active membership in the resolved 
+tenant.
+Permission Action + resource permission, e.g. payroll.run.approve.
+Business scope Tenant, legal entity, branch, department, manager hierarchy, 
+self, record assignment or support grant.
+Step-up authentication MFA proof required for configured payroll approval, payroll 
+reopening, sensitive export and platform administration 
+actions.
+Segregation of duties Requestor, preparer, reviewer and approver restrictions are 
+evaluated at action time.
+Database enforcement The service sets transaction-local tenant context; PostgreSQL 
+RLS remains the final row filter.
+Support access Explicit, time-limited, reason-based support grant; represented 
+in actor and audit metadata.
+Permission = action + resource + scope
+Example: payroll.run.approve + PayrollRun + legal_entity:le_pk
+Example: payslip.read + Payslip + self
+Example: approval.act + ApprovalStep + record_assignment:current
+6. Standard Headers
+Header Direction Required when Definition
+Authorization Request Authenticated API Bearer access token. Never 
+logged.
+Idempotency-Key Request Declared write endpoints Client-generated opaque value, 
+recommended UUID.
+X-Correlation-ID Both All requests Accepted safe client value or 
+server generated; propagated to 
+logs/events.
+X-Request-ID Response All requests Unique edge/request execution 
+identifier.
+If-Match Request Versioned update/high-risk 
+action
+Resource ETag or integer 
+version token.
+ETag Response Versioned resources Strong or approved weak 
+representation version.
+Accept-Language Request Optional BCP 47 locale for user-safe 
+messages and formatted 
+documents.
+X-Client-Version Request First-party clients Application build/version for 
+support and deprecation.
+
+--- Page 6 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 6
+Header Direction Required when Definition
+Retry-After Response 429/selected 503 Seconds or HTTP date.
+Deprecation Response Deprecated endpoint/field Structured deprecation date.
+Sunset Response Scheduled endpoint retirement HTTP date after which endpoint 
+is unavailable.
+Cache-Control Response Sensitive/private content Typically private/no-store 
+according to classification.
+7. Reusable Schema Catalogue
+Schema Purpose Core properties
+ResourceMetadata Common resource concurrency and audit 
+metadata.
+id, createdAt, createdBy, updatedAt, 
+updatedBy, version
+Money Fixed-precision monetary value. amount (decimal string), currency (ISO 
+4217)
+DateRange Inclusive business-date interval. startDate, endDate
+ActorReference User, service or external client that caused 
+an action.
+type, id, displayName?
+ScopeReference Permission or assignment scope. type, id?, includeDescendants?
+PageInfo Keyset pagination metadata. nextCursor, previousCursor?, hasMore, 
+count?
+ProblemDetails Stable API failure structure. type, title, status, code, detail, instance, 
+correlationId, retryable, errors[]
+FieldError Field/business validation detail. path, code, message, rejectedValue?
+AsyncOperation Durable long-running operation. id, type, status, progress, submittedAt, 
+startedAt?, completedAt?, result?, error?
+FileReference Authorised document or export reference. id, fileName, contentType, sizeBytes, 
+checksumSha256, classification, scanStatus
+ApprovalSummary Current workflow state returned with 
+source request.
+workflowInstanceId, status, currentStage, 
+assignedApprovers, dueAt
+AuditMetadata Correlation and source context. correlationId, requestId, actor, 
+sourceChannel, reason?
+
+--- Page 7 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 7
+ProblemDetails response
+{
+  "type": "https://docs.workforcecloudos.example/errors/validation-failed",
+  "title": "Validation failed",
+  "status": 422,
+  "code": "VALIDATION_FAILED",
+  "detail": "One or more values could not be accepted.",
+  "instance": "/api/v1/leave/requests/lvr_01/submit",
+  "correlationId": "cor_01J32F",
+  "retryable": false,
+  "errors": [
+    {
+      "path": "attachmentDocumentId",
+      "code": "REQUIRED_DOCUMENT_MISSING",
+      "message": "A supporting document is required for this leave type."
+    }
+  ]
+}
+AsyncOperation response
+{
+  "id": "op_01J31D",
+  "type": "PAYROLL_CALCULATION",
+  "status": "RUNNING",
+  "progress": {
+    "completedUnits": 240,
+    "totalUnits": 326,
+    "percent": 73.62
+  },
+  "submittedAt": "2026-08-02T07:15:00Z",
+  "startedAt": "2026-08-02T07:15:05Z",
+  "links": {
+    "self": "/api/v1/operations/op_01J31D",
+    "resource": "/api/v1/payroll/runs/pr_01J31C"
+  }
+}
+8. Common Error Catalogue
+Code HTTP Meaning Client action
+AUTHENTICATION_REQUIRED 401 No valid session or access token. Sign in or refresh the session.
+TOKEN_INVALID 401 Token signature, issuer, audience 
+or expiry is invalid.
+Obtain a new token.
+TENANT_CONTEXT_INVALID 403 Authenticated identity is not a 
+member of the resolved tenant.
+Use the correct tenant host or 
+membership.
+PERMISSION_DENIED 403 User lacks action, resource or 
+scope permission.
+Request an authorised role/scope.
+RESOURCE_NOT_FOUND 404 The resource is absent or not Verify identifier and access.
+
+--- Page 8 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 8
+Code HTTP Meaning Client action
+visible in the current scope.
+VALIDATION_FAILED 422 One or more fields or business 
+preconditions failed.
+Correct errors[] and resubmit.
+CONFLICT 409 Resource state conflicts with the 
+requested transition.
+Refresh and follow allowed 
+transition.
+VERSION_CONFLICT 412 If-Match version is stale. Reload the resource and reapply 
+changes.
+IDEMPOTENCY_KEY_REQUIRED 400 The endpoint requires an 
+idempotency key.
+Send a unique key for the business 
+operation.
+IDEMPOTENCY_KEY_REUSED 409 The key was previously used with 
+a different request body.
+Use the original body or a new 
+key.
+OPERATION_IN_PROGRESS 409 A conflicting long-running 
+operation is active.
+Follow the returned operation 
+link.
+RATE_LIMITED 429 The client, user or tenant rate 
+limit was exceeded.
+Retry after Retry-After.
+RESOURCE_LOCKED 423 The record or period is locked. Use the authorised reopening 
+workflow.
+SEGREGATION_OF_DUTIES 409 The actor cannot complete this 
+high-impact action.
+Assign an independent reviewer 
+or approver.
+MFA_REQUIRED 403 Step-up authentication is required. Complete MFA and retry.
+EXTERNAL_DEPENDENCY_FAILED 503 A configured provider or 
+connector failed.
+Retry if retryable or review 
+integration health.
+INTERNAL_ERROR 500 Unexpected failure; safe message 
+only.
+Contact support with 
+correlationId.
+Error privacy rule
+A 404 may be returned instead of 403 where confirming that a sensitive or cross-scope record exists would disclose 
+information. Stack traces, SQL, secret names and provider credentials never appear in client responses.
+9. Query, Filtering, Pagination and Concurrency
+Concern Contract
+Collection pagination Keyset/cursor pagination for employees, attendance, approvals, 
+audit, payroll results and other large collections.
+Cursor opacity Cursor is signed/opaque. Clients cannot construct or modify it.
+Stable order Every paginated query has a deterministic tie-breaker, 
+normally createdAt/id or business date/id.
+Filtering Each endpoint allow-lists filter names, operators, ranges and 
+maximum cardinality.
+Search Normalised limited search fields only; no raw SQL-like query 
+language.
+Field selection Only documented sparse-field or column selection; permission 
+applied per field.
+Sorting Allow-listed fields and directions; sensitive computed fields 
+may be unavailable.
+Optimistic concurrency PATCH and high-risk transitions require If-Match or 
+expectedVersion where concurrent edits matter.
+Conflict response 412 VERSION_CONFLICT includes current version and safe 
+reload link, not the complete sensitive record.
+Bulk operations Bounded item count, per-item result, atomicity explicitly 
+documented; heavy bulk operations are asynchronous.
+
+--- Page 9 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 9
+GET /api/v1/employees?departmentId=dep_finance&status=ACTIVE&limit=50&cursor=<opaque>
+{
+  "items": [...],
+  "pageInfo": {"nextCursor":"...","hasMore":true}
+}
+10. Idempotency and Duplicate Protection
+Figure 3 - Persistent idempotency behaviour for retry-safe writes.
+Rule Definition
+Key scope tenant + authenticated client/user + HTTP method + canonical 
+route + Idempotency-Key.
+Fingerprint Canonical request body hash and selected headers.
+First request Create processing record before or within the business 
+transaction as defined by endpoint.
+Replay Same key and fingerprint returns the stored safe response and 
+Replayed: true metadata where useful.
+Conflict Same key with different fingerprint returns 409 
+IDEMPOTENCY_KEY_REUSED.
+In progress Return existing operation/status link. Do not start a parallel 
+business operation.
+Retention Endpoint-specific, long enough for realistic connector/client 
+retry windows; high-risk payroll commands retained with 
+audit evidence.
+Client guidance Use one key per business intention, not one key per network 
+attempt.
+
+--- Page 10 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 10
+11. Asynchronous Operations
+Figure 4 - Standard 202 Accepted and operation-resource pattern.
+Operation state Meaning Allowed client action
+QUEUED Accepted and waiting for capacity. Poll with backoff or await 
+event/notification.
+RUNNING Worker is processing bounded units. Read progress; request cancellation only if 
+endpoint allows.
+SUCCEEDED Result committed and links available. Open resource or create authorised 
+download link.
+FAILED Operation stopped; durable business state 
+remains safe.
+Inspect safe error; correct source or retry 
+according to retryable flag.
+CANCEL_REQUESTED Cancellation requested at next safe 
+checkpoint.
+Continue polling.
+CANCELLED Stopped without final business effect, or 
+explicitly documented partial result.
+Start a new operation if needed.
+12. File Upload, Download and Export Contracts
+Stage Contract
+Upload authorisation API validates permission, type, size, owner and classification 
+and creates a tenant-prefixed quarantine key.
+Direct upload Client uploads to short-lived signed object URL with required 
+checksum/content headers.
+Registration Client registers object version; service verifies object 
+metadata/checksum and starts scanning.
+Scan File remains unavailable until malware/type validation is 
+
+--- Page 11 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 11
+Stage Contract
+CLEAN.
+Metadata API exposes metadata only; object keys and secret storage 
+details are not public.
+Download authorisation Permission, classification, retention, legal hold and MFA rules 
+are re-evaluated.
+Signed download Short-lived and normally single-use for restricted exports; 
+response uses no-store.
+Audit Sensitive link creation, successful download and export 
+transmission are audit events.
+Expiry Exports expire by data class/plan; expired links return 410 or 
+404 according to disclosure policy.
+
+--- Page 12 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 12
+13. Module-by-Module REST Endpoint Inventory
+200 proposed API operations across 13 contract domains.
+The inventory is a proposed low-level contract derived from the approved module boundaries and database 
+ownership model. Each path must be represented in OpenAPI with security, request/response schemas, 
+examples, errors, rate-limit class and ownership metadata before implementation.
+Platform and Tenant
+Method Path Purpose Permission Contract note
+POST /platform/tenants Create tenant platform.tenant.create Idempotent
+GET /platform/tenants List tenants platform.tenant.read Cursor
+GET /platform/tenants/
+{tenantId}
+Get tenant platform.tenant.read -
+PATCH /platform/tenants/
+{tenantId}
+Update tenant metadata platform.tenant.update ETag
+POST /platform/tenants/
+{tenantId}/activate
+Activate tenant platform.tenant.activate Idempotent
+POST /platform/tenants/
+{tenantId}/suspend
+Suspend tenant platform.tenant.suspend MFA
+POST /platform/tenants/
+{tenantId}/restore
+Restore suspended tenant platform.tenant.restore MFA
+GET /platform/tenants/
+{tenantId}/usage
+View usage platform.usage.read -
+PUT /platform/tenants/
+{tenantId}/plan
+Change plan platform.plan.change Idempotent
+PUT /platform/tenants/
+{tenantId}/entitlements
+Set entitlements platform.entitlement.mana
+ge
+ETag
+POST /platform/tenants/
+{tenantId}/support-grants
+Create support grant platform.support.grant MFA
+DELETE /platform/support-grants/
+{grantId}
+Revoke support grant platform.support.revoke MFA
+Identity and Access
+Method Path Purpose Permission Contract note
+POST /auth/invitations/{token}/
+activate
+Activate invited account public Single use
+POST /auth/sessions Password sign-in public Rate limited
+POST /auth/sessions/refresh Refresh session authenticated Rotating token
+DELETE /auth/sessions/current Sign out current session authenticated -
+GET /users List tenant users user.read Cursor
+POST /users/invitations Invite user user.invite Idempotent
+GET /users/{userId} Get user user.read -
+PATCH /users/{userId} Update user user.update ETag
+POST /users/{userId}/deactivate Deactivate user user.deactivate MFA optional
+GET /roles List roles role.read -
+POST /roles Create custom role role.create Idempotent
+PATCH /roles/{roleId} Update role role.update ETag
+GET /permissions List permission catalogue permission.read -
+POST /role-assignments Assign role and scope role.assign Idempotent
+DELETE /role-assignments/
+{assignmentId}
+Remove role assignment role.assign -
+
+--- Page 13 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 13
+Method Path Purpose Permission Contract note
+GET /sessions List active sessions security.session.read Cursor
+DELETE /sessions/{sessionId} Revoke session security.session.revoke -
+GET /sso/configuration Get SSO configuration sso.read -
+PUT /sso/configuration Configure SSO sso.manage MFA
+Organisation
+Method Path Purpose Permission Contract note
+GET /legal-entities List legal entities organisation.read Cursor
+POST /legal-entities Create legal entity organisation.create Idempotent
+GET /legal-entities/{id} Get legal entity organisation.read -
+PATCH /legal-entities/{id} Update legal entity organisation.update ETag
+POST /legal-entities/{id}/
+deactivate
+Deactivate legal entity organisation.update Impact check
+GET /departments List departments organisation.read Cursor/tree
+POST /departments Create department organisation.create Idempotent
+PATCH /departments/{id} Update department organisation.update ETag
+POST /departments/{id}/move Move department organisation.update Impact check
+GET /locations List locations organisation.read Cursor
+POST /locations Create location organisation.create Idempotent
+PATCH /locations/{id} Update location organisation.update ETag
+GET /positions List positions organisation.read Cursor
+POST /positions Create position organisation.create Idempotent
+GET /grades List grades organisation.read Cursor
+POST /grades Create grade organisation.create Idempotent
+GET /cost-centres List cost centres organisation.read Cursor
+POST /cost-centres Create cost centre organisation.create Idempotent
+People and Employment
+Method Path Purpose Permission Contract note
+GET /employees Search employees employee.read Keyset cursor
+POST /employees Create employee employee.create Idempotent
+GET /employees/{employeeId} Get employee employee.read Field masking
+PATCH /employees/{employeeId} Update permitted profile 
+data
+employee.update ETag
+GET /employees/{employeeId}/
+employment
+Get current employment employment.read Effective dated
+POST /employees/{employeeId}/
+transfers
+Schedule transfer employee.transfer Idempotent
+POST /employees/{employeeId}/
+status-changes
+Schedule status change employee.status.change MFA/high impact
+GET /employees/
+{employeeId}/history
+Get employee history employee.history.read Cursor
+POST /employee-change-requests Request self-service profile 
+change
+employee.self.update Idempotent
+GET /employee-change-requests List profile change 
+requests
+employee.change.approve Cursor
+POST /employee-change-
+requests/{id}/submit
+Submit profile change employee.self.update -
+POST /imports/employees Start employee import employee.import Async
+GET /imports/{importId} Get import operation employee.import -
+
+--- Page 14 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 14
+Method Path Purpose Permission Contract note
+POST /imports/{importId}/
+commit
+Commit validated import employee.import Idempotent
+GET /employees/data-quality Employee data-quality 
+summary
+employee.quality.read -
+Onboarding and Documents
+Method Path Purpose Permission Contract note
+GET /onboarding/templates List onboarding templates onboarding.template.read Cursor
+POST /onboarding/templates Create template onboarding.template.creat
+e
+Idempotent
+PATCH /onboarding/templates/{id} Update template draft onboarding.template.upda
+te
+ETag
+POST /onboarding/templates/
+{id}/publish
+Publish template version onboarding.template.publi
+sh
+Idempotent
+POST /employees/{employeeId}/
+onboarding
+Start onboarding onboarding.start Idempotent
+GET /employees/{employeeId}/
+onboarding
+Get onboarding workspace onboarding.read -
+PATCH /onboarding/tasks/{taskId} Update task status onboarding.task.update ETag
+POST /onboarding/tasks/
+{taskId}/waive
+Waive task onboarding.task.waive Reason required
+POST /documents/upload-
+sessions
+Create secure upload 
+session
+document.create Idempotent
+POST /documents/
+{documentId}/versions
+Register uploaded version document.create Idempotent
+GET /documents List documents document.read Cursor
+GET /documents/{documentId} Get document metadata document.read Masked
+POST /documents/
+{documentId}/download-
+links
+Create signed download 
+link
+document.download Audit
+POST /documents/
+{documentId}/approve
+Approve document document.approve Idempotent
+POST /documents/
+{documentId}/reject
+Reject document document.approve Reason required
+POST /policy-acknowledgements Acknowledge policy 
+version
+policy.acknowledge Idempotent
+Attendance and Shifts
+Method Path Purpose Permission Contract note
+GET /shifts List shifts shift.read Cursor
+POST /shifts Create shift shift.create Idempotent
+PATCH /shifts/{shiftId} Update shift shift.update ETag
+GET /rosters Get roster assignments roster.read Date range
+POST /roster-assignments Assign roster roster.assign Idempotent
+POST /rosters/publish Publish roster period roster.publish Idempotent
+POST /attendance/events Ingest attendance event attendance.event.create Idempotency required
+GET /attendance/days List calculated attendance 
+days
+attendance.read Keyset cursor
+GET /attendance/days/
+{attendanceDayId}
+Get day detail attendance.read -
+GET /attendance/exceptions List exceptions attendance.exception.read Cursor
+POST /attendance/exceptions/ Resolve exception attendance.exception.resol Reason required
+
+--- Page 15 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 15
+Method Path Purpose Permission Contract note
+{id}/resolve ve
+POST /attendance/corrections Create correction request attendance.correction.crea
+te
+Idempotent
+GET /attendance/corrections List correction requests attendance.correction.read Cursor
+POST /attendance/corrections/
+{id}/submit
+Submit correction attendance.correction.crea
+te
+-
+POST /attendance/period-locks Lock attendance period attendance.period.lock MFA/high impact
+POST /attendance/period-locks/
+{id}/reopen
+Reopen locked period attendance.period.reopen MFA + approval
+GET /attendance/readiness Get payroll attendance 
+readiness
+attendance.readiness.read -
+Leave
+Method Path Purpose Permission Contract note
+GET /leave/types List leave types leave.policy.read -
+POST /leave/types Create leave type leave.policy.manage Idempotent
+GET /leave/policies List policies leave.policy.read Cursor
+POST /leave/policies Create policy draft leave.policy.manage Idempotent
+POST /leave/policies/{id}/publish Publish policy version leave.policy.manage Idempotent
+GET /employees/{employeeId}/
+leave-balances
+Get balances leave.balance.read -
+GET /employees/{employeeId}/
+leave-ledger
+Get ledger leave.ledger.read Cursor
+POST /leave/requests Create request draft leave.request.create Idempotent
+POST /leave/requests/{id}/submit Submit request leave.request.create -
+GET /leave/requests List requests leave.request.read Cursor
+GET /leave/requests/{id} Get request leave.request.read Private masking
+POST /leave/requests/{id}/cancel Cancel request leave.request.cancel Idempotent
+POST /leave/adjustments Create balance adjustment leave.balance.adjust Idempotent
+GET /leave/team-calendar Team leave calendar leave.team.read Privacy safe
+GET /holiday-calendars List holiday calendars holiday.read Cursor
+POST /holiday-calendars Create holiday calendar holiday.manage Idempotent
+Workflow and Approvals
+Method Path Purpose Permission Contract note
+GET /workflow-definitions List workflow definitions workflow.read Cursor
+POST /workflow-definitions Create workflow draft workflow.manage Idempotent
+PATCH /workflow-definitions/{id} Update workflow draft workflow.manage ETag
+POST /workflow-definitions/
+{id}/publish
+Publish workflow version workflow.manage Idempotent
+GET /approvals/inbox Get assigned approvals approval.read Keyset cursor
+GET /workflow-instances/{id} Get workflow instance approval.read -
+GET /approval-steps/{id} Get approval detail approval.read -
+POST /approval-steps/{id}/
+actions
+Approve/reject/return/
+request info
+approval.act Idempotent
+POST /approval-steps/{id}/
+comments
+Add approval comment approval.comment Idempotent
+GET /delegations List delegations delegation.read Cursor
+POST /delegations Create delegation delegation.manage Idempotent
+DELETE /delegations/{id} Cancel delegation delegation.manage -
+
+--- Page 16 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 16
+Method Path Purpose Permission Contract note
+GET /approvals/history Approval history report approval.history.read Cursor
+Payroll
+Method Path Purpose Permission Contract note
+GET /payroll/groups List payroll groups payroll.configuration.read Cursor
+POST /payroll/groups Create payroll group payroll.configuration.man
+age
+Idempotent
+GET /salary-components List components payroll.configuration.read Cursor
+POST /salary-components Create component payroll.configuration.man
+age
+Idempotent
+POST /salary-components/{id}/
+versions
+Create component version payroll.configuration.man
+age
+Idempotent
+GET /employees/{employeeId}/
+salary-structures
+Get salary history salary.read Masked
+POST /employees/{employeeId}/
+salary-structures
+Create salary revision salary.manage Idempotent
+GET /payroll/periods List periods payroll.period.read Cursor
+POST /payroll/periods Open payroll period payroll.period.open Idempotent
+GET /payroll/periods/{id}/
+readiness
+Get readiness payroll.run.read -
+POST /payroll/runs Create payroll run payroll.run.create Idempotent
+GET /payroll/runs/{id} Get payroll run payroll.run.read -
+POST /payroll/runs/{id}/
+calculations
+Start calculation payroll.run.calculate Async + idempotent
+GET /payroll/runs/{id}/versions List calculation versions payroll.run.read Cursor
+GET /payroll/versions/{id}/
+employees
+List employee results payroll.result.read Keyset cursor
+GET /payroll/versions/{id}/
+exceptions
+List exceptions payroll.exception.read Cursor
+POST /payroll/exceptions/{id}/
+resolutions
+Resolve or override 
+exception
+payroll.exception.resolve Idempotent
+POST /payroll/runs/{id}/submit-
+review
+Submit for review payroll.run.review Idempotent
+POST /payroll/runs/{id}/
+complete-review
+Complete review payroll.run.review Idempotent
+POST /payroll/runs/{id}/approve Approve and lock payroll.run.approve MFA + idempotent
+POST /payroll/runs/{id}/reopen-
+requests
+Request reopening payroll.run.reopen MFA
+POST /payroll/runs/{id}/publish-
+payslips
+Publish payslips payroll.payslip.publish Async
+GET /payslips List own/authorised 
+payslips
+payslip.read Cursor
+POST /payslips/{id}/download-
+links
+Create payslip download 
+link
+payslip.download Audit
+POST /payroll/runs/{id}/exports Generate bank/finance 
+export
+payroll.export.create Async
+GET /payroll/exports/{id} Get export status payroll.export.read -
+POST /payroll/exports/{id}/
+download-links
+Create export link payroll.export.download MFA + audit
+Notifications
+Method Path Purpose Permission Contract note
+
+--- Page 17 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 17
+GET /notifications List user notifications notification.read Keyset cursor
+POST /notifications/{id}/read Mark notification read notification.update Idempotent
+POST /notifications/read-all Mark all read notification.update Idempotent
+GET /notification-preferences Get preferences notification.preference.rea
+d
+-
+PUT /notification-preferences Update preferences notification.preference.ma
+nage
+ETag
+GET /notification-templates List templates notification.template.read Cursor
+POST /notification-templates Create template notification.template.mana
+ge
+Idempotent
+POST /notification-templates/
+{id}/versions
+Create template version notification.template.mana
+ge
+Idempotent
+POST /notification-templates/
+{id}/test
+Send test notification notification.template.test Rate limited
+Reporting and Exports
+Method Path Purpose Permission Contract note
+GET /reports/catalogue List authorised reports report.catalogue.read -
+POST /reports/{reportKey}/runs Run report report.run Async optional
+GET /report-runs/{id} Get report operation report.read -
+GET /report-runs/{id}/results Read paged results report.read Cursor
+POST /report-runs/{id}/exports Generate export report.export Async
+GET /exports List exports export.read Cursor
+GET /exports/{id} Get export metadata export.read -
+POST /exports/{id}/download-
+links
+Create expiring download 
+link
+export.download Audit
+DELETE /exports/{id} Expire export early export.manage -
+GET /dashboards/
+{dashboardKey}
+Get dashboard read model dashboard.read Freshness timestamp
+Integrations and Webhooks
+Method Path Purpose Permission Contract note
+GET /integrations List integrations integration.read Cursor
+POST /integrations Create integration integration.manage Idempotent
+GET /integrations/{id} Get integration integration.read Secrets masked
+PATCH /integrations/{id} Update integration integration.manage ETag
+POST /integrations/{id}/test Test connection integration.test Async optional
+POST /integrations/{id}/activate Activate integration integration.manage Idempotent
+POST /integrations/{id}/disable Disable integration integration.manage Idempotent
+GET /integrations/{id}/sync-
+runs
+List sync runs integration.read Cursor
+POST /integrations/{id}/sync-
+runs
+Start sync integration.run Async
+GET /integration-issues List reconciliation issues integration.issue.read Cursor
+POST /integration-issues/{id}/
+resolve
+Resolve issue integration.issue.resolve Reason required
+GET /external-mappings List mappings integration.mapping.read Cursor
+POST /external-mappings Create mapping integration.mapping.mana
+ge
+Idempotent
+GET /webhook-endpoints List webhook endpoints webhook.read Cursor
+
+--- Page 18 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 18
+Method Path Purpose Permission Contract note
+POST /webhook-endpoints Register endpoint webhook.manage Idempotent
+PATCH /webhook-endpoints/{id} Update endpoint webhook.manage ETag
+POST /webhook-endpoints/{id}/
+rotate-secret
+Rotate signing secret webhook.manage MFA
+GET /webhook-deliveries List deliveries webhook.delivery.read Cursor
+POST /webhook-deliveries/{id}/
+replay
+Replay delivery webhook.delivery.replay Idempotent
+Audit, Security and Operations
+Method Path Purpose Permission Contract note
+GET /audit-events Search audit events audit.read Keyset cursor
+GET /audit-events/{id} Get audit event audit.read Masked
+GET /security-events List security events security.event.read Cursor
+GET /operations/{operationId} Get asynchronous 
+operation
+operation.read -
+POST /operations/{operationId}/
+cancel
+Request safe cancellation operation.cancel Idempotent
+GET /feature-flags List authorised flags feature.read -
+PUT /feature-flags/{key}/tenant-
+overrides
+Set tenant override feature.manage ETag
+GET /health/ready Readiness probe internal -
+GET /health/live Liveness probe internal -
+
+--- Page 19 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 19
+14. Detailed High-Risk and Representative Endpoint 
+Contracts
+19 complete reference contracts for workflows with the greatest correctness, security or 
+integration risk.
+
+--- Page 20 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 20
+API-TEN-001 - Create Tenant
+Creates the isolated tenant record, regional placement metadata, default branding, plan 
+assignment and primary administrator invitation seed.
+Property Value
+Method and path POST /api/v1/platform/tenants
+Permission platform.tenant.create
+Scope Platform only
+Idempotency Required
+Success 201 Created
+Emitted event TenantCreated.v1
+Request contract
+Field Type Required Definition
+displayName string Yes Customer-facing organisation 
+name.
+legalName string Yes Registered or contractual name.
+countryCode string Yes ISO 3166-1 alpha-2 launch 
+country.
+currency string Yes ISO 4217 code; PKR for the 
+Pakistan launch example.
+timeZone string Yes IANA time-zone identifier.
+primaryLocale string Yes BCP 47 locale such as en-PK.
+hostingRegion string Yes Approved platform region key.
+planKey string Yes Commercial plan identifier.
+seatLimit integer Yes Positive employee-seat limit.
+primaryAdmin object Yes Name and email of the first 
+tenant administrator.
+Example request
+{
+  "displayName": "Northstar Textiles",
+  "legalName": "Northstar Textiles (Private) Limited",
+  "countryCode": "PK",
+  "currency": "PKR",
+  "timeZone": "Asia/Karachi",
+  "primaryLocale": "en-PK",
+  "hostingRegion": "aws-ap-south-1",
+  "planKey": "growth",
+  "seatLimit": 350,
+  "primaryAdmin": {
+    "name": "Ayesha Khan",
+    "email": "ayesha.khan@example.com"
+  }
+}
+
+--- Page 21 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 21
+Success contract
+{
+  "id": "ten_01J2Z8Y5VG7A",
+  "status": "DRAFT",
+  "displayName": "Northstar Textiles",
+  "hostingRegion": "aws-ap-south-1",
+  "planKey": "growth",
+  "seatLimit": 350,
+  "createdAt": "2026-07-25T14:05:17Z",
+  "version": 1
+}
+Endpoint-specific errors
+Code
+TENANT_NAME_CONFLICT
+HOSTING_REGION_NOT_ALLOWED
+PLAN_NOT_AVAILABLE_IN_REGION
+ADMIN_EMAIL_INVALID
+IDEMPOTENCY_KEY_REUSED
+Processing and security notes
+ Caller cannot choose a database identifier or arbitrary tenant_id.
+ Tenant provision is transactional; infrastructure provisioning may continue as a separate operation.
+ The response never returns an invitation token.
+
+--- Page 22 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 22
+API-IAM-002 - Invite Tenant User
+Creates a tenant-scoped user invitation and optional role assignments without disclosing 
+activation credentials.
+Property Value
+Method and path POST /api/v1/users/invitations
+Permission user.invite
+Scope Current tenant
+Idempotency Required
+Success 201 Created
+Emitted event UserInvited.v1
+Request contract
+Field Type Required Definition
+email string Yes Normalised email address.
+displayName string Yes Invitation recipient display 
+name.
+employeeId uuid/string No Optional link to an employee in 
+the same tenant.
+roleAssignments array Yes Role plus scope references.
+expiresInHours integer No Bounded by security policy.
+sendNotification boolean No Defaults to true.
+Example request
+{
+  "email": "bilal.ahmed@example.com",
+  "displayName": "Bilal Ahmed",
+  "employeeId": "emp_01J30AM9Q",
+  "roleAssignments": [
+    {
+      "roleKey": "department_manager",
+      "scope": {
+        "type": "DEPARTMENT",
+        "id": "dep_01J30A"
+      }
+    }
+  ],
+  "expiresInHours": 72,
+  "sendNotification": true
+}
+
+--- Page 23 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 23
+Success contract
+{
+  "invitationId": "inv_01J30D6Q",
+  "email": "bilal.ahmed@example.com",
+  "status": "PENDING",
+  "expiresAt": "2026-07-28T14:05:17Z",
+  "createdAt": "2026-07-25T14:05:17Z"
+}
+Endpoint-specific errors
+Code
+USER_ALREADY_ACTIVE
+INVITATION_ALREADY_PENDING
+ROLE_NOT_ASSIGNABLE
+SCOPE_OUTSIDE_CALLER_ACCESS
+EMPLOYEE_TENANT_MISMATCH
+Processing and security notes
+ Activation token is delivered through the configured notification provider.
+ Role assignment is validated before invitation creation.
+ Resend uses a separate action and rotates the activation secret.
+
+--- Page 24 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 24
+API-PEO-003 - Create Employee
+Creates the employee identity and initial effective-dated employment assignment used by 
+attendance, leave and payroll.
+Property Value
+Method and path POST /api/v1/employees
+Permission employee.create
+Scope Legal entity/organisation scope
+Idempotency Required
+Success 201 Created
+Emitted event EmployeeCreated.v1
+Request contract
+Field Type Required Definition
+employeeNumber string Yes Unique within tenant.
+name object Yes Legal and preferred name 
+fields.
+workEmail string No Unique when present.
+joiningDate date Yes Business joining date.
+legalEntityId uuid/string Yes Authorised legal entity.
+departmentId uuid/string Yes Active department.
+positionId uuid/string No Active position.
+managerEmployeeId uuid/string No Cannot create a hierarchy cycle.
+locationId uuid/string Yes Active work location.
+employmentType enum Yes Tenant-configured type.
+initialAssignments object No Shift, leave policy, payroll group 
+references.
+
+--- Page 25 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 25
+Example request
+{
+  "employeeNumber": "PK-LHR-00482",
+  "name": {
+    "givenName": "Sara",
+    "familyName": "Raza",
+    "preferredName": "Sara"
+  },
+  "workEmail": "sara.raza@example.com",
+  "joiningDate": "2026-08-03",
+  "legalEntityId": "le_01J2",
+  "departmentId": "dep_01J2",
+  "positionId": "pos_01J2",
+  "managerEmployeeId": "emp_01J1",
+  "locationId": "loc_lhr_hq",
+  "employmentType": "PERMANENT",
+  "initialAssignments": {
+    "shiftId": "sh_day",
+    "leavePolicyId": "lp_standard",
+    "payrollGroupId": "pg_monthly"
+  }
+}
+Success contract
+{
+  "id": "emp_01J30G9A",
+  "employeeNumber": "PK-LHR-00482",
+  "status": "PRE_BOARDING",
+  "joiningDate": "2026-08-03",
+  "employmentId": "empl_01J30G9B",
+  "version": 1,
+  "createdAt": "2026-07-25T14:11:02Z"
+}
+Endpoint-specific errors
+Code
+EMPLOYEE_NUMBER_EXISTS
+WORK_EMAIL_EXISTS
+ORGANISATION_REFERENCE_INACTIVE
+MANAGER_HIERARCHY_CYCLE
+PAYROLL_GROUP_NOT_ALLOWED
+JOINING_DATE_INVALID
+Processing and security notes
+ Sensitive identifiers and bank data are supplied through separately permissioned endpoints.
+
+--- Page 26 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 26
+ The initial employment row is effective-dated.
+ Onboarding is started explicitly so employee creation can remain draft-safe.
+
+--- Page 27 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 27
+API-PEO-004 - Schedule Employee Transfer
+Creates a future or immediate effective-dated organisation assignment while preserving 
+history and recalculating derived access.
+Property Value
+Method and path POST /api/v1/employees/{employeeId}/transfers
+Permission employee.transfer
+Scope Current and target organisation scope
+Idempotency Required
+Success 202 Accepted or 201 Created
+Emitted event EmployeeTransferred.v1 when effective
+Request contract
+Field Type Required Definition
+effectiveDate date Yes Date new assignment becomes 
+active.
+legalEntityId uuid/string No Target legal entity.
+departmentId uuid/string Yes Target department.
+positionId uuid/string No Target position.
+managerEmployeeId uuid/string No Target manager.
+locationId uuid/string Yes Target location.
+costCentreId uuid/string No Target cost centre.
+reasonCode string Yes Tenant-defined transfer reason.
+impactOverrides object No Explicit shift/leave/payroll 
+decisions where required.
+Example request
+{
+  "effectiveDate": "2026-09-01",
+  "departmentId": "dep_finance",
+  "positionId": "pos_fin_analyst",
+  "managerEmployeeId": "emp_fin_mgr",
+  "locationId": "loc_lhr_hq",
+  "costCentreId": "cc_fin",
+  "reasonCode": "INTERNAL_TRANSFER",
+  "impactOverrides": {
+    "shiftId": "sh_day",
+    "leavePolicyAction": "KEEP",
+    "payrollGroupAction": "KEEP"
+  }
+}
+
+--- Page 28 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 28
+Success contract
+{
+  "transferId": "trf_01J30M",
+  "employeeId": "emp_01J30G9A",
+  "status": "SCHEDULED",
+  "effectiveDate": "2026-09-01",
+  "impactSummary": {
+    "managerAccessChanges": 2,
+    "futureRosterConflicts": 0,
+    "pendingApprovals": 1
+  },
+  "version": 1
+}
+Endpoint-specific errors
+Code
+TRANSFER_DATE_OVERLAP
+TARGET_SCOPE_FORBIDDEN
+MANAGER_HIERARCHY_CYCLE
+FUTURE_ROSTER_CONFLICT
+PAYROLL_PERIOD_LOCK_CONFLICT
+Processing and security notes
+ If tenant workflow applies, response status is PENDING_APPROVAL and the transfer is not activated.
+ The effective-date job performs the state transition idempotently.
+ Historical reporting retains the previous assignment.
+
+--- Page 29 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 29
+API-DOC-005 - Create Secure Document Upload Session
+Authorises a short-lived upload to a tenant-prefixed quarantine object key before malware  
+scanning and document registration.
+Property Value
+Method and path POST /api/v1/documents/upload-sessions
+Permission document.create
+Scope Employee/document classification scope
+Idempotency Required
+Success 201 Created
+Emitted event None until version registration
+Request contract
+Field Type Required Definition
+ownerType enum Yes EMPLOYEE, TENANT or 
+WORKFLOW.
+ownerId uuid/string Yes Authorised same-tenant owner.
+category string Yes Configured document category.
+fileName string Yes Sanitised display name.
+contentType string Yes Allowed MIME type.
+sizeBytes integer Yes Within category limit.
+checksumSha256 string Yes Expected file checksum.
+classification enum Yes INTERNAL, CONFIDENTIAL or 
+RESTRICTED.
+Example request
+{
+  "ownerType": "EMPLOYEE",
+  "ownerId": "emp_01J30G9A",
+  "category": "IDENTIFICATION",
+  "fileName": "national-id.pdf",
+  "contentType": "application/pdf",
+  "sizeBytes": 842113,
+  "checksumSha256": "2d92...f91a",
+  "classification": "RESTRICTED"
+}
+
+--- Page 30 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 30
+Success contract
+{
+  "uploadSessionId": "upl_01J30Q",
+  "documentId": "doc_01J30Q1",
+  "objectKey": "tenant/ten_.../quarantine/doc_.../v1",
+  "uploadUrl": "https://signed.example/...",
+  "requiredHeaders": {
+    "Content-Type": "application/pdf",
+    "x-amz-checksum-sha256": "..."
+  },
+  "expiresAt": "2026-07-25T14:30:00Z"
+}
+Endpoint-specific errors
+Code
+FILE_TYPE_NOT_ALLOWED
+FILE_TOO_LARGE
+OWNER_NOT_FOUND
+DOCUMENT_SCOPE_FORBIDDEN
+CHECKSUM_INVALID
+Processing and security notes
+ The upload URL expires quickly and permits one object key only.
+ A successful object upload does not make the document visible; version registration and scanning follow.
+ The API never proxies the raw file through the application service.
+
+--- Page 31 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 31
+API-ATT-006 - Ingest Attendance Event
+Accepts one canonical raw attendance event from mobile, web, connector or approved 
+import while preserving source evidence.
+Property Value
+Method and path POST /api/v1/attendance/events
+Permission attendance.event.create
+Scope Employee/source mapping scope
+Idempotency Required
+Success 201 Created or replayed 200
+Emitted event AttendanceEventAccepted.v1
+Request contract
+Field Type Required Definition
+employeeId uuid/string Conditional Used by trusted first-party 
+clients.
+employeeExternalId string Conditional Used by connector sources.
+occurredAt date-time Yes Source event date/time with 
+offset.
+eventType enum Yes CHECK_IN, CHECK_OUT, 
+BREAK_START or BREAK_END.
+source enum Yes WEB, MOBILE, BIOMETRIC, 
+IMPORT or MANUAL.
+sourceEventId string Yes Stable source identifier.
+deviceId string No Registered device identifier.
+location object No Latitude, longitude and 
+accuracy when permitted.
+note string No Bounded non-sensitive note.
+Example request
+{
+  "employeeExternalId": "BIO-1288",
+  "occurredAt": "2026-07-25T08:02:14+05:00",
+  "eventType": "CHECK_IN",
+  "source": "BIOMETRIC",
+  "sourceEventId": "LHR-HQ-01:9918273",
+  "deviceId": "LHR-HQ-01"
+}
+
+--- Page 32 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 32
+Success contract
+{
+  "id": "ate_01J30S",
+  "status": "ACCEPTED",
+  "receivedAt": "2026-07-25T03:02:15Z",
+  "occurredAtUtc": "2026-07-25T03:02:14Z",
+  "mappingStatus": "MAPPED",
+  "processingStatus": "QUEUED",
+  "replayed": false
+}
+Endpoint-specific errors
+Code
+ATTENDANCE_SOURCE_UNAUTHORISED
+EMPLOYEE_MAPPING_NOT_FOUND
+EVENT_TYPE_INVALID
+EVENT_TIME_OUTSIDE_ALLOWED_WINDOW
+SOURCE_EVENT_CONFLICT
+LOCATION_REQUIRED
+Processing and security notes
+ The raw event is immutable. Corrections create separate approved records.
+ A duplicate key and same body returns the original result.
+ Calculation is asynchronous and may create an exception instead of rejecting accepted source evidence.
+
+--- Page 33 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 33
+API-ATT-007 - Submit Attendance Correction
+Moves a correction draft into a versioned approval workflow and freezes the requested 
+before/after values.
+Property Value
+Method and path POST /api/v1/attendance/corrections/{id}/submit
+Permission attendance.correction.create
+Scope Self or authorised employee scope
+Idempotency Optional single transition
+Success 200 OK
+Emitted event AttendanceCorrectionSubmitted.v1
+Request contract
+Field Type Required Definition
+comment string No Submission note; draft already 
+contains corrected values.
+confirmPayrollImpact boolean Conditional Required when the UI identifies 
+payroll impact.
+Example request
+{
+  "comment": "The biometric device was offline at check-out.",
+  "confirmPayrollImpact": true
+}
+Success contract
+{
+  "id": "acr_01J30V",
+  "status": "SUBMITTED",
+  "workflowInstanceId": "wfi_01J30V1",
+  "submittedAt": "2026-07-25T14:20:00Z",
+  "approvalSummary": {
+    "currentStage": "LINE_MANAGER",
+    "dueAt": "2026-07-26T14:20:00Z"
+  }
+}
+Endpoint-specific errors
+Code
+CORRECTION_NOT_DRAFT
+CORRECTION_WINDOW_CLOSED
+
+--- Page 34 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 34
+Code
+ATTENDANCE_PERIOD_LOCKED
+PAYROLL_IMPACT_CONFIRMATION_REQUIRED
+WORKFLOW_NOT_CONFIGURED
+Processing and security notes
+ The selected workflow version is stored at submission.
+ The original raw events remain unchanged.
+ Approval completion triggers recalculation and AttendanceCorrected.v1.
+
+--- Page 35 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 35
+API-ATT-008 - Lock Attendance Period
+Creates a payroll-consumable attendance freeze after readiness validation and unresolved-
+exception review.
+Property Value
+Method and path POST /api/v1/attendance/period-locks
+Permission attendance.period.lock
+Scope Legal entity/payroll group
+Idempotency Required
+Success 201 Created
+Emitted event AttendancePeriodLocked.v1
+Request contract
+Field Type Required Definition
+legalEntityId uuid/string Yes Authorised legal entity.
+periodStart date Yes Inclusive business date.
+periodEnd date Yes Inclusive business date.
+payrollGroupId uuid/string No Optional narrower lock scope.
+reason string Yes Operational lock reason.
+overrideWarningCodes array No Authorised non-blocking 
+warnings only.
+Example request
+{
+  "legalEntityId": "le_pk",
+  "periodStart": "2026-07-01",
+  "periodEnd": "2026-07-31",
+  "payrollGroupId": "pg_monthly",
+  "reason": "July payroll cut-off",
+  "overrideWarningCodes": [
+    "LOW_PRIORITY_MISSING_NOTE"
+  ]
+}
+
+--- Page 36 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 36
+Success contract
+{
+  "id": "apl_01J311",
+  "status": "LOCKED",
+  "employeeCount": 326,
+  "attendanceDayCount": 9780,
+  "lockedAt": "2026-07-31T18:05:00Z",
+  "lockedBy": "usr_01J",
+  "version": 1
+}
+Endpoint-specific errors
+Code
+PERIOD_OVERLAPS_EXISTING_LOCK
+BLOCKING_ATTENDANCE_EXCEPTIONS
+PENDING_CORRECTIONS
+DATE_RANGE_INVALID
+MFA_REQUIRED
+Processing and security notes
+ Blocking exceptions cannot be overridden.
+ Reopening uses a separate permission and workflow.
+ Payroll readiness references the lock identifier and version.
+
+--- Page 37 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 37
+API-LVE-009 - Submit Leave Request
+Validates a leave draft, stores the selected policy/workflow versions and reserves 
+entitlement when tenant policy requires it.
+Property Value
+Method and path POST /api/v1/leave/requests/{id}/submit
+Permission leave.request.create
+Scope Self or authorised employee scope
+Idempotency Optional single transition
+Success 200 OK
+Emitted event LeaveRequestSubmitted.v1
+Request contract
+Field Type Required Definition
+acknowledgeWarnings array No Warning codes accepted by 
+employee.
+employeeComment string No Submission comment.
+Example request
+{
+  "acknowledgeWarnings": [
+    "TEAM_COVERAGE_LOW"
+  ],
+  "employeeComment": "Family travel planned in advance."
+}
+Success contract
+{
+  "id": "lvr_01J315",
+  "status": "SUBMITTED",
+  "requestedDays": "3.00",
+  "reservedDays": "3.00",
+  "balanceAfterReservation": "9.00",
+  "policyVersionId": "lpv_01J",
+  "workflowInstanceId": "wfi_01J315",
+  "submittedAt": "2026-07-25T14:25:00Z"
+}
+Endpoint-specific errors
+Code
+LEAVE_BALANCE_INSUFFICIENT
+
+--- Page 38 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 38
+Code
+LEAVE_OVERLAP
+NOTICE_PERIOD_VIOLATION
+REQUIRED_DOCUMENT_MISSING
+LEAVE_POLICY_INELIGIBLE
+BLACKOUT_DATE
+WARNING_ACKNOWLEDGEMENT_REQUIRED
+Processing and security notes
+ Private reason and medical document details are not included in manager calendar events.
+ Later policy changes do not alter the submitted calculation.
+ Unpaid approved leave produces a payroll-impact event.
+
+--- Page 39 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 39
+API-WFL-010 - Act on Approval Step
+Records an immutable approval decision and advances the bound workflow instance using 
+the published workflow version.
+Property Value
+Method and path POST /api/v1/approval-steps/{id}/actions
+Permission approval.act
+Scope Assigned step/support grant
+Idempotency Required
+Success 200 OK
+Emitted event ApprovalCompleted.v1 or ApprovalReturned.v1
+Request contract
+Field Type Required Definition
+action enum Yes APPROVE, REJECT, RETURN or 
+REQUEST_INFORMATION.
+comment string Conditional Mandatory for reject/return.
+expectedStepVersion integer Yes Optimistic concurrency.
+stepUpToken string Conditional Proof of recent MFA for 
+configured actions.
+Example request
+{
+  "action": "APPROVE",
+  "comment": "Team coverage is acceptable.",
+  "expectedStepVersion": 3
+}
+Success contract
+{
+  "stepId": "aps_01J318",
+  "status": "COMPLETED",
+  "action": "APPROVE",
+  "actedAt": "2026-07-25T14:28:00Z",
+  "workflowInstance": {
+    "id": "wfi_01J315",
+    "status": "COMPLETED",
+    "sourceStatus": "APPROVED"
+  },
+  "version": 4
+}
+
+--- Page 40 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 40
+Endpoint-specific errors
+Code
+APPROVAL_NOT_ASSIGNED
+APPROVAL_ALREADY_COMPLETED
+VERSION_CONFLICT
+SEGREGATION_OF_DUTIES
+COMMENT_REQUIRED
+DELEGATION_EXPIRED
+MFA_REQUIRED
+Processing and security notes
+ The client does not directly set the source request status.
+ Source domain state transition occurs through the workflow completion contract.
+ Repeated same idempotent action returns the original result.
+
+--- Page 41 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 41
+API-PAY-011 - Open Payroll Period
+Creates an authorised payroll calendar period and validates cut-offs, overlaps and legal-
+entity configuration.
+Property Value
+Method and path POST /api/v1/payroll/periods
+Permission payroll.period.open
+Scope Legal entity/payroll group
+Idempotency Required
+Success 201 Created
+Emitted event PayrollPeriodOpened.v1
+Request contract
+Field Type Required Definition
+legalEntityId uuid/string Yes Payroll legal entity.
+payrollGroupId uuid/string Yes Configured group.
+periodStart date Yes Inclusive.
+periodEnd date Yes Inclusive.
+attendanceCutoffAt date-time Yes Tenant-local cut-off represented 
+with offset.
+adjustmentCutoffAt date-time Yes Adjustment cut-off.
+paymentDate date Yes Planned payment date.
+currency string Yes Must match payroll group rule.
+Example request
+{
+  "legalEntityId": "le_pk",
+  "payrollGroupId": "pg_monthly",
+  "periodStart": "2026-07-01",
+  "periodEnd": "2026-07-31",
+  "attendanceCutoffAt": "2026-07-31T18:00:00+05:00",
+  "adjustmentCutoffAt": "2026-08-02T12:00:00+05:00",
+  "paymentDate": "2026-08-05",
+  "currency": "PKR"
+}
+
+--- Page 42 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 42
+Success contract
+{
+  "id": "pp_2026_07",
+  "status": "OPEN",
+  "periodStart": "2026-07-01",
+  "periodEnd": "2026-07-31",
+  "paymentDate": "2026-08-05",
+  "version": 1
+}
+Endpoint-specific errors
+Code
+PAYROLL_PERIOD_OVERLAP
+PAYROLL_GROUP_INACTIVE
+CURRENCY_MISMATCH
+CUTOFF_SEQUENCE_INVALID
+PERIOD_DATE_INVALID
+Processing and security notes
+ Opening a period does not calculate payroll.
+ The date model retains business dates separately from UTC timestamps.
+ Only one active overlapping period per payroll group is permitted.
+
+--- Page 43 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 43
+API-PAY-012 - Start Payroll Calculation
+Creates a new immutable calculation version, freezes source inputs and starts bounded 
+background calculation.
+Property Value
+Method and path POST /api/v1/payroll/runs/{id}/calculations
+Permission payroll.run.calculate
+Scope Payroll run legal entity/group
+Idempotency Required
+Success 202 Accepted
+Emitted event PayrollCalculationStarted.v1 then 
+PayrollCalculated.v1/PayrollCalculationFailed.v1
+Request contract
+Field Type Required Definition
+sourceAttendanceLockId uuid/string Yes Approved attendance lock.
+formulaPackVersion string Yes Reviewed rule-pack version.
+includeEmployeeIds array No Restricted recalculation subset 
+before approval.
+reason string No Required for recalculation after 
+review.
+expectedRunVersion integer Yes Optimistic concurrency.
+Example request
+{
+  "sourceAttendanceLockId": "apl_01J311",
+  "formulaPackVersion": "pk-payroll-2026.07.1",
+  "reason": "Initial July calculation",
+  "expectedRunVersion": 2
+}
+Success contract
+{
+  "operationId": "op_01J31D",
+  "status": "QUEUED",
+  "statusUrl": "/api/v1/operations/op_01J31D",
+  "payrollRunId": "pr_01J31C",
+  "calculationVersionId": "pv_01J31D",
+  "submittedAt": "2026-08-02T07:15:00Z"
+}
+
+--- Page 44 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 44
+Endpoint-specific errors
+Code
+ATTENDANCE_LOCK_REQUIRED
+PAYROLL_RUN_NOT_CALCULABLE
+FORMULA_PACK_NOT_APPROVED
+CONCURRENT_CALCULATION
+VERSION_CONFLICT
+IDEMPOTENCY_KEY_REUSED
+Processing and security notes
+ Every version snapshots eligible employees, salary, attendance, leave, adjustments and formula references.
+ Approval is prohibited until all chunks finish and blocking errors are resolved.
+ The operation resource exposes progress without returning partial salary data to unauthorised users.
+
+--- Page 45 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 45
+API-PAY-013 - Resolve Payroll Exception
+Records a traceable resolution, approved override or source-data action against a 
+calculation exception.
+Property Value
+Method and path POST /api/v1/payroll/exceptions/{id}/resolutions
+Permission payroll.exception.resolve
+Scope Payroll legal entity/group
+Idempotency Required
+Success 201 Created
+Emitted event PayrollExceptionResolved.v1
+Request contract
+Field Type Required Definition
+resolutionType enum Yes SOURCE_FIXED, 
+ACCEPT_WARNING, 
+AUTHORISED_OVERRIDE or 
+EXCLUDE_EMPLOYEE.
+comment string Yes Business explanation.
+overrideValue object Conditional Only for explicitly overridable 
+codes.
+attachmentDocumentId uuid/string No Supporting evidence.
+expectedExceptionVersion integer Yes Concurrency control.
+Example request
+{
+  "resolutionType": "ACCEPT_WARNING",
+  "comment": "Bank details will be updated before export; calculation is valid.",
+  "expectedExceptionVersion": 1
+}
+Success contract
+{
+  "resolutionId": "per_01J31H",
+  "exceptionId": "pex_01J31G",
+  "status": "RESOLVED",
+  "resolvedBy": "usr_payroll",
+  "resolvedAt": "2026-08-02T08:00:00Z",
+  "requiresRecalculation": false
+}
+
+--- Page 46 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 46
+Endpoint-specific errors
+Code
+EXCEPTION_NOT_RESOLVABLE
+OVERRIDE_NOT_ALLOWED
+COMMENT_REQUIRED
+VERSION_CONFLICT
+SEGREGATION_OF_DUTIES
+Processing and security notes
+ Blocking formula/data errors normally require source correction and recalculation.
+ Overrides are code-specific and permissioned.
+ The original exception remains immutable with a linked resolution.
+
+--- Page 47 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 47
+API-PAY-014 - Approve and Lock Payroll
+Performs final segregation-of-duties, MFA, exception and version checks before atomically 
+locking the approved payroll version.
+Property Value
+Method and path POST /api/v1/payroll/runs/{id}/approve
+Permission payroll.run.approve
+Scope Payroll legal entity/group
+Idempotency Required
+Success 200 OK
+Emitted event PayrollApproved.v1
+Request contract
+Field Type Required Definition
+calculationVersionId uuid/string Yes Version being approved.
+expectedRunVersion integer Yes Concurrency control.
+approvalStatement string Yes Configured confirmation text or 
+code.
+stepUpToken string Yes Recent MFA proof.
+comment string No Approver note.
+Example request
+{
+  "calculationVersionId": "pv_01J31D",
+  "expectedRunVersion": 6,
+  "approvalStatement": "I confirm the reviewed July 2026 payroll.",
+  "stepUpToken": "mfa_stepup_...",
+  "comment": "Variance and exceptions reviewed."
+}
+Success contract
+{
+  "payrollRunId": "pr_01J31C",
+  "status": "APPROVED",
+  "approvedVersionId": "pv_01J31D",
+  "employeeCount": 326,
+  "currency": "PKR",
+  "grossPay": "64872500.00",
+  "deductions": "11892250.00",
+  "netPay": "52980250.00",
+  "approvedAt": "2026-08-03T10:15:00Z",
+  "version": 7
+}
+
+--- Page 48 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 48
+Endpoint-specific errors
+Code
+PAYROLL_REVIEW_INCOMPLETE
+BLOCKING_EXCEPTIONS_REMAIN
+CALCULATION_VERSION_STALE
+SEGREGATION_OF_DUTIES
+MFA_REQUIRED
+VERSION_CONFLICT
+PAYROLL_ALREADY_APPROVED
+Processing and security notes
+ Money is transmitted as decimal strings with explicit currency.
+ The approved version becomes immutable.
+ Payslips and bank/finance exports can reference only the approved version.
+
+--- Page 49 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 49
+API-PAY-015 - Publish Payslips
+Generates protected employee payslip documents from the approved version and publishes  
+them through self-service.
+Property Value
+Method and path POST /api/v1/payroll/runs/{id}/publish-payslips
+Permission payroll.payslip.publish
+Scope Approved payroll run
+Idempotency Required
+Success 202 Accepted
+Emitted event PayslipsPublished.v1
+Request contract
+Field Type Required Definition
+templateVersionId uuid/string Yes Approved payslip template.
+publishAt date-time No Immediate when omitted.
+notifyEmployees boolean No Defaults true.
+employeeIds array No Restricted republish subset after 
+failure.
+expectedRunVersion integer Yes Concurrency control.
+Example request
+{
+  "templateVersionId": "pst_2026_01",
+  "publishAt": "2026-08-04T09:00:00+05:00",
+  "notifyEmployees": true,
+  "expectedRunVersion": 7
+}
+Success contract
+{
+  "operationId": "op_01J31P",
+  "status": "QUEUED",
+  "statusUrl": "/api/v1/operations/op_01J31P",
+  "payrollRunId": "pr_01J31C",
+  "employeeCount": 326
+}
+Endpoint-specific errors
+Code
+PAYROLL_NOT_APPROVED
+
+--- Page 50 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 50
+Code
+PAYSLIP_TEMPLATE_INACTIVE
+PUBLISH_TIME_INVALID
+CONCURRENT_PAYSLIP_JOB
+VERSION_CONFLICT
+Processing and security notes
+ Generated files are encrypted object-storage versions linked to the approved payroll version.
+ Notifications contain no salary amount.
+ Partial document-generation failures are visible and retryable by employee subset.
+
+--- Page 51 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 51
+API-RPT-016 - Run Report and Generate Export
+Executes an authorised report against a consistent tenant-scoped snapshot and optionally 
+creates an expiring file.
+Property Value
+Method and path POST /api/v1/reports/{reportKey}/runs
+Permission Report-specific report.run
+Scope Declared report scope
+Idempotency Required for export jobs
+Success 200 OK or 202 Accepted
+Emitted event ReportRunStarted.v1 then 
+ReportRunCompleted.v1/ExportReady.v1
+Request contract
+Field Type Required Definition
+filters object Yes Allow-listed fields only.
+columns array No Authorised selectable columns.
+sort array No Stable allow-listed sort.
+output enum Yes INLINE, CSV, XLSX or PDF.
+locale string No Authorised presentation locale.
+timeZone string No Presentation timezone.
+
+--- Page 52 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 52
+Example request
+{
+  "filters": {
+    "legalEntityId": "le_pk",
+    "period": "2026-07",
+    "departmentIds": [
+      "dep_finance"
+    ]
+  },
+  "columns": [
+    "employeeNumber",
+    "employeeName",
+    "grossPay",
+    "deductions",
+    "netPay"
+  ],
+  "sort": [
+    {
+      "field": "employeeNumber",
+      "direction": "ASC"
+    }
+  ],
+  "output": "XLSX",
+  "locale": "en-PK",
+  "timeZone": "Asia/Karachi"
+}
+Success contract
+{
+  "operationId": "op_01J31T",
+  "status": "QUEUED",
+  "reportRunId": "rr_01J31T",
+  "statusUrl": "/api/v1/operations/op_01J31T",
+  "estimatedClassification": "RESTRICTED"
+}
+Endpoint-specific errors
+Code
+REPORT_NOT_AUTHORISED
+FILTER_NOT_ALLOWED
+COLUMN_NOT_AUTHORISED
+DATE_RANGE_TOO_LARGE
+EXPORT_LIMIT_EXCEEDED
+SENSITIVE_EXPORT_APPROVAL_REQUIRED
+
+--- Page 53 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 53
+Processing and security notes
+ A report definition declares permission, maximum range, field masking and output types.
+ Sensitive exports expire and every download is audited.
+ Large reports do not execute in the interactive request transaction.
+
+--- Page 54 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 54
+API-INT-017 - Create Integration Connection
+Creates a connector configuration referencing secrets in the platform secret manager 
+without returning stored credentials.
+Property Value
+Method and path POST /api/v1/integrations
+Permission integration.manage
+Scope Tenant
+Idempotency Required
+Success 201 Created
+Emitted event IntegrationCreated.v1
+Request contract
+Field Type Required Definition
+type enum Yes BIOMETRIC, IDENTITY, EMAIL, 
+FINANCE, WEBHOOK_SOURCE 
+or other approved adapter.
+name string Yes Tenant display name.
+adapterKey string Yes Versioned adapter identifier.
+configuration object Yes Non-secret adapter 
+configuration.
+secretInput object No Write-only credential material.
+scope object Yes Legal entity/location/source 
+scope.
+schedule object No Polling schedule where 
+supported.
+
+--- Page 55 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 55
+Example request
+{
+  "type": "BIOMETRIC",
+  "name": "Lahore HQ Devices",
+  "adapterKey": "zkteco-file-v1",
+  "configuration": {
+    "timeZone": "Asia/Karachi",
+    "duplicateWindowSeconds": 60
+  },
+  "secretInput": {
+    "sftpPassword": "write-only-value"
+  },
+  "scope": {
+    "locationIds": [
+      "loc_lhr_hq"
+    ]
+  },
+  "schedule": {
+    "cron": "*/5 * * * *"
+  }
+}
+Success contract
+{
+  "id": "int_01J31X",
+  "type": "BIOMETRIC",
+  "name": "Lahore HQ Devices",
+  "adapterKey": "zkteco-file-v1",
+  "status": "DRAFT",
+  "secretState": "CONFIGURED",
+  "createdAt": "2026-07-25T15:00:00Z",
+  "version": 1
+}
+Endpoint-specific errors
+Code
+ADAPTER_NOT_AVAILABLE
+CONFIGURATION_INVALID
+SECRET_REFERENCE_FAILED
+INTEGRATION_SCOPE_FORBIDDEN
+SCHEDULE_INVALID
+Processing and security notes
+ Secret input is transmitted over TLS, written to secret manager and discarded from API logs.
+ Connection testing and activation are explicit later steps.
+
+--- Page 56 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 56
+ External identifiers cannot silently create employees.
+
+--- Page 57 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 57
+API-WHK-018 - Register Webhook Endpoint
+Registers a tenant-owned HTTPS destination and creates a signing secret for selected 
+public event types.
+Property Value
+Method and path POST /api/v1/webhook-endpoints
+Permission webhook.manage
+Scope Tenant
+Idempotency Required
+Success 201 Created
+Emitted event None; verification delivery follows
+Request contract
+Field Type Required Definition
+name string Yes Endpoint display name.
+url uri Yes HTTPS only; private/reserved 
+addresses blocked unless 
+approved connector route.
+eventTypes array Yes Supported public event names.
+apiVersion string Yes Webhook contract version.
+customHeaders object No Allow-listed non-secret headers.
+enabled boolean No Defaults false until verification 
+succeeds.
+Example request
+{
+  "name": "Finance Middleware",
+  "url": "https://middleware.example.com/wcos/events",
+  "eventTypes": [
+    "PayrollApproved.v1",
+    "PayrollExportReady.v1"
+  ],
+  "apiVersion": "2026-07",
+  "customHeaders": {
+    "X-Environment": "production"
+  }
+}
+
+--- Page 58 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 58
+Success contract
+{
+  "id": "whe_01J321",
+  "status": "PENDING_VERIFICATION",
+  "eventTypes": [
+    "PayrollApproved.v1",
+    "PayrollExportReady.v1"
+  ],
+  "secret": "whsec_...shown-once...",
+  "verificationDeliveryId": "whd_01J321",
+  "createdAt": "2026-07-25T15:05:00Z"
+}
+Endpoint-specific errors
+Code
+WEBHOOK_URL_INVALID
+WEBHOOK_EVENT_NOT_SUPPORTED
+SSRF_TARGET_BLOCKED
+ENDPOINT_LIMIT_EXCEEDED
+API_VERSION_UNSUPPORTED
+Processing and security notes
+ The signing secret is shown once and thereafter only rotatable.
+ Endpoint verification must return a 2xx response with the challenge value.
+ Payload filters cannot broaden the caller’s authorised tenant scope.
+
+--- Page 59 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 59
+API-DWN-019 - Create Sensitive Download Link
+Authorises a one-time or short-lived signed link after rechecking record permission, 
+classification, expiry and optional MFA.
+Property Value
+Method and path POST /api/v1/exports/{id}/download-links
+Permission export.download
+Scope Export/report scope
+Idempotency Not required
+Success 201 Created
+Emitted event None until download; ExportDownloaded.v1 on use
+Request contract
+Field Type Required Definition
+purpose string Yes Business purpose for restricted 
+exports.
+singleUse boolean No Defaults true for restricted files.
+stepUpToken string Conditional Required by classification 
+policy.
+Example request
+{
+  "purpose": "July payroll bank-file transmission",
+  "singleUse": true,
+  "stepUpToken": "mfa_stepup_..."
+}
+Success contract
+{
+  "downloadUrl": "https://signed.example/...",
+  "expiresAt": "2026-08-03T10:25:00Z",
+  "singleUse": true,
+  "fileName": "july-2026-bank-export.csv",
+  "classification": "RESTRICTED"
+}
+Endpoint-specific errors
+Code
+EXPORT_NOT_READY
+EXPORT_EXPIRED
+EXPORT_DOWNLOAD_FORBIDDEN
+
+--- Page 60 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 60
+Code
+MFA_REQUIRED
+DOWNLOAD_LIMIT_REACHED
+Processing and security notes
+ The object key is never returned.
+ Link creation and successful object access are separately audited.
+ Response must use Cache-Control: no-store.
+
+--- Page 61 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 61
+15. Event Architecture and Delivery Semantics
+Figure 5 - Reliable event publication and idempotent consumption.
+Concern Contract
+Publication Business state and outbox row commit in one PostgreSQL 
+transaction.
+Delivery At least once. Exactly-once delivery is not claimed.
+Consumer deduplication Consumer inbox keyed by eventId and consumer name; side 
+effect and processed marker commit together.
+Event identity Globally unique eventId. A retry reuses the same eventId.
+Correlation correlationId follows the user/business flow. causationId 
+identifies the command or event that directly caused this event.
+Partitioning partitionKey preserves relevant aggregate ordering where the 
+transport supports it.
+Ordering Only guaranteed within the documented aggregate/partition 
+and transport limits; consumers must not assume global 
+ordering.
+Immutability Published event payload is immutable. Corrections publish a 
+later event.
+Retention Internal event/outbox retention and public webhook retention 
+are configured separately.
+Privacy Events contain minimum identifiers and business values 
+required by consumers. Documents, tokens, bank details and 
+unnecessary private reasons are prohibited.
+
+--- Page 62 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 62
+16. Canonical Domain Event Envelope
+Field Type Required Definition
+specVersion string Yes Envelope specification version.
+eventId string Yes Globally unique immutable 
+event identifier.
+eventType string Yes Name and major version, e.g. 
+PayrollApproved.v1.
+source string Yes Owning module/service 
+identifier.
+occurredAt date-time Yes UTC timestamp of the 
+committed business event.
+tenantId string Yes for tenant events Internal tenant identifier; 
+removed or mapped in selected 
+external contracts only if policy 
+requires.
+correlationId string Yes End-to-end business/request 
+correlation.
+causationId string No Direct command/event parent.
+actor ActorReference Yes USER, SERVICE, API_CLIENT or 
+SYSTEM.
+subject object Yes Primary aggregate type and id.
+partitionKey string Yes Ordering/fairness key.
+dataClassification enum Yes PUBLIC, INTERNAL, 
+CONFIDENTIAL or RESTRICTED.
+data object Yes Event-type-specific immutable 
+payload.
+
+--- Page 63 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 63
+Envelope example
+{
+  "specVersion": "1.0",
+  "eventId": "evt_01J32A",
+  "eventType": "EmployeeActivated.v1",
+  "source": "wcos.people",
+  "occurredAt": "2026-08-03T03:00:00Z",
+  "tenantId": "ten_01J2Z8Y5VG7A",
+  "correlationId": "cor_01J32A",
+  "causationId": "cmd_01J329",
+  "actor": {
+    "type": "USER",
+    "id": "usr_hr_01"
+  },
+  "subject": {
+    "type": "EMPLOYEE",
+    "id": "emp_01J30G9A"
+  },
+  "partitionKey": "emp_01J30G9A",
+  "dataClassification": "CONFIDENTIAL",
+  "data": {
+    "employeeId": "emp_01J30G9A",
+    "employeeNumber": "PK-LHR-00482",
+    "legalEntityId": "le_pk",
+    "departmentId": "dep_ops",
+    "managerEmployeeId": "emp_mgr",
+    "joiningDate": "2026-08-03",
+    "status": "ACTIVE"
+  }
+}
+17. Domain Event Catalogue
+101 versioned event types.
+Tenant and Identity
+Event type Typical trigger Primary consumers
+TenantCreated.v1 TenantCreated Reporting, notification, integration or owning 
+downstream module as authorised
+TenantActivated.v1 TenantActivated Reporting, notification, integration or owning 
+downstream module as authorised
+TenantSuspended.v1 TenantSuspended Reporting, notification, integration or owning 
+downstream module as authorised
+TenantRestored.v1 TenantRestored Reporting, notification, integration or owning 
+downstream module as authorised
+TenantPlanChanged.v1 TenantPlanChanged Reporting, notification, integration or owning 
+downstream module as authorised
+TenantEntitlementsChanged.v1 TenantEntitlementsChanged Reporting, notification, integration or owning 
+downstream module as authorised
+SupportGrantCreated.v1 SupportGrantCreated Reporting, notification, integration or owning 
+
+--- Page 64 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 64
+Event type Typical trigger Primary consumers
+downstream module as authorised
+SupportGrantRevoked.v1 SupportGrantRevoked Reporting, notification, integration or owning 
+downstream module as authorised
+UserInvited.v1 UserInvited Reporting, notification, integration or owning 
+downstream module as authorised
+UserActivated.v1 UserActivated Reporting, notification, integration or owning 
+downstream module as authorised
+UserDeactivated.v1 UserDeactivated Reporting, notification, integration or owning 
+downstream module as authorised
+RoleAssignmentChanged.v1 RoleAssignmentChanged Reporting, notification, integration or owning 
+downstream module as authorised
+SessionRevoked.v1 SessionRevoked Reporting, notification, integration or owning 
+downstream module as authorised
+SsoConfigurationChanged.v1 SsoConfigurationChanged Reporting, notification, integration or owning 
+downstream module as authorised
+Organisation and People
+Event type Typical trigger Primary consumers
+LegalEntityCreated.v1 LegalEntityCreated Reporting, notification, integration or owning 
+downstream module as authorised
+DepartmentCreated.v1 DepartmentCreated Reporting, notification, integration or owning 
+downstream module as authorised
+DepartmentMoved.v1 DepartmentMoved Reporting, notification, integration or owning 
+downstream module as authorised
+LocationCreated.v1 LocationCreated Reporting, notification, integration or owning 
+downstream module as authorised
+EmployeeCreated.v1 EmployeeCreated Reporting, notification, integration or owning 
+downstream module as authorised
+EmployeeActivated.v1 EmployeeActivated Reporting, notification, integration or owning 
+downstream module as authorised
+EmployeeProfileChanged.v1 EmployeeProfileChanged Reporting, notification, integration or owning 
+downstream module as authorised
+EmployeeTransferred.v1 EmployeeTransferred Reporting, notification, integration or owning 
+downstream module as authorised
+EmployeeStatusChangeScheduled.v1 EmployeeStatusChangeScheduled Reporting, notification, integration or owning 
+downstream module as authorised
+EmployeeExited.v1 EmployeeExited Reporting, notification, integration or owning 
+downstream module as authorised
+EmployeeBankDetailsChanged.v1 EmployeeBankDetailsChanged Reporting, notification, integration or owning 
+downstream module as authorised
+EmployeeImportCompleted.v1 EmployeeImportCompleted Reporting, notification, integration or owning 
+downstream module as authorised
+Onboarding and Documents
+Event type Typical trigger Primary consumers
+OnboardingStarted.v1 OnboardingStarted Reporting, notification, integration or owning 
+downstream module as authorised
+OnboardingTaskAssigned.v1 OnboardingTaskAssigned Reporting, notification, integration or owning 
+downstream module as authorised
+OnboardingTaskCompleted.v1 OnboardingTaskCompleted Reporting, notification, integration or owning 
+downstream module as authorised
+OnboardingTaskOverdue.v1 OnboardingTaskOverdue Reporting, notification, integration or owning 
+
+--- Page 65 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 65
+Event type Typical trigger Primary consumers
+downstream module as authorised
+OnboardingCompleted.v1 OnboardingCompleted Reporting, notification, integration or owning 
+downstream module as authorised
+DocumentUploaded.v1 DocumentUploaded Reporting, notification, integration or owning 
+downstream module as authorised
+DocumentScanCompleted.v1 DocumentScanCompleted Reporting, notification, integration or owning 
+downstream module as authorised
+DocumentApproved.v1 DocumentApproved Reporting, notification, integration or owning 
+downstream module as authorised
+DocumentRejected.v1 DocumentRejected Reporting, notification, integration or owning 
+downstream module as authorised
+DocumentExpired.v1 DocumentExpired Reporting, notification, integration or owning 
+downstream module as authorised
+PolicyAcknowledged.v1 PolicyAcknowledged Reporting, notification, integration or owning 
+downstream module as authorised
+Attendance and Shifts
+Event type Typical trigger Primary consumers
+ShiftCreated.v1 ShiftCreated Reporting, notification, integration or owning 
+downstream module as authorised
+ShiftVersionPublished.v1 ShiftVersionPublished Reporting, notification, integration or owning 
+downstream module as authorised
+RosterAssigned.v1 RosterAssigned Reporting, notification, integration or owning 
+downstream module as authorised
+RosterPublished.v1 RosterPublished Reporting, notification, integration or owning 
+downstream module as authorised
+AttendanceEventAccepted.v1 AttendanceEventAccepted Reporting, notification, integration or owning 
+downstream module as authorised
+AttendanceEventRejected.v1 AttendanceEventRejected Reporting, notification, integration or owning 
+downstream module as authorised
+AttendanceCalculated.v1 AttendanceCalculated Reporting, notification, integration or owning 
+downstream module as authorised
+AttendanceExceptionCreated.v1 AttendanceExceptionCreated Reporting, notification, integration or owning 
+downstream module as authorised
+AttendanceCorrectionSubmitted.v1 AttendanceCorrectionSubmitted Reporting, notification, integration or owning 
+downstream module as authorised
+AttendanceCorrected.v1 AttendanceCorrected Reporting, notification, integration or owning 
+downstream module as authorised
+AttendanceCorrectionRejected.v1 AttendanceCorrectionRejected Reporting, notification, integration or owning 
+downstream module as authorised
+AttendancePeriodLocked.v1 AttendancePeriodLocked Reporting, notification, integration or owning 
+downstream module as authorised
+AttendancePeriodReopened.v1 AttendancePeriodReopened Reporting, notification, integration or owning 
+downstream module as authorised
+Leave and Workflow
+Event type Typical trigger Primary consumers
+LeavePolicyPublished.v1 LeavePolicyPublished Reporting, notification, integration or owning 
+downstream module as authorised
+LeaveEntitlementGranted.v1 LeaveEntitlementGranted Reporting, notification, integration or owning 
+downstream module as authorised
+LeaveRequestSubmitted.v1 LeaveRequestSubmitted Reporting, notification, integration or owning 
+
+--- Page 66 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 66
+Event type Typical trigger Primary consumers
+downstream module as authorised
+LeaveRequestApproved.v1 LeaveRequestApproved Reporting, notification, integration or owning 
+downstream module as authorised
+LeaveRequestRejected.v1 LeaveRequestRejected Reporting, notification, integration or owning 
+downstream module as authorised
+LeaveRequestCancelled.v1 LeaveRequestCancelled Reporting, notification, integration or owning 
+downstream module as authorised
+LeaveBalanceAdjusted.v1 LeaveBalanceAdjusted Reporting, notification, integration or owning 
+downstream module as authorised
+LeaveExpired.v1 LeaveExpired Reporting, notification, integration or owning 
+downstream module as authorised
+WorkflowInstanceStarted.v1 WorkflowInstanceStarted Reporting, notification, integration or owning 
+downstream module as authorised
+ApprovalAssigned.v1 ApprovalAssigned Reporting, notification, integration or owning 
+downstream module as authorised
+ApprovalCompleted.v1 ApprovalCompleted Reporting, notification, integration or owning 
+downstream module as authorised
+ApprovalReturned.v1 ApprovalReturned Reporting, notification, integration or owning 
+downstream module as authorised
+ApprovalEscalated.v1 ApprovalEscalated Reporting, notification, integration or owning 
+downstream module as authorised
+DelegationCreated.v1 DelegationCreated Reporting, notification, integration or owning 
+downstream module as authorised
+DelegationExpired.v1 DelegationExpired Reporting, notification, integration or owning 
+downstream module as authorised
+Payroll
+Event type Typical trigger Primary consumers
+SalaryComponentVersionPublished.v1 SalaryComponentVersionPublished Reporting, notification, integration or owning 
+downstream module as authorised
+SalaryStructureAssigned.v1 SalaryStructureAssigned Reporting, notification, integration or owning 
+downstream module as authorised
+PayrollPeriodOpened.v1 PayrollPeriodOpened Reporting, notification, integration or owning 
+downstream module as authorised
+PayrollRunCreated.v1 PayrollRunCreated Reporting, notification, integration or owning 
+downstream module as authorised
+PayrollCalculationStarted.v1 PayrollCalculationStarted Reporting, notification, integration or owning 
+downstream module as authorised
+PayrollCalculated.v1 PayrollCalculated Reporting, notification, integration or owning 
+downstream module as authorised
+PayrollCalculationFailed.v1 PayrollCalculationFailed Reporting, notification, integration or owning 
+downstream module as authorised
+PayrollExceptionCreated.v1 PayrollExceptionCreated Reporting, notification, integration or owning 
+downstream module as authorised
+PayrollExceptionResolved.v1 PayrollExceptionResolved Reporting, notification, integration or owning 
+downstream module as authorised
+PayrollReviewCompleted.v1 PayrollReviewCompleted Reporting, notification, integration or owning 
+downstream module as authorised
+PayrollApproved.v1 PayrollApproved Reporting, notification, integration or owning 
+downstream module as authorised
+PayrollReopenRequested.v1 PayrollReopenRequested Reporting, notification, integration or owning 
+downstream module as authorised
+PayrollReopened.v1 PayrollReopened Reporting, notification, integration or owning 
+downstream module as authorised
+PayslipGenerated.v1 PayslipGenerated Reporting, notification, integration or owning 
+
+--- Page 67 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 67
+Event type Typical trigger Primary consumers
+downstream module as authorised
+PayslipsPublished.v1 PayslipsPublished Reporting, notification, integration or owning 
+downstream module as authorised
+PayrollExportReady.v1 PayrollExportReady Reporting, notification, integration or owning 
+downstream module as authorised
+PayrollExportDownloaded.v1 PayrollExportDownloaded Reporting, notification, integration or owning 
+downstream module as authorised
+Notifications, Reports and Integrations
+Event type Typical trigger Primary consumers
+NotificationRequested.v1 NotificationRequested Reporting, notification, integration or owning 
+downstream module as authorised
+NotificationDelivered.v1 NotificationDelivered Reporting, notification, integration or owning 
+downstream module as authorised
+NotificationFailed.v1 NotificationFailed Reporting, notification, integration or owning 
+downstream module as authorised
+ReportRunStarted.v1 ReportRunStarted Reporting, notification, integration or owning 
+downstream module as authorised
+ReportRunCompleted.v1 ReportRunCompleted Reporting, notification, integration or owning 
+downstream module as authorised
+ExportReady.v1 ExportReady Reporting, notification, integration or owning 
+downstream module as authorised
+ExportDownloaded.v1 ExportDownloaded Reporting, notification, integration or owning 
+downstream module as authorised
+ExportExpired.v1 ExportExpired Reporting, notification, integration or owning 
+downstream module as authorised
+IntegrationCreated.v1 IntegrationCreated Reporting, notification, integration or owning 
+downstream module as authorised
+IntegrationActivated.v1 IntegrationActivated Reporting, notification, integration or owning 
+downstream module as authorised
+IntegrationSyncStarted.v1 IntegrationSyncStarted Reporting, notification, integration or owning 
+downstream module as authorised
+IntegrationSyncCompleted.v1 IntegrationSyncCompleted Reporting, notification, integration or owning 
+downstream module as authorised
+IntegrationSyncFailed.v1 IntegrationSyncFailed Reporting, notification, integration or owning 
+downstream module as authorised
+ExternalEventAccepted.v1 ExternalEventAccepted Reporting, notification, integration or owning 
+downstream module as authorised
+ReconciliationIssueCreated.v1 ReconciliationIssueCreated Reporting, notification, integration or owning 
+downstream module as authorised
+WebhookDeliverySucceeded.v1 WebhookDeliverySucceeded Reporting, notification, integration or owning 
+downstream module as authorised
+WebhookDeliveryFailed.v1 WebhookDeliveryFailed Reporting, notification, integration or owning 
+downstream module as authorised
+AuditRecorded.v1 AuditRecorded Reporting, notification, integration or owning 
+downstream module as authorised
+SensitiveDataExported.v1 SensitiveDataExported Reporting, notification, integration or owning 
+downstream module as authorised
+
+--- Page 68 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 68
+18. Detailed Event Payload Examples
+EmployeeActivated.v1
+{
+  "specVersion": "1.0",
+  "eventId": "evt_01J32A",
+  "eventType": "EmployeeActivated.v1",
+  "source": "wcos.people",
+  "occurredAt": "2026-08-03T03:00:00Z",
+  "tenantId": "ten_01J2Z8Y5VG7A",
+  "correlationId": "cor_01J32A",
+  "causationId": "cmd_01J329",
+  "actor": {
+    "type": "USER",
+    "id": "usr_hr_01"
+  },
+  "subject": {
+    "type": "EMPLOYEE",
+    "id": "emp_01J30G9A"
+  },
+  "partitionKey": "emp_01J30G9A",
+  "dataClassification": "CONFIDENTIAL",
+  "data": {
+    "employeeId": "emp_01J30G9A",
+    "employeeNumber": "PK-LHR-00482",
+    "legalEntityId": "le_pk",
+    "departmentId": "dep_ops",
+    "managerEmployeeId": "emp_mgr",
+    "joiningDate": "2026-08-03",
+    "status": "ACTIVE"
+  }
+}
+
+--- Page 69 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 69
+AttendanceCalculated.v1
+{
+  "specVersion": "1.0",
+  "eventId": "evt_01J32B",
+  "eventType": "AttendanceCalculated.v1",
+  "source": "wcos.attendance",
+  "occurredAt": "2026-07-25T13:05:00Z",
+  "tenantId": "ten_01J2Z8Y5VG7A",
+  "correlationId": "cor_01J32B",
+  "causationId": "ate_01J30S",
+  "actor": {
+    "type": "SYSTEM",
+    "id": "attendance-worker"
+  },
+  "subject": {
+    "type": "ATTENDANCE_DAY",
+    "id": "atd_01J32B"
+  },
+  "partitionKey": "emp_01J30G9A",
+  "dataClassification": "CONFIDENTIAL",
+  "data": {
+    "attendanceDayId": "atd_01J32B",
+    "employeeId": "emp_01J30G9A",
+    "businessDate": "2026-07-25",
+    "shiftVersionId": "shv_day_4",
+    "policyVersionId": "apv_2026_2",
+    "status": "PRESENT",
+    "checkInAt": "2026-07-25T03:02:14Z",
+    "checkOutAt": null,
+    "workedMinutes": 0,
+    "lateMinutes": 2,
+    "exceptionCodes": [
+      "MISSING_CHECK_OUT"
+    ],
+    "calculationVersion": 3
+  }
+}
+
+--- Page 70 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 70
+LeaveRequestApproved.v1
+{
+  "specVersion": "1.0",
+  "eventId": "evt_01J32C",
+  "eventType": "LeaveRequestApproved.v1",
+  "source": "wcos.leave",
+  "occurredAt": "2026-07-26T09:15:00Z",
+  "tenantId": "ten_01J2Z8Y5VG7A",
+  "correlationId": "cor_01J32C",
+  "causationId": "aps_01J318",
+  "actor": {
+    "type": "USER",
+    "id": "usr_mgr_01"
+  },
+  "subject": {
+    "type": "LEAVE_REQUEST",
+    "id": "lvr_01J315"
+  },
+  "partitionKey": "emp_01J30G9A",
+  "dataClassification": "CONFIDENTIAL",
+  "data": {
+    "leaveRequestId": "lvr_01J315",
+    "employeeId": "emp_01J30G9A",
+    "leaveTypeId": "lt_annual",
+    "startDate": "2026-08-10",
+    "endDate": "2026-08-12",
+    "approvedDays": "3.00",
+    "paidStatus": "PAID",
+    "policyVersionId": "lpv_01J",
+    "ledgerEntryIds": [
+      "lle_1",
+      "lle_2"
+    ],
+    "approvedAt": "2026-07-26T09:15:00Z"
+  }
+}
+
+--- Page 71 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 71
+PayrollApproved.v1
+{
+  "specVersion": "1.0",
+  "eventId": "evt_01J32D",
+  "eventType": "PayrollApproved.v1",
+  "source": "wcos.payroll",
+  "occurredAt": "2026-08-03T10:15:00Z",
+  "tenantId": "ten_01J2Z8Y5VG7A",
+  "correlationId": "cor_01J32D",
+  "causationId": "cmd_approve_01",
+  "actor": {
+    "type": "USER",
+    "id": "usr_payroll_approver"
+  },
+  "subject": {
+    "type": "PAYROLL_RUN",
+    "id": "pr_01J31C"
+  },
+  "partitionKey": "pr_01J31C",
+  "dataClassification": "RESTRICTED",
+  "data": {
+    "payrollRunId": "pr_01J31C",
+    "payrollPeriodId": "pp_2026_07",
+    "approvedVersionId": "pv_01J31D",
+    "legalEntityId": "le_pk",
+    "payrollGroupId": "pg_monthly",
+    "employeeCount": 326,
+    "currency": "PKR",
+    "grossPay": "64872500.00",
+    "deductions": "11892250.00",
+    "netPay": "52980250.00",
+    "approvedAt": "2026-08-03T10:15:00Z",
+    "formulaPackVersion": "pk-payroll-2026.07.1"
+  }
+}
+Restricted event
+Internal consumers may receive aggregate payroll values under an explicit restricted-data contract. Public 
+webhooks should omit salary totals unless the tenant endpoint has the required product entitlement, permission 
+and data-processing agreement.
+
+--- Page 72 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 72
+PayrollExportReady.v1
+{
+  "specVersion": "1.0",
+  "eventId": "evt_01J32E",
+  "eventType": "PayrollExportReady.v1",
+  "source": "wcos.payroll",
+  "occurredAt": "2026-08-03T10:22:00Z",
+  "tenantId": "ten_01J2Z8Y5VG7A",
+  "correlationId": "cor_01J32E",
+  "causationId": "op_01J31T",
+  "actor": {
+    "type": "SYSTEM",
+    "id": "export-worker"
+  },
+  "subject": {
+    "type": "PAYROLL_EXPORT",
+    "id": "pexp_01J32E"
+  },
+  "partitionKey": "pr_01J31C",
+  "dataClassification": "RESTRICTED",
+  "data": {
+    "payrollExportId": "pexp_01J32E",
+    "payrollRunId": "pr_01J31C",
+    "exportType": "BANK_FILE",
+    "formatVersion": "bank-example-v1",
+    "fileObjectId": "fo_01J32E",
+    "employeeCount": 326,
+    "currency": "PKR",
+    "expiresAt": "2026-08-10T10:22:00Z"
+  }
+}
+
+--- Page 73 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 73
+19. Attendance Contract Sequence
+Figure 7 - Attendance API acceptance, raw-event persistence and asynchronous calculation.
+ The ingestion response confirms durable acceptance, not a final attendance-day result.
+ Raw events are immutable and retain source identifiers, source timezone, received time and mapping state.
+ AttendanceCalculated.v1 may be emitted multiple times for later calculation versions; consumers use 
+attendanceDayId and calculationVersion.
+ Payroll consumes only attendance tied to an approved period lock.
+
+--- Page 74 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 74
+20. Payroll Contract Sequence
+Figure 8 - Payroll calculation, review, approval and event publication contract.
+ Calculation commands create new versions and never overwrite an approved result.
+ Every employee result references the frozen source snapshot and formula-pack version.
+ Review and approval are separate state transitions and may require different actors.
+ PayrollApproved.v1 is published only after the approved version and audit evidence commit.
+ Payslip and export jobs consume only the approvedVersionId.
+
+--- Page 75 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 75
+21. Outbound Webhook Contract
+Figure 6 - Webhook subscription, signing, retry and dead-letter behaviour.
+Header Definition
+X-WCOS-Event-ID Immutable source event identifier.
+X-WCOS-Event-Type Public event type and major version.
+X-WCOS-Delivery-ID Unique delivery attempt group identifier.
+X-WCOS-Timestamp Unix seconds used in signature and replay validation.
+X-WCOS-Signature v1=<hex HMAC-SHA256> over timestamp + "." + raw request 
+body.
+User-Agent WorkforceCloudOS-Webhooks/<contract-version>
+Content-Type application/json
+Webhook signature verification
+signed_payload = X-WCOS-Timestamp + "." + raw_request_body
+expected = HMAC_SHA256(endpoint_secret, signed_payload)
+accept only when constant_time_compare(expected, received_signature)
+and abs(now - timestamp) <= 300 seconds
+and eventId/deliveryId has not already been processed
+Delivery response and retries
+Response Treatment
+200-299 Delivered successfully.
+400, 401, 403, 404, 410, 422 Normally permanent configuration/payload rejection; no 
+
+--- Page 76 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 76
+Response Treatment
+automatic endless retry.
+408, 425, 429 Retryable; respect valid Retry-After within platform bounds.
+500-599 Retryable with exponential backoff and jitter.
+Network/TLS failure Retryable until attempt policy is exhausted.
+Repeated endpoint failure Endpoint marked degraded, then optionally disabled; customer 
+notified.
+Proposed retry schedule: initial delivery, then approximately 1 minute, 5 minutes, 30 minutes, 2 hours, 8 hours 
+and 24 hours with jitter. This exact schedule is an implementation proposal and may be tuned operationally 
+without changing payload semantics.
+Public webhook payload
+{
+  "eventId": "evt_01J32D",
+  "eventType": "PayrollApproved.v1",
+  "occurredAt": "2026-08-03T10:15:00Z",
+  "deliveryId": "whd_01J33",
+  "tenantExternalReference": "customer-erp-91",
+  "data": {
+    "payrollRunId": "pr_01J31C",
+    "payrollPeriodId": "pp_2026_07",
+    "legalEntityExternalReference": "PK01",
+    "employeeCount": 326,
+    "currency": "PKR",
+    "status": "APPROVED"
+  }
+}
+22. Event Ordering, Replay and Consumer Responsibilities
+Rule Consumer obligation
+At-least-once Deduplicate by eventId before causing an external effect.
+Per-aggregate ordering Use partitionKey and version. Ignore or defer older aggregate 
+versions.
+No global order Do not compare unrelated employee/payroll event timestamps 
+as transaction order.
+Replay Replay uses the original eventId and payload; deliveryId or 
+transport metadata may change.
+Schema additions Ignore unknown optional fields. Preserve required validation 
+for known fields.
+Correction Consume explicit correction/reversal event; do not mutate 
+stored history based on assumptions.
+Poison event Move to visible dead-letter state after bounded retries; do not 
+block every partition indefinitely.
+Side effects Apply side effect and inbox processed marker atomically where 
+possible.
+Backfill Backfill events declare replayReason/batch metadata when 
+
+--- Page 77 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 77
+Rule Consumer obligation
+material to consumers.
+Privacy Store only fields required for the consumer purpose and 
+retention policy.
+23. Versioning, Deprecation and Compatibility
+Change type Compatibility rule
+Add optional response field Backward compatible; clients ignore unknown fields.
+Add optional request field Backward compatible.
+Add enum value Potentially breaking for strict clients; announce and test tolerant 
+readers.
+Make optional field required Breaking; new major API/event version.
+Remove/rename field Breaking; new major version and migration period.
+Change field meaning/unit Breaking even when type is unchanged.
+Change error code semantics Breaking; add a new code instead.
+Add endpoint Backward compatible.
+Tighten validation May be breaking; requires deprecation notice or major version 
+unless fixing unsafe acceptance.
+Event data addition Compatible when optional and consumers are tolerant.
+Event type payload removal/change New event major version, e.g. PayrollApproved.v2.
+Webhook endpoint version Tenant subscribes to a supported public contract version; platform 
+publishes lifecycle dates.
+ Deprecated APIs return Deprecation and Sunset headers and are documented in release notes.
+ A compatibility window and migration guide are required before retirement.
+ Server and generated clients support at least the currently contracted versions.
+ Database schema versions are internal and must not leak into public contract versions.
+24. Rate Limits, Abuse Controls and Payload Boundaries
+Class Use Proposed control Failure
+Interactive read Standard user/tenant browsing 600 requests per 5 minutes per 
+user plus tenant fairness
+429 + Retry-After
+Interactive write Forms and state transitions 120 requests per 5 minutes per 
+user
+429 + Retry-After
+Authentication Sign-in/reset/MFA Strict IP + account + device 
+adaptive limits
+Generic error, lock/challenge
+Attendance first-party Mobile/web clock events Burst allowance around shifts; 
+user/device/tenant limits
+201/429 with safe retry
+Attendance connector External event ingestion Per integration and tenant 
+throughput contract
+429 or 503; connector checkpoints
+Payroll command Calculate/approve/publish/export Low command rate; one 
+conflicting operation per run
+409/429
+Report/export Heavy generation Concurrent jobs and daily volume 
+per plan
+202/429
+Webhook replay Manual replay Low privileged rate 429
+
+--- Page 78 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 78
+Exact numerical limits are plan- and capacity-dependent operational settings, not a promise in the contract 
+unless included in a customer agreement. Every response may expose safe remaining/reset metadata, but cross-
+tenant utilisation is never disclosed.
+Boundary Initial proposal
+JSON command payload 1 MiB unless endpoint states a lower limit.
+Bulk synchronous items Maximum 100; larger work uses import/async jobs.
+Employee import file Plan/configuration based; direct object upload.
+Report inline rows Bounded preview; full result uses export.
+Webhook body Maximum 512 KiB; large artefacts delivered through 
+authorised links.
+Attachment/file Category-based allowed type and size; malware scan required.
+Filter date range Report/endpoint-specific maximum.
+List page size Default 25-50; maximum normally 100.
+25. Security and Privacy Requirements
+Area Contract requirement
+Secrets Passwords, tokens, API secrets and signing secrets are write-
+only and absent from logs/responses after creation.
+Sensitive fields Explicit schema classification and permission; masked 
+representations in lists.
+Object access No public bucket/object URL. Signed links only after 
+authorisation.
+Payroll MFA/segregation/version checks; decimal values; no salary in 
+notifications.
+Location Purpose-limited attendance evidence; no continuous tracking 
+contract.
+Medical/leave Private reasons and attachments excluded from team calendar 
+and general events.
+Logging No access token, refresh token, bank account, ID number, file 
+body or unrestricted request body.
+Error disclosure Safe message and correlation ID; no stack/database/provider 
+detail.
+SSRF Webhook/integration URLs validated; private/reserved targets 
+blocked unless dedicated approved path.
+Mass assignment Command DTOs allow-list mutable fields; server ignores no 
+hidden privilege fields.
+Data residency Tenant region controls storage/processing route; clients cannot 
+bypass it through API parameters.
+Audit High-impact commands, sensitive downloads, support access 
+and permission changes produce protected audit evidence.
+26. Observability and Support Contract
+Signal Required metadata
+API log timestamp, route template, method, status, duration, 
+correlationId, requestId, safe tenant/user pseudonym, error 
+
+--- Page 79 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 79
+Signal Required metadata
+code.
+Trace Edge -> API -> database -> outbox/queue -> worker/provider 
+propagation.
+Metric Request count/latency/error by route class; tenant dimensions 
+are bounded/pseudonymous.
+Job telemetry operationId, job type, tenant pseudonym, attempt, progress, 
+duration, result/error class.
+Webhook telemetry endpoint id pseudonym, event type, delivery status, attempt, 
+response class and latency.
+Business audit Actor, action, target, old/new safe values, reason, approval and 
+correlation.
+Support response Client receives correlationId; support can link it to logs, trace, 
+job and audit without exposing other tenants.
+27. Contract Repository and Code Generation
+packages/contracts/
+  openapi/
+    root.yaml
+    domains/tenant.yaml
+    domains/people.yaml
+    domains/attendance.yaml
+    domains/leave.yaml
+    domains/payroll.yaml
+    components/schemas.yaml
+    components/errors.yaml
+  asyncapi/
+    internal-events.yaml
+    public-webhooks.yaml
+  schemas/
+    event-envelope.schema.json
+    webhook-envelope.schema.json
+  examples/
+    requests/
+    responses/
+    events/
+  generated/
+    typescript-client/
+    typescript-server/
+    test-fixtures/
+ OpenAPI and AsyncAPI linting run on every pull request.
+ Generated code is committed or reproduced deterministically according to repository policy.
+ Controllers implement generated interfaces or compile-time checked DTOs.
+ Frontend uses generated types/clients; it does not hand-maintain duplicate response interfaces.
+ Every example is schema validated in CI.
+ Contract changes require domain owner and security review where sensitive.
+
+--- Page 80 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 80
+28. Contract Testing Strategy
+Test layer Required coverage
+Schema validation Every request, response, error, event and webhook example 
+validates against source schema.
+Server conformance Implemented route, status, content type and body match OpenAPI.
+Client compatibility Generated client compiles and handles optional/unknown 
+compatible fields.
+Authentication Missing, invalid, expired and wrong-audience tokens.
+Tenant isolation Cross-tenant IDs through every path, job, export and object link 
+return no data/effect.
+Permission scope Tenant, legal entity, department, manager, self, assignment and 
+support grant.
+Idempotency Same request replay, changed-body conflict, in-progress retry and 
+retention boundary.
+Concurrency Stale If-Match/expectedVersion and simultaneous high-impact 
+actions.
+State transitions Every allowed and forbidden status transition.
+Error catalogue Stable code/status/retryable and field path mapping.
+Async operations Success, failure, cancellation, retry and partial-unit handling.
+Events Outbox atomicity, deduplication, ordering/version, replay and 
+poison event.
+Webhooks Signature, replay window, retries, endpoint disablement and secret 
+rotation.
+Payroll golden tests Calculation version, exceptions, review, approval, lock, 
+payslip/export source.
+Performance Attendance bursts, payroll commands, pagination and 
+report/export job fairness.
+29. Implementation and Publication Sequence
+1. Create the shared OpenAPI components, error catalogue, security schemes, headers, pagination and 
+operation schemas.
+2. Implement tenant context, permission guards, audit interceptor, idempotency persistence and correlation 
+propagation.
+3. Publish platform/identity/organisation/people contracts and generate web/API types.
+4. Publish document upload/download and onboarding contracts.
+5. Publish attendance, shift and roster contracts with connector sandbox fixtures.
+6. Publish leave and workflow contracts, including approval action and delegation semantics.
+7. Publish payroll commands, async operations, result schemas and restricted event contracts with payroll 
+specialist review.
+8. Implement report/export, integration and webhook contracts.
+9. Publish AsyncAPI internal events and public webhook subset; build outbox/inbox conformance tests.
+10. Run tenant-isolation, security, compatibility, payroll golden and partner sandbox testing before production 
+baseline.
+
+--- Page 81 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 81
+30. Contract Risks and Mitigations
+Risk Impact Mitigation
+CRUD contracts mirror tables Domain invariants leak and schema 
+changes become breaking.
+Business-action endpoints and domain-
+owned DTOs.
+Client-selected tenant IDs Cross-tenant exposure. Resolve tenant from trusted context; 
+platform endpoints isolated.
+Unstable error messages UX and partner integrations break. Stable machine code plus localisable safe 
+message.
+No persistent idempotency Duplicate attendance, payroll jobs or 
+invitations.
+Database-backed idempotency record and 
+business keys.
+Event contains excess data Privacy and coupling risk. Minimum payload, classification, consumer-
+purpose review.
+Enum expansion breaks clients Runtime failures. Tolerant readers and announced additions; 
+major version where necessary.
+Webhook retry storms Provider and platform instability. Backoff, jitter, per-endpoint concurrency, 
+disablement and replay tooling.
+Payroll endpoint bypasses state rules Financial error. Application command, version checks, SoD, 
+MFA, audit and golden tests.
+Generated and hand-written types diverge Defects and delayed delivery. One specification source and CI 
+generation/conformance.
+Breaking validation introduced silently Customer integration failure. Compatibility diff, deprecation and contract 
+review gate.
+31. Contract Acceptance Criteria
+1. Every MVP endpoint is assigned to one domain owner and one documented permission/scope rule.
+2. OpenAPI describes method, path, authentication, request, response, errors, idempotency, concurrency and 
+examples.
+3. Normal tenant endpoints cannot accept an arbitrary tenant_id to change data scope.
+4. All tenant-owned endpoint implementations are covered by negative cross-tenant tests.
+5. High-risk actions use explicit command endpoints, version checks, audit and MFA/segregation where 
+configured.
+6. External and retryable write endpoints pass persistent idempotency tests.
+7. Large calculations, imports and exports follow the standard AsyncOperation contract.
+8. ProblemDetails and the stable error catalogue are implemented consistently across modules.
+9. Event publication uses a transactional outbox and consumers demonstrate eventId deduplication.
+10. Every event type has owner, trigger, schema, classification, partition key and compatibility rules.
+11. Public webhooks are signed, replay protected, retried and visible in delivery history.
+12. Money, dates, timestamps and identifiers follow the standard representations.
+13. Sensitive fields and downloads pass permission, masking, no-store and audit tests.
+14. Generated clients/server interfaces build from source specifications in CI.
+15. Payroll API/event contracts pass specialist review and end-to-end golden scenarios.
+16. Frontend, backend, QA, security, DevOps and integration owners sign off the v1 baseline.
+
+--- Page 82 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 82
+32. Required Follow-On Technical Deliverables
+Priority Deliverable Purpose
+1 Security architecture and detailed threat 
+model
+STRIDE data flows, abuse cases, controls 
+and incident requirements.
+2 Kubernetes and cloud infrastructure design Network, cluster, managed services, IAM, 
+sizing, IaC and cost baseline.
+3 CI/CD and branching standard Repositories, quality gates, migrations, 
+promotion and rollback.
+4 Detailed permissions matrix Role/action/resource/scope mapping for 
+every screen and endpoint.
+5 Payroll calculation specification Pakistan launch formulas, components, 
+rounding, validation and golden fixtures.
+6 Integration specifications Biometric, SSO, email, finance export and 
+on-prem connector contracts.
+7 QA and performance test plan Contract, tenant isolation, payroll 
+regression, load and resilience.
+8 Engineering backlog and estimation Epics, stories, dependencies, owners, 
+releases and resource plan.
+33. Final Contract Recommendation
+Workforce Cloud OS should publish one consistent contract platform rather than allowing each module to 
+invent transport, errors, tenant context, idempotency or event envelopes. REST commands should remain close 
+to business intentions, heavy work should use durable asynchronous operations, and all cross-module reactions 
+should be driven by committed, versioned events. Payroll and attendance contracts must prioritise traceability 
+and replay safety over superficial CRUD simplicity.
+Contract statement
+Stable REST resources and commands, explicit tenant-scoped authorisation, persistent idempotency, deterministic 
+high-impact workflows, transactional events and signed external delivery.
+
+--- Page 83 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 83
+Appendix A - Error Code Reference
+Code HTTP Description
+AUTHENTICATION_REQUIRED 401 No valid session or access token.
+TOKEN_INVALID 401 Token signature, issuer, audience or expiry 
+is invalid.
+TENANT_CONTEXT_INVALID 403 Authenticated identity is not a member of 
+the resolved tenant.
+PERMISSION_DENIED 403 User lacks action, resource or scope 
+permission.
+RESOURCE_NOT_FOUND 404 The resource is absent or not visible in the 
+current scope.
+VALIDATION_FAILED 422 One or more fields or business 
+preconditions failed.
+CONFLICT 409 Resource state conflicts with the requested 
+transition.
+VERSION_CONFLICT 412 If-Match version is stale.
+IDEMPOTENCY_KEY_REQUIRED 400 The endpoint requires an idempotency key.
+IDEMPOTENCY_KEY_REUSED 409 The key was previously used with a 
+different request body.
+OPERATION_IN_PROGRESS 409 A conflicting long-running operation is 
+active.
+RATE_LIMITED 429 The client, user or tenant rate limit was 
+exceeded.
+RESOURCE_LOCKED 423 The record or period is locked.
+SEGREGATION_OF_DUTIES 409 The actor cannot complete this high-impact 
+action.
+MFA_REQUIRED 403 Step-up authentication is required.
+EXTERNAL_DEPENDENCY_FAILED 503 A configured provider or connector failed.
+INTERNAL_ERROR 500 Unexpected failure; safe message only.
+Appendix B - Status and Enum Baseline
+Enum Values
+AsyncOperationStatus QUEUED, RUNNING, SUCCEEDED, FAILED, CANCEL_REQUESTED, 
+CANCELLED
+TenantStatus DRAFT, TRIAL, ACTIVE, GRACE_PERIOD, SUSPENDED, CLOSED, 
+ARCHIVED
+EmployeeStatus PRE_BOARDING, ACTIVE, PROBATION, ON_LEAVE, SUSPENDED, 
+RESIGNED, TERMINATED, RETIRED, INACTIVE
+RequestStatus DRAFT, SUBMITTED, UNDER_REVIEW, APPROVED, REJECTED, 
+RETURNED, CANCELLED, ESCALATED, COMPLETED
+AttendanceEventType CHECK_IN, CHECK_OUT, BREAK_START, BREAK_END
+AttendanceDayStatus PRESENT, ABSENT, LATE, EARLY_DEPARTURE, HALF_DAY, 
+APPROVED_LEAVE, UNPAID_LEAVE, HOLIDAY, REST_DAY, 
+OVERTIME, PENDING_REVIEW
+PayrollRunStatus CREATED, DATA_COLLECTION, CALCULATING, CALCULATED, 
+VALIDATION_FAILED, UNDER_REVIEW, REVIEWED, APPROVED, 
+LOCKED, PUBLISHED, REOPEN_REQUESTED, REOPENED, CLOSED
+DocumentScanStatus PENDING_UPLOAD, QUARANTINED, SCANNING, CLEAN, REJECTED, 
+FAILED
+WebhookDeliveryStatus QUEUED, DELIVERING, DELIVERED, RETRY_SCHEDULED, FAILED, 
+
+--- Page 84 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 84
+Enum Values
+DEAD_LETTERED
+Appendix C - Permission Naming Convention
+<domain>.<resource>.<action>
+Examples:
+employee.read
+employee.transfer
+attendance.correction.create
+attendance.period.lock
+payroll.run.calculate
+payroll.run.approve
+payroll.export.download
+webhook.delivery.replay
+Scope Example
+tenant tenant:current
+legal entity legal_entity:le_pk
+department department:dep_finance
+manager hierarchy manager_hierarchy:self
+self self
+record assignment approval_step:assigned
+support grant support_grant:sg_01
+Appendix D - External Webhook Event Baseline
+Public event Default external data rule
+TenantActivated.v1 Identifiers and minimum business state only; restricted fields 
+require explicit contract and entitlement.
+EmployeeActivated.v1 Identifiers and minimum business state only; restricted fields 
+require explicit contract and entitlement.
+EmployeeTransferred.v1 Identifiers and minimum business state only; restricted fields 
+require explicit contract and entitlement.
+EmployeeExited.v1 Identifiers and minimum business state only; restricted fields 
+require explicit contract and entitlement.
+AttendanceCalculated.v1 Identifiers and minimum business state only; restricted fields 
+require explicit contract and entitlement.
+AttendanceCorrected.v1 Identifiers and minimum business state only; restricted fields 
+require explicit contract and entitlement.
+LeaveRequestApproved.v1 Identifiers and minimum business state only; restricted fields 
+require explicit contract and entitlement.
+LeaveRequestCancelled.v1 Identifiers and minimum business state only; restricted fields 
+require explicit contract and entitlement.
+PayrollApproved.v1 Identifiers and minimum business state only; restricted fields 
+require explicit contract and entitlement.
+PayslipsPublished.v1 Identifiers and minimum business state only; restricted fields 
+
+--- Page 85 ---
+WORKFORCE CLOUD OS  |  API AND EVENT CONTRACT SPECIFICATION
+Contract baseline - July 2026          Page 85
+Public event Default external data rule
+require explicit contract and entitlement.
+PayrollExportReady.v1 Identifiers and minimum business state only; restricted fields 
+require explicit contract and entitlement.
+IntegrationSyncFailed.v1 Identifiers and minimum business state only; restricted fields 
+require explicit contract and entitlement.
+Appendix E - Glossary
+Term Meaning
+OpenAPI Machine-readable REST API contract.
+AsyncAPI Machine-readable asynchronous event/channel contract.
+Idempotency Retrying the same operation does not duplicate the business 
+effect.
+ETag / If-Match Optimistic concurrency tokens for representation versions.
+Outbox Database record committed with business state and later 
+published as an event.
+Inbox Consumer deduplication record for processed event IDs.
+Correlation ID Identifier linking a business flow across requests, jobs, events 
+and logs.
+Causation ID Direct command or event that caused a new event.
+At-least-once Delivery may repeat; loss is reduced through durable retry.
+Tolerant reader Consumer that ignores unknown compatible fields.
+Step-up MFA Recent stronger authentication required for a high-risk action.
+RLS PostgreSQL row-level security.
+ProblemDetails Standardised structured API error response.
+Keyset pagination Stable pagination using an ordered cursor rather than an 
+arbitrary offset.
