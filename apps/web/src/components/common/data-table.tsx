@@ -131,7 +131,7 @@ export function DataTable<T>({
                 key={keyExtractor(row)}
                 className={`${rowHeight} transition-colors ${
                   onRowClick
-                    ? 'cursor-pointer hover:bg-surface-canvas'
+                    ? 'cursor-pointer hover:bg-surface-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-blue-600'
                     : ''
                 }`}
                 onClick={onRowClick ? (event) => {
