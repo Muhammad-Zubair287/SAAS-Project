@@ -132,7 +132,7 @@ export function EmployeeShell({ children, navItems }: EmployeeShellProps) {
       logo={<EmployeeLogo forSidebar />}
       sidebarLogo={<EmployeeLogo forSidebar />}
       sidebarLogoCollapsed={<EmployeeLogo compact forSidebar />}
-      headerLogo={<EmployeeLogo />}
+      headerLogo={null}
       headerLeading={<TenantNameBadge />}
       roleLabel={roleLabel}
       userLabel={displayName}

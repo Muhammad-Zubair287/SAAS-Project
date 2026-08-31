@@ -3,6 +3,7 @@ import type { ApiSuccessResponse } from '../../../lib/api/types';
 import type {
   AcceptInvitationPayload,
   AuthTokenResponse,
+  InvitationAcceptResponse,
   LoginPayload,
   LoginResult,
   MfaChallengePayload,
@@ -42,7 +43,7 @@ export const authApi = {
 
   acceptInvitation: (payload: AcceptInvitationPayload) =>
     apiClient
-      .post<ApiSuccessResponse<AuthTokenResponse>>('/auth/invitations/accept', payload)
+      .post<ApiSuccessResponse<InvitationAcceptResponse>>('/auth/invitations/accept', payload)
       .then(unwrap),
 
   completeMfaChallenge: (payload: MfaChallengePayload) =>

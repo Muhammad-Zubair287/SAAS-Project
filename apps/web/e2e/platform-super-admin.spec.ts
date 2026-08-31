@@ -94,22 +94,17 @@ test.describe.serial('Platform Super Admin — end-to-end', () => {
     await page.locator('button[type="submit"]').click();
 
     // Step 2 — Commercial
-    await expect(page.locator('#planId')).toBeVisible({ timeout: 30_000 });
-    await page.locator('#planId').selectOption({ index: 1 }).catch(() => {});
+    await expect(page.locator('#planKey')).toBeVisible({ timeout: 30_000 });
+    await page.locator('#planKey').selectOption({ index: 1 }).catch(() => {});
     await expect(page.locator('#seatLimit')).toBeVisible({ timeout: 30_000 });
     await page.locator('#seatLimit').fill('50');
-    const storage = page.locator('#storageLimitGb');
-    if (await storage.isVisible()) {
-      await storage.fill('25');
-    }
+    await page.locator('#storageLimitGb').fill('25');
     await page.locator('button[type="submit"]').click();
 
-    // Step 3 — Product (hosting region + plan entitlements)
-    await expect(page.locator('#deploymentRegionId')).toBeVisible({ timeout: 30_000 });
-    await page.locator('#deploymentRegionId').selectOption({ index: 1 }).catch(() => {});
+    await expect(page.locator('#hostingRegion')).toBeVisible({ timeout: 30_000 });
+    await page.locator('#hostingRegion').selectOption({ index: 1 }).catch(() => {});
     await page.locator('button[type="submit"]').click();
 
-    // Step 4 — Administrator
     await expect(page.locator('#primaryAdminName')).toBeVisible({ timeout: 30_000 });
     await page.locator('#primaryAdminName').fill('Primary Admin E2E');
     await expect(page.locator('#primaryAdminEmail')).toBeVisible({ timeout: 30_000 });
@@ -176,13 +171,14 @@ test.describe.serial('Platform Super Admin — end-to-end', () => {
     await page.locator('#legalName').fill(tenantLegalName);
     await page.locator('button[type="submit"]').click();
 
-    await expect(page.locator('#planId')).toBeVisible({ timeout: 30_000 });
-    await page.locator('#planId').selectOption({ index: 1 }).catch(() => {});
+    await expect(page.locator('#planKey')).toBeVisible({ timeout: 30_000 });
+    await page.locator('#planKey').selectOption({ index: 1 }).catch(() => {});
     await page.locator('#seatLimit').fill('25');
+    await page.locator('#storageLimitGb').fill('10');
     await page.locator('button[type="submit"]').click();
 
-    await expect(page.locator('#deploymentRegionId')).toBeVisible({ timeout: 30_000 });
-    await page.locator('#deploymentRegionId').selectOption({ index: 1 }).catch(() => {});
+    await expect(page.locator('#hostingRegion')).toBeVisible({ timeout: 30_000 });
+    await page.locator('#hostingRegion').selectOption({ index: 1 }).catch(() => {});
     await page.locator('button[type="submit"]').click();
 
     await expect(page.locator('#primaryAdminName')).toBeVisible({ timeout: 30_000 });

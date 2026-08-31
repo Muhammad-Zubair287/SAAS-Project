@@ -123,7 +123,17 @@ function NavLeaf({
   );
 }
 
-function NavGroup({ item, pathname, variant = 'default' }: { item: NavItem; pathname: string; variant?: 'default' | 'platform' }) {
+function NavGroup({
+  item,
+  pathname,
+  variant = 'default',
+  collapsed = false,
+}: {
+  item: NavItem;
+  pathname: string;
+  variant?: 'default' | 'platform';
+  collapsed?: boolean;
+}) {
   const hasActiveChild = containsActive(item, pathname);
   const [open, setOpen] = useState(hasActiveChild);
 
@@ -133,16 +143,17 @@ function NavGroup({ item, pathname, variant = 'default' }: { item: NavItem; path
   }, [hasActiveChild]);
 
   const panelId = `nav-group-${item.key}`;
+  const showChildren = open && !collapsed;
 
   return (
     <div>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
+        aria-expanded={collapsed ? false : open}
         aria-controls={panelId}
         title={item.label}
-        className={`${BASE_ITEM_CLS} ${
+        className={`${BASE_ITEM_CLS} ${collapsed ? 'justify-center px-2' : ''} ${
           hasActiveChild && !open
             ? variant === 'platform'
               ? 'text-white'
@@ -157,30 +168,32 @@ function NavGroup({ item, pathname, variant = 'default' }: { item: NavItem; path
             {item.icon}
           </span>
         )}
-        <span className="min-w-0 flex-1 truncate text-start">{item.label}</span>
-        <svg
-          className={`ms-auto h-4 w-4 flex-shrink-0 transition-transform rtl:-scale-x-100 ${
-            open ? 'rotate-90' : ''
-          }`}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
-          aria-hidden="true"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-        </svg>
+        {!collapsed && <span className="min-w-0 flex-1 truncate text-start">{item.label}</span>}
+        {!collapsed && (
+          <svg
+            className={`ms-auto h-4 w-4 flex-shrink-0 transition-transform rtl:-scale-x-100 ${
+              open ? 'rotate-90' : ''
+            }`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        )}
       </button>
 
-      {/* Kept mounted but hidden so the disclosure state is stable and the
-          collapsed content is not re-created on every toggle. */}
-      <ul id={panelId} hidden={!open} className="mt-1 flex flex-col gap-1">
-        {(item.children ?? []).map((child) => (
-          <li key={child.key}>
-            <NavLeaf item={child} depth={1} pathname={pathname} variant={variant} collapsed={false} />
-          </li>
-        ))}
-      </ul>
+      {showChildren && (
+        <ul id={panelId} className="mt-1 flex flex-col gap-1">
+          {(item.children ?? []).map((child) => (
+            <li key={child.key}>
+              <NavLeaf item={child} depth={1} pathname={pathname} variant={variant} collapsed={false} />
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
@@ -221,7 +234,7 @@ export function SidebarNav({ items, label, variant = 'default', collapsed = fals
         {visibleItems.map((item) => (
           <li key={item.key}>
             {item.children && item.children.length > 0 ? (
-              <NavGroup item={item} pathname={pathname} variant={variant} />
+              <NavGroup item={item} pathname={pathname} variant={variant} collapsed={collapsed} />
             ) : (
               <NavLeaf item={item} depth={0} pathname={pathname} variant={variant} collapsed={collapsed} />
             )}

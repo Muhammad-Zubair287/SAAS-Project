@@ -15,8 +15,16 @@
   }
 
   html {
+    height: 100%;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
+  }
+
+  /* App shell owns scrolling inside <main>; lock document scroll to avoid empty overscroll. */
+  html:has([data-app-shell]),
+  html:has([data-app-shell]) body {
+    height: 100%;
+    overflow: hidden;
   }
 
   body {

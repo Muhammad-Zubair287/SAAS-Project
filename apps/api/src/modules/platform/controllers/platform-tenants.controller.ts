@@ -13,6 +13,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { RequireIdempotencyKeyGuard } from '../../../common/guards/require-idempotency-key.guard';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -46,6 +47,7 @@ export class PlatformTenantsController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @UseGuards(RequireIdempotencyKeyGuard)
   @RequirePermissions(PLATFORM_PERMISSIONS.TENANT_CREATE)
   @ApiOperation({ summary: 'API-TEN-001 — Create tenant (DRAFT state)' })
   @ApiCreatedResponse({ type: TenantResponseDto })
@@ -53,8 +55,9 @@ export class PlatformTenantsController {
     @Body() dto: CreateTenantDto,
     @CurrentUser() actor: PlatformActorContext,
     @CorrelationId() correlationId: string,
+    @Headers('idempotency-key') idempotencyKey: string,
   ): Promise<TenantResponseDto> {
-    return this.tenantService.create(dto, actor, correlationId);
+    return this.tenantService.create(dto, actor, correlationId, idempotencyKey);
   }
 
   @Get()

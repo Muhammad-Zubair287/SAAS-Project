@@ -156,7 +156,10 @@ export function AppShell({
   );
 
   return (
-    <div className="flex h-screen supports-[height:100dvh]:h-[100dvh] overflow-hidden bg-surface-canvas">
+    <div
+      data-app-shell
+      className="flex h-full min-h-0 overflow-hidden bg-surface-canvas supports-[height:100dvh]:h-[100dvh] supports-[height:100dvh]:min-h-[100dvh]"
+    >
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-brand-blue-600 focus:px-4 focus:py-2 focus:text-body-md focus:font-medium focus:text-white"
@@ -237,7 +240,7 @@ export function AppShell({
         </div>
       )}
 
-      <div className="flex flex-1 flex-col overflow-hidden min-w-0">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden min-w-0">
         <TopBar
           onToggleSidebar={hideMobileMenuButton ? undefined : () => setSidebarOpen(true)}
           sidebarOpen={sidebarOpen}
@@ -267,7 +270,7 @@ export function AppShell({
         <main
           id="main"
           tabIndex={-1}
-          className={`flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 ${mobileBottomNav ? 'pb-24 lg:pb-8' : ''} ${mainClassName ?? ''}`}
+          className={`min-h-0 flex-1 overflow-y-auto overscroll-y-contain p-4 md:p-6 lg:p-8 ${mobileBottomNav ? 'pb-24 lg:pb-8' : ''} ${mainClassName ?? ''}`}
         >
           <div className="mx-auto w-full max-w-[1600px]">{children}</div>
         </main>

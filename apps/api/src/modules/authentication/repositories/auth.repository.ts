@@ -105,6 +105,14 @@ export class AuthRepository {
     return tenant?.id ?? null;
   }
 
+  async findTenantSlugById(id: string): Promise<string | null> {
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id },
+      select: { slug: true },
+    });
+    return tenant?.slug ?? null;
+  }
+
   async updateLastLoginAt(userId: string): Promise<void> {
     await this.prisma.appUser.update({
       where: { id: userId },

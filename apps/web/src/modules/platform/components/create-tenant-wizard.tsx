@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useCreateTenant } from '../hooks/use-tenant-mutations';
@@ -12,30 +12,77 @@ import {
   LAUNCH_LOCALES,
   LAUNCH_TIMEZONES,
 } from '../constants/platform.constants';
-import type { CreateTenantPayload, Tenant } from '../types/platform.types';
+import type { CreateTenantPayload, PlanEntitlement, Tenant } from '../types/platform.types';
 import { LoadingSpinner } from '../../../components/feedback/loading-spinner';
 import { ApiError } from '../../../lib/api/types';
-import { ProductSetupSummary } from './product-setup-summary';
-import { platformApi } from '../api/platform-api';
+import { CreateTenantMfaDialog } from './create-tenant-mfa-dialog';
+import { isEntitlementIncluded } from '../utils/plan-pricing';
+import {
+  createTenantAdminStepSchema,
+  createTenantCommercialStepSchema,
+  createTenantCompanyStepSchema,
+  createTenantProductStepSchema,
+  type CreateTenantStepErrors,
+  zodFieldErrors,
+} from '../schemas/create-tenant.schema';
+import {
+  filterDigitsOnly,
+  filterInternationalPhoneInput,
+  filterOrganizationNameInput,
+  filterPersonNameInput,
+  sanitizeTrimmed,
+} from '../../../lib/validation/input-security';
 
 const FORM_STEPS = ['company', 'commercial', 'product', 'admin', 'review'] as const;
 type FormStep = (typeof FORM_STEPS)[number];
 
-const INITIAL_FORM: CreateTenantPayload = {
+const SSO_CODE = 'feature_sso';
+const API_ACCESS_CODE = 'feature_api_access';
+const DEDICATED_SUPPORT_CODE = 'feature_dedicated_support';
+
+type WizardForm = CreateTenantPayload & {
+  trialOn: boolean;
+  supportTierKey: string;
+  moduleToggles: Record<string, boolean>;
+  ssoEnabled: boolean;
+  apiAccessEnabled: boolean;
+};
+
+const INITIAL_FORM: WizardForm = {
   displayName: '',
   legalName: '',
   countryCode: 'PK',
-  baseCurrency: 'PKR',
-  defaultTimezone: 'Asia/Karachi',
-  defaultLocale: 'en-PK',
-  deploymentRegionId: '',
-  planId: '',
+  currency: 'PKR',
+  timeZone: 'Asia/Karachi',
+  primaryLocale: 'en-PK',
+  hostingRegion: '',
+  planKey: '',
   seatLimit: 100,
-  storageLimitGb: undefined,
+  storageLimitGb: 10,
   billingCycle: 'monthly',
   trialEndsAt: undefined,
+  trialOn: false,
+  supportTierKey: '',
+  moduleToggles: {},
+  ssoEnabled: false,
+  apiAccessEnabled: false,
   primaryAdmin: { name: '', email: '' },
 };
+
+function moduleEntitlements(entitlements: PlanEntitlement[]): PlanEntitlement[] {
+  return entitlements.filter(
+    (e) =>
+      e.dataType === 'BOOLEAN' &&
+      e.code.startsWith('feature_') &&
+      e.code !== SSO_CODE &&
+      e.code !== API_ACCESS_CODE &&
+      e.code !== DEDICATED_SUPPORT_CODE,
+  );
+}
+
+function supportTierOptions(entitlements: PlanEntitlement[]): PlanEntitlement[] {
+  return entitlements.filter((e) => e.code === DEDICATED_SUPPORT_CODE || e.code.includes('support'));
+}
 
 export function CreateTenantWizard() {
   const t = useTranslations();
@@ -44,107 +91,209 @@ export function CreateTenantWizard() {
   const { data: regionsData, isLoading: regionsLoading } = useDeploymentRegions();
 
   const [step, setStep] = useState<FormStep>('company');
-  const [form, setForm] = useState<CreateTenantPayload>(INITIAL_FORM);
-  const [subscriptionStart, setSubscriptionStart] = useState<'trial' | 'paid'>('paid');
+  const [form, setForm] = useState<WizardForm>(INITIAL_FORM);
   const [createdTenant, setCreatedTenant] = useState<Tenant | null>(null);
   const [invitationSent, setInvitationSent] = useState(false);
-  const [emailAvailable, setEmailAvailable] = useState<boolean | null>(null);
-  const [emailCheckPending, setEmailCheckPending] = useState(false);
+  const [mfaOpen, setMfaOpen] = useState(false);
+  const [pendingSubmit, setPendingSubmit] = useState<{ sendInvitation: boolean } | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<CreateTenantStepErrors>({});
 
   const plans = plansData?.data ?? [];
   const regions = regionsData?.data ?? [];
   const stepIndex = FORM_STEPS.indexOf(step);
+  const selectedPlan = plans.find((p) => p.code === form.planKey);
+  const planEntitlements = selectedPlan?.entitlements ?? [];
+  const modules = moduleEntitlements(planEntitlements);
+  const supportOptions = supportTierOptions(planEntitlements);
 
   useEffect(() => {
-    if (!form.deploymentRegionId && regions.length === 1) {
-      setForm((prev) => ({ ...prev, deploymentRegionId: regions[0]!.id }));
+    if (!form.hostingRegion && regions.length === 1) {
+      setForm((prev) => ({ ...prev, hostingRegion: regions[0]!.hostingRegion }));
     }
-  }, [regions, form.deploymentRegionId]);
+  }, [regions, form.hostingRegion]);
 
   useEffect(() => {
-    const email = form.primaryAdmin.email.trim();
-    if (!email.includes('@') || email.length < 5) {
-      setEmailAvailable(null);
-      return;
+    if (!selectedPlan?.entitlements) return;
+    const nextModules: Record<string, boolean> = {};
+    for (const mod of moduleEntitlements(selectedPlan.entitlements)) {
+      nextModules[mod.code] = isEntitlementIncluded(mod.defaultValue);
     }
-    setEmailCheckPending(true);
-    const handle = window.setTimeout(() => {
-      void platformApi.tenants
-        .validateAdminEmail(email)
-        .then((res) => setEmailAvailable(res.data.available))
-        .catch(() => setEmailAvailable(null))
-        .finally(() => setEmailCheckPending(false));
-    }, 400);
-    return () => window.clearTimeout(handle);
-  }, [form.primaryAdmin.email]);
+    const sso = selectedPlan.entitlements.find((e) => e.code === SSO_CODE);
+    const api = selectedPlan.entitlements.find((e) => e.code === API_ACCESS_CODE);
+    const support = supportTierOptions(selectedPlan.entitlements)[0];
+    setForm((prev) => ({
+      ...prev,
+      moduleToggles: nextModules,
+      ssoEnabled: sso ? isEntitlementIncluded(sso.defaultValue) : false,
+      apiAccessEnabled: api ? isEntitlementIncluded(api.defaultValue) : false,
+      supportTierKey: support?.code ?? DEDICATED_SUPPORT_CODE,
+      storageLimitGb:
+        prev.storageLimitGb ||
+        parseStorageDefault(selectedPlan.entitlements ?? []) ||
+        prev.storageLimitGb,
+    }));
+  }, [selectedPlan?.code]);
 
-  function parseEntitlementNumber(value: unknown): number | undefined {
-    if (typeof value === 'number' && Number.isFinite(value)) return value;
-    if (typeof value === 'string' && value.trim()) {
-      const n = Number(value);
+  function parseStorageDefault(entitlements: PlanEntitlement[]): number | undefined {
+    const row = entitlements.find((e) => e.code === 'storage_limit_gb');
+    if (typeof row?.defaultValue === 'number') return row.defaultValue;
+    if (typeof row?.defaultValue === 'string') {
+      const n = Number(row.defaultValue);
       return Number.isFinite(n) ? n : undefined;
     }
     return undefined;
   }
 
-  function selectPlan(planId: string) {
-    const plan = plans.find((p) => p.id === planId);
-    const fromPlan = parseEntitlementNumber(
-      plan?.entitlements?.find((e) => e.code === 'storage_limit_gb')?.defaultValue,
-    );
+  function selectPlan(planKey: string) {
+    const plan = plans.find((p) => p.code === planKey);
     setForm((prev) => ({
       ...prev,
-      planId,
-      storageLimitGb: fromPlan ?? prev.storageLimitGb,
+      planKey,
+      storageLimitGb: parseStorageDefault(plan?.entitlements ?? []) ?? prev.storageLimitGb,
     }));
   }
 
-  function update<K extends keyof CreateTenantPayload>(key: K, value: CreateTenantPayload[K]) {
+  function update<K extends keyof WizardForm>(key: K, value: WizardForm[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
-  function updateAdmin(key: 'name' | 'email', value: string) {
+  function updateAdmin(key: keyof WizardForm['primaryAdmin'], value: string) {
     setForm((prev) => ({ ...prev, primaryAdmin: { ...prev.primaryAdmin, [key]: value } }));
   }
 
-  function canAdvanceFrom(stepKey: FormStep): boolean {
+  function validationMessage(code: string): string {
+    const known = ['required', 'unsafe', 'format', 'maxLength'] as const;
+    if (known.includes(code as (typeof known)[number])) {
+      return t(`platform.tenants.create.validation.${code}` as 'platform.tenants.create.validation.required');
+    }
+    return t('errors.validationFailed');
+  }
+
+  function getStepValidation(stepKey: FormStep) {
     switch (stepKey) {
       case 'company':
-        return form.displayName.trim().length > 0 && form.legalName.trim().length > 0;
+        return createTenantCompanyStepSchema.safeParse({
+          displayName: form.displayName,
+          legalName: form.legalName,
+          countryCode: form.countryCode,
+          currency: form.currency,
+          timeZone: form.timeZone,
+          primaryLocale: form.primaryLocale,
+        });
       case 'commercial':
-        return form.planId.length > 0
-          && form.seatLimit >= 1
-          && (form.storageLimitGb == null || form.storageLimitGb >= 1)
-          && (subscriptionStart === 'paid' || !!form.trialEndsAt);
+        return createTenantCommercialStepSchema.safeParse({
+          planKey: form.planKey,
+          billingCycle: form.billingCycle,
+          trialOn: form.trialOn,
+          trialEndsAt: form.trialEndsAt,
+          seatLimit: form.seatLimit,
+          storageLimitGb: form.storageLimitGb,
+        });
       case 'product':
-        return form.deploymentRegionId.length > 0;
+        return createTenantProductStepSchema.safeParse({
+          hostingRegion: form.hostingRegion,
+          supportTierKey: form.supportTierKey,
+        });
       case 'admin':
-        return (
-          form.primaryAdmin.name.trim().length > 0 &&
-          form.primaryAdmin.email.includes('@') &&
-          emailAvailable !== false &&
-          !emailCheckPending
-        );
+        return createTenantAdminStepSchema.safeParse({
+          name: form.primaryAdmin.name,
+          email: form.primaryAdmin.email,
+          phone: form.primaryAdmin.phone,
+        });
       default:
-        return true;
+        return { success: true as const, data: undefined };
     }
   }
 
-  async function submit(sendInvitation: boolean) {
-    const result = await create.mutateAsync({ ...form, sendInvitation });
+  function isStepValid(stepKey: FormStep): boolean {
+    return getStepValidation(stepKey).success;
+  }
+
+  function validateStep(stepKey: FormStep): boolean {
+    const result = getStepValidation(stepKey);
+    if (!result.success) {
+      setFieldErrors(zodFieldErrors(result.error));
+      return false;
+    }
+    setFieldErrors({});
+    return true;
+  }
+
+  function validateAllSteps(): boolean {
+    for (const stepKey of FORM_STEPS) {
+      if (stepKey === 'review') continue;
+      const result = getStepValidation(stepKey);
+      if (!result.success) {
+        setFieldErrors(zodFieldErrors(result.error));
+        setStep(stepKey);
+        return false;
+      }
+    }
+    setFieldErrors({});
+    return true;
+  }
+
+  function fieldError(field: string): string | undefined {
+    const code = fieldErrors[field];
+    return code ? validationMessage(code) : undefined;
+  }
+
+  function canAdvanceFrom(stepKey: FormStep): boolean {
+    return isStepValid(stepKey);
+  }
+
+  function buildPayload(sendInvitation: boolean, mfaCode?: string): CreateTenantPayload {
+    return {
+      displayName: form.displayName.trim(),
+      legalName: form.legalName.trim(),
+      countryCode: form.countryCode,
+      currency: form.currency,
+      timeZone: form.timeZone,
+      primaryLocale: form.primaryLocale,
+      hostingRegion: form.hostingRegion,
+      planKey: form.planKey,
+      seatLimit: form.seatLimit,
+      storageLimitGb: form.storageLimitGb,
+      billingCycle: form.billingCycle,
+      trialEndsAt: form.trialOn ? form.trialEndsAt : undefined,
+      primaryAdmin: {
+        name: sanitizeTrimmed(form.primaryAdmin.name),
+        email: sanitizeTrimmed(form.primaryAdmin.email).toLowerCase(),
+        phone: form.primaryAdmin.phone ? sanitizeTrimmed(form.primaryAdmin.phone) : undefined,
+      },
+      sendInvitation,
+      mfaCode,
+    };
+  }
+
+  async function submit(sendInvitation: boolean, mfaCode?: string) {
+    const result = await create.mutateAsync(buildPayload(sendInvitation, mfaCode));
     setInvitationSent(sendInvitation && !!result.data.primaryAdminInvitation);
     setCreatedTenant(result.data);
+    setMfaOpen(false);
+    setPendingSubmit(null);
+  }
+
+  async function requestSubmit(sendInvitation: boolean) {
+    try {
+      await submit(sendInvitation);
+    } catch (err) {
+      if (err instanceof ApiError && err.code === 'MFA_REQUIRED') {
+        setPendingSubmit({ sendInvitation });
+        setMfaOpen(true);
+        return;
+      }
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (step !== 'review') {
-      if (canAdvanceFrom(step)) {
-        setStep(FORM_STEPS[stepIndex + 1] as FormStep);
-      }
+      if (validateStep(step)) setStep(FORM_STEPS[stepIndex + 1] as FormStep);
       return;
     }
-    await submit(true);
+    if (!validateAllSteps()) return;
+    await requestSubmit(true);
   }
 
   const STEP_LABELS: Record<FormStep, string> = {
@@ -155,65 +304,22 @@ export function CreateTenantWizard() {
     review: t('platform.tenants.create.steps.review'),
   };
 
-  const selectedPlan = plans.find((p) => p.id === form.planId);
-  const selectedRegion = regions.find((r) => r.id === form.deploymentRegionId);
-  const planEntitlements = selectedPlan?.entitlements ?? [];
+  const enabledModuleLabels = useMemo(
+    () =>
+      modules
+        .filter((m) => form.moduleToggles[m.code])
+        .map((m) => m.label)
+        .join(', ') || t('platform.tenants.create.product.none'),
+    [modules, form.moduleToggles, t],
+  );
 
   if (createdTenant) {
     return (
       <div className="mx-auto max-w-2xl rounded-xl border border-border-default bg-surface-primary p-8 text-center shadow-0">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-50 text-semantic-success">
-          <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-          </svg>
-        </div>
         <h2 className="text-heading-h2 font-bold text-text-primary">
           {invitationSent ? t('platform.tenants.create.success.titleInvited') : t('platform.tenants.create.success.title')}
         </h2>
-        <p className="mt-2 text-body-md text-text-secondary">
-          {invitationSent ? t('platform.tenants.create.success.descriptionInvited') : t('platform.tenants.create.success.description')}
-        </p>
-        <dl className="mt-6 space-y-3 rounded-lg bg-surface-canvas p-4 text-start">
-          <div className="flex justify-between gap-4">
-            <dt className="text-body-sm text-text-secondary">{t('platform.tenants.columns.name')}</dt>
-            <dd className="text-body-sm font-medium text-text-primary">{createdTenant.displayName}</dd>
-          </div>
-          <div className="flex justify-between gap-4">
-            <dt className="text-body-sm text-text-secondary">{t('platform.tenants.columns.status')}</dt>
-            <dd className="text-body-sm font-medium text-text-primary">{t(`platform.tenants.status.${createdTenant.status.toLowerCase()}`)}</dd>
-          </div>
-          <div className="flex justify-between gap-4">
-            <dt className="text-body-sm text-text-secondary">{t('platform.tenants.columns.plan')}</dt>
-            <dd className="text-body-sm font-medium text-text-primary">{createdTenant.planName ?? createdTenant.planKey ?? '—'}</dd>
-          </div>
-          <div className="flex justify-between gap-4">
-            <dt className="text-body-sm text-text-secondary">{t('platform.tenants.detail.region')}</dt>
-            <dd className="text-body-sm font-medium text-text-primary">{createdTenant.deploymentRegionName ?? createdTenant.deploymentRegionCode ?? '—'}</dd>
-          </div>
-          <div className="flex justify-between gap-4">
-            <dt className="text-body-sm text-text-secondary">{t('platform.tenants.create.commercial.subscriptionStart')}</dt>
-            <dd className="text-body-sm font-medium text-text-primary">
-              {createdTenant.trialEndsAt
-                ? t('platform.tenants.create.commercial.trial')
-                : t('platform.tenants.create.commercial.paid')}
-            </dd>
-          </div>
-          {createdTenant.primaryAdminInvitation && (
-            <>
-              <div className="flex justify-between gap-4">
-                <dt className="text-body-sm text-text-secondary">{t('platform.tenants.create.admin.email')}</dt>
-                <dd className="text-body-sm font-medium text-text-primary ltr:text-end">{createdTenant.primaryAdminInvitation.email}</dd>
-              </div>
-              <div className="flex justify-between gap-4">
-                <dt className="text-body-sm text-text-secondary">{t('platform.tenants.create.success.invitationStatus')}</dt>
-                <dd className="text-body-sm font-medium text-text-primary">{createdTenant.primaryAdminInvitation.status}</dd>
-              </div>
-            </>
-          )}
-        </dl>
-        {invitationSent && !createdTenant.primaryAdminInvitation && (
-          <p className="mt-4 text-body-sm text-semantic-warning">{t('platform.tenants.create.success.invitationPending')}</p>
-        )}
+        <p className="mt-2 text-body-md text-text-secondary">{createdTenant.displayName}</p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Link href={ROUTES.PLATFORM.TENANT_DETAIL(createdTenant.id)} className="rounded-md bg-brand-blue-600 px-6 py-2 text-body-md font-semibold text-white hover:bg-blue-700">
             {t('platform.tenants.create.success.viewTenant')}
@@ -227,90 +333,84 @@ export function CreateTenantWizard() {
   }
 
   if (plansLoading || regionsLoading) {
-    return (
-      <div className="flex justify-center p-12">
-        <LoadingSpinner />
-      </div>
-    );
+    return <div className="flex justify-center p-12"><LoadingSpinner /></div>;
   }
 
-  const inputCls = 'w-full rounded-md border border-border-default px-3 py-2 text-body-md focus:border-brand-blue-600 focus:outline-none focus:ring-2 focus:ring-brand-blue-600/20';
+  const inputCls =
+    'w-full rounded-md border border-border-default px-3 py-2 text-body-md focus:border-brand-blue-600 focus:outline-none focus:ring-2 focus:ring-brand-blue-600/20';
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-3xl">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-body-md text-text-secondary">
+          {t('platform.tenants.create.stepIndicator', { current: stepIndex + 1, total: FORM_STEPS.length, label: STEP_LABELS[step] })}
+        </p>
+        <div className="flex gap-2">
+          <button type="button" disabled={create.isPending} onClick={() => void requestSubmit(false)} className="rounded-md border border-border-default px-4 py-2 text-body-md font-medium text-text-primary hover:bg-surface-canvas disabled:opacity-50">
+            {t('platform.tenants.create.saveDraft')}
+          </button>
+          <Link href={ROUTES.PLATFORM.TENANTS} className="rounded-md border border-border-default px-4 py-2 text-body-md font-medium text-text-primary hover:bg-surface-canvas">
+            {t('common.cancel')}
+          </Link>
+        </div>
+      </div>
+
       <nav aria-label={t('platform.tenants.create.wizardProgress')} className="mb-8">
-        <ol className="flex items-center gap-0">
-          {FORM_STEPS.map((s, i) => {
-            const done = stepIndex > i;
-            const active = step === s;
-            return (
-              <li key={s} className="flex flex-1 items-center">
-                <div className="flex flex-col items-center gap-1">
-                  <div className={`flex h-8 w-8 items-center justify-center rounded-full text-body-sm font-semibold ${
-                    done ? 'bg-brand-blue-600 text-white' : active ? 'border-2 border-brand-blue-600 bg-surface-primary text-brand-blue-600' : 'border-2 border-border-default bg-surface-primary text-text-secondary'
-                  }`}>
-                    {done ? '✓' : i + 1}
-                  </div>
-                  <span className={`hidden text-caption sm:block ${active ? 'font-semibold text-brand-blue-600' : 'text-text-secondary'}`}>
-                    {STEP_LABELS[s]}
-                  </span>
-                </div>
-                {i < FORM_STEPS.length - 1 && <div className={`mx-2 mb-5 h-0.5 flex-1 ${done ? 'bg-brand-blue-600' : 'bg-border-default'}`} />}
-              </li>
-            );
-          })}
+        <ol className="flex items-center">
+          {FORM_STEPS.map((s, i) => (
+            <li key={s} className="flex flex-1 items-center">
+              <div className={`flex h-8 w-8 items-center justify-center rounded-full text-body-sm font-semibold ${stepIndex >= i ? 'bg-brand-blue-600 text-white' : 'border-2 border-border-default text-text-secondary'}`}>
+                {i + 1}
+              </div>
+              {i < FORM_STEPS.length - 1 && <div className={`mx-2 h-0.5 flex-1 ${stepIndex > i ? 'bg-brand-blue-600' : 'bg-border-default'}`} />}
+            </li>
+          ))}
         </ol>
       </nav>
 
-      <form onSubmit={handleSubmit} className="rounded-xl border border-border-default bg-surface-primary p-6 shadow-0">
+      <form onSubmit={(e) => void handleSubmit(e)} className="rounded-xl border border-border-default bg-surface-primary p-6 shadow-0">
         {step === 'company' && (
           <fieldset className="space-y-4">
             <legend className="mb-4 text-heading-h3 font-bold text-text-primary">{t('platform.tenants.create.company.title')}</legend>
-            <div>
-              <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="displayName">
-                {t('platform.tenants.create.company.displayName')}<span className="ml-1 text-semantic-danger">*</span>
-              </label>
-              <input id="displayName" name="displayName" type="text" value={form.displayName} onChange={(e) => update('displayName', e.target.value)} className={inputCls} required maxLength={160} />
-            </div>
-            <div>
-              <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="legalName">
-                {t('platform.tenants.create.company.legalName')}<span className="ml-1 text-semantic-danger">*</span>
-              </label>
-              <input id="legalName" name="legalName" type="text" value={form.legalName} onChange={(e) => update('legalName', e.target.value)} className={inputCls} required maxLength={200} />
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="legalName">{t('platform.tenants.create.company.legalName')}<span className="ml-1 text-semantic-danger">*</span></label>
+                <input id="legalName" value={form.legalName} onChange={(e) => update('legalName', filterOrganizationNameInput(e.target.value))} className={inputCls} required maxLength={200} aria-invalid={!!fieldError('legalName')} />
+                {fieldError('legalName') && <p role="alert" className="mt-1 text-body-sm text-semantic-danger">{fieldError('legalName')}</p>}
+              </div>
+              <div>
+                <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="displayName">{t('platform.tenants.create.company.displayName')}<span className="ml-1 text-semantic-danger">*</span></label>
+                <input id="displayName" value={form.displayName} onChange={(e) => update('displayName', filterOrganizationNameInput(e.target.value))} className={inputCls} required maxLength={160} aria-invalid={!!fieldError('displayName')} />
+                {fieldError('displayName') && <p role="alert" className="mt-1 text-body-sm text-semantic-danger">{fieldError('displayName')}</p>}
+              </div>
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="countryCode">
-                  {t('platform.tenants.create.company.country')}<span className="ml-1 text-semantic-danger">*</span>
-                </label>
-                <select id="countryCode" name="countryCode" value={form.countryCode} onChange={(e) => update('countryCode', e.target.value)} className={inputCls}>
+                <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="countryCode">{t('platform.tenants.create.company.country')}<span className="ml-1 text-semantic-danger">*</span></label>
+                <select id="countryCode" value={form.countryCode} onChange={(e) => update('countryCode', e.target.value)} className={inputCls}>
                   {LAUNCH_COUNTRY_CODES.map((code) => <option key={code} value={code}>{t(`platform.catalogue.countries.${code}`)}</option>)}
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="baseCurrency">
-                  {t('platform.tenants.create.company.currency')}<span className="ml-1 text-semantic-danger">*</span>
-                </label>
-                <select id="baseCurrency" name="baseCurrency" value={form.baseCurrency} onChange={(e) => update('baseCurrency', e.target.value)} className={inputCls}>
-                  {LAUNCH_CURRENCY_CODES.map((code) => <option key={code} value={code}>{code} — {t(`platform.catalogue.currencies.${code}`)}</option>)}
+                <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="currency">{t('platform.tenants.create.company.currency')}<span className="ml-1 text-semantic-danger">*</span></label>
+                <select id="currency" value={form.currency} onChange={(e) => update('currency', e.target.value)} className={inputCls}>
+                  {LAUNCH_CURRENCY_CODES.map((code) => <option key={code} value={code}>{code}</option>)}
                 </select>
               </div>
             </div>
-            <div>
-              <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="defaultTimezone">
-                {t('platform.tenants.create.company.timeZone')}<span className="ml-1 text-semantic-danger">*</span>
-              </label>
-              <select id="defaultTimezone" name="defaultTimezone" value={form.defaultTimezone} onChange={(e) => update('defaultTimezone', e.target.value)} className={inputCls}>
-                {LAUNCH_TIMEZONES.map((tz) => <option key={tz} value={tz}>{tz}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="defaultLocale">
-                {t('platform.tenants.create.company.language')}<span className="ml-1 text-semantic-danger">*</span>
-              </label>
-              <select id="defaultLocale" name="defaultLocale" value={form.defaultLocale} onChange={(e) => update('defaultLocale', e.target.value)} className={inputCls}>
-                {LAUNCH_LOCALES.map((loc) => <option key={loc} value={loc}>{t(`platform.catalogue.locales.${loc}`)}</option>)}
-              </select>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="timeZone">{t('platform.tenants.create.company.timeZone')}<span className="ml-1 text-semantic-danger">*</span></label>
+                <select id="timeZone" value={form.timeZone} onChange={(e) => update('timeZone', e.target.value)} className={inputCls}>
+                  {LAUNCH_TIMEZONES.map((tz) => <option key={tz} value={tz}>{tz}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="primaryLocale">{t('platform.tenants.create.company.language')}<span className="ml-1 text-semantic-danger">*</span></label>
+                <select id="primaryLocale" value={form.primaryLocale} onChange={(e) => update('primaryLocale', e.target.value)} className={inputCls}>
+                  {LAUNCH_LOCALES.map((loc) => <option key={loc} value={loc}>{t(`platform.catalogue.locales.${loc}`)}</option>)}
+                </select>
+              </div>
             </div>
           </fieldset>
         )}
@@ -320,85 +420,46 @@ export function CreateTenantWizard() {
             <legend className="mb-4 text-heading-h3 font-bold text-text-primary">{t('platform.tenants.create.commercial.title')}</legend>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="planId">
-                  {t('platform.tenants.create.commercial.plan')}<span className="ml-1 text-semantic-danger">*</span>
-                </label>
-                <select id="planId" name="planId" value={form.planId} onChange={(e) => selectPlan(e.target.value)} className={inputCls} required>
+                <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="planKey">{t('platform.tenants.create.commercial.plan')}<span className="ml-1 text-semantic-danger">*</span></label>
+                <select id="planKey" value={form.planKey} onChange={(e) => selectPlan(e.target.value)} className={inputCls} required>
                   <option value="">{t('platform.tenants.create.selectPlan')}</option>
-                  {plans.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                  {plans.map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="billingCycle">
-                  {t('platform.tenants.create.commercial.billingCycle')}<span className="ml-1 text-semantic-danger">*</span>
-                </label>
-                <select id="billingCycle" name="billingCycle" value={form.billingCycle} onChange={(e) => update('billingCycle', e.target.value as 'monthly' | 'annual')} className={inputCls}>
+                <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="billingCycle">{t('platform.tenants.create.commercial.billingCycle')}<span className="ml-1 text-semantic-danger">*</span></label>
+                <select id="billingCycle" value={form.billingCycle} onChange={(e) => update('billingCycle', e.target.value as 'monthly' | 'annual')} className={inputCls}>
                   <option value="monthly">{t('platform.billing.monthly')}</option>
                   <option value="annual">{t('platform.billing.annual')}</option>
                 </select>
               </div>
             </div>
             <div>
-              <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="seatLimit">
-                {t('platform.tenants.create.commercial.seatLimit')}<span className="ml-1 text-semantic-danger">*</span>
-              </label>
-              <input id="seatLimit" name="seatLimit" type="number" value={form.seatLimit} onChange={(e) => update('seatLimit', parseInt(e.target.value, 10))} className={inputCls} min={1} max={100000} required />
-            </div>
-            <div>
-              <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="storageLimitGb">
-                {t('platform.tenants.create.commercial.storageLimit')}
-                <span className="ml-1 font-normal text-text-secondary">({t('common.optional')})</span>
-              </label>
-              <input
-                id="storageLimitGb"
-                name="storageLimitGb"
-                type="number"
-                value={form.storageLimitGb ?? ''}
-                onChange={(e) => update('storageLimitGb', e.target.value ? parseInt(e.target.value, 10) : undefined)}
-                className={inputCls}
-                min={1}
-                max={100000}
-              />
-            </div>
-            <fieldset>
-              <legend className="mb-2 text-label-md font-semibold text-text-primary">
-                {t('platform.tenants.create.commercial.subscriptionStart')}<span className="ml-1 text-semantic-danger">*</span>
-              </legend>
-              <div className="flex flex-wrap gap-4">
-                <label className="flex items-center gap-2 text-body-md text-text-primary">
-                  <input
-                    type="radio"
-                    name="subscriptionStart"
-                    value="paid"
-                    checked={subscriptionStart === 'paid'}
-                    onChange={() => {
-                      setSubscriptionStart('paid');
-                      update('trialEndsAt', undefined);
-                    }}
-                  />
-                  {t('platform.tenants.create.commercial.paid')}
-                </label>
-                <label className="flex items-center gap-2 text-body-md text-text-primary">
-                  <input
-                    type="radio"
-                    name="subscriptionStart"
-                    value="trial"
-                    checked={subscriptionStart === 'trial'}
-                    onChange={() => setSubscriptionStart('trial')}
-                  />
-                  {t('platform.tenants.create.commercial.trial')}
-                </label>
+              <span className="mb-2 block text-label-md font-semibold text-text-primary">{t('platform.tenants.create.commercial.trialStatus')}<span className="ml-1 text-semantic-danger">*</span></span>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2"><input type="radio" checked={form.trialOn} onChange={() => update('trialOn', true)} />{t('platform.tenants.create.commercial.trialOn')}</label>
+                <label className="flex items-center gap-2"><input type="radio" checked={!form.trialOn} onChange={() => { update('trialOn', false); update('trialEndsAt', undefined); }} />{t('platform.tenants.create.commercial.trialOff')}</label>
               </div>
-            </fieldset>
-            {subscriptionStart === 'trial' && (
+            </div>
+            {form.trialOn && (
               <div>
-                <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="trialEndsAt">
-                  {t('platform.tenants.create.commercial.trialEndsAt')}<span className="ml-1 text-semantic-danger">*</span>
-                </label>
-                <input id="trialEndsAt" name="trialEndsAt" type="date" value={form.trialEndsAt ?? ''} onChange={(e) => update('trialEndsAt', e.target.value || undefined)} className={inputCls} required />
-                <p className="mt-1 text-body-sm text-text-secondary">{t('platform.tenants.create.commercial.trialHelp')}</p>
+                <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="trialEndsAt">{t('platform.tenants.create.commercial.trialEndsAt')}<span className="ml-1 text-semantic-danger">*</span></label>
+                <input id="trialEndsAt" type="date" value={form.trialEndsAt ?? ''} onChange={(e) => update('trialEndsAt', e.target.value || undefined)} className={inputCls} required aria-invalid={!!fieldError('trialEndsAt')} />
+                {fieldError('trialEndsAt') && <p role="alert" className="mt-1 text-body-sm text-semantic-danger">{fieldError('trialEndsAt')}</p>}
               </div>
             )}
+            <div>
+              <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="seatLimit">{t('platform.tenants.create.commercial.seatLimit')}<span className="ml-1 text-semantic-danger">*</span></label>
+              <input id="seatLimit" type="number" min={1} inputMode="numeric" value={form.seatLimit} onChange={(e) => { const n = parseInt(filterDigitsOnly(e.target.value, 6), 10); update('seatLimit', Number.isFinite(n) && n > 0 ? n : 1); }} className={inputCls} required aria-invalid={!!fieldError('seatLimit')} />
+              {fieldError('seatLimit') && <p role="alert" className="mt-1 text-body-sm text-semantic-danger">{fieldError('seatLimit')}</p>}
+            </div>
+            <div>
+              <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="storageLimitGb">{t('platform.tenants.create.commercial.storageLimit')}<span className="ml-1 text-semantic-danger">*</span></label>
+              <div className="flex gap-2">
+                <input id="storageLimitGb" type="number" min={1} inputMode="numeric" value={form.storageLimitGb} onChange={(e) => { const n = parseInt(filterDigitsOnly(e.target.value, 6), 10); update('storageLimitGb', Number.isFinite(n) && n > 0 ? n : 1); }} className={inputCls} required aria-invalid={!!fieldError('storageLimitGb')} />
+                <span className="flex items-center rounded-md border border-border-default px-3 text-body-md text-text-secondary">GB</span>
+              </div>
+            </div>
           </fieldset>
         )}
 
@@ -406,20 +467,48 @@ export function CreateTenantWizard() {
           <fieldset className="space-y-4">
             <legend className="mb-4 text-heading-h3 font-bold text-text-primary">{t('platform.tenants.create.product.title')}</legend>
             <div>
-              <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="deploymentRegionId">
-                {t('platform.tenants.create.company.hostingRegion')}<span className="ml-1 text-semantic-danger">*</span>
-              </label>
-              <select id="deploymentRegionId" name="deploymentRegionId" value={form.deploymentRegionId} onChange={(e) => update('deploymentRegionId', e.target.value)} className={inputCls} required>
+              <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="hostingRegion">{t('platform.tenants.create.company.hostingRegion')}<span className="ml-1 text-semantic-danger">*</span></label>
+              <select id="hostingRegion" value={form.hostingRegion} onChange={(e) => update('hostingRegion', e.target.value)} className={inputCls} required>
                 <option value="">{t('platform.tenants.create.selectRegion')}</option>
-                {regions.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+                {regions.map((r) => <option key={r.id} value={r.hostingRegion}>{r.name}</option>)}
               </select>
             </div>
-            <p className="text-body-sm text-text-secondary">{t('platform.tenants.create.product.entitlementNote')}</p>
-            <div className="rounded-lg bg-surface-canvas p-4">
-              <ProductSetupSummary
-                planName={selectedPlan?.name}
-                entitlements={planEntitlements}
-              />
+            <div>
+              <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="supportTierKey">{t('platform.tenants.create.product.supportTier')}<span className="ml-1 text-semantic-danger">*</span></label>
+              <select id="supportTierKey" value={form.supportTierKey} onChange={(e) => update('supportTierKey', e.target.value)} className={inputCls} required>
+                {supportOptions.length === 0 ? (
+                  <option value={DEDICATED_SUPPORT_CODE}>{t('platform.tenants.create.product.supportStandard')}</option>
+                ) : (
+                  supportOptions.map((opt) => (
+                    <option key={opt.code} value={opt.code}>
+                      {opt.label} — {isEntitlementIncluded(opt.defaultValue) ? t('platform.tenants.create.product.included') : t('platform.tenants.create.product.notIncluded')}
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
+            <div>
+              <h4 className="mb-2 text-label-md font-semibold text-text-primary">{t('platform.tenants.create.product.enabledModules')}</h4>
+              <ul className="space-y-2">
+                {modules.map((mod) => (
+                  <li key={mod.code} className="flex items-center justify-between rounded-md border border-border-default px-3 py-2">
+                    <span className="text-body-sm text-text-primary">{mod.label}</span>
+                    <label className="flex items-center gap-2 text-body-sm">
+                      <input
+                        type="checkbox"
+                        checked={form.moduleToggles[mod.code] ?? false}
+                        disabled={!isEntitlementIncluded(mod.defaultValue)}
+                        onChange={(e) => setForm((prev) => ({ ...prev, moduleToggles: { ...prev.moduleToggles, [mod.code]: e.target.checked } }))}
+                      />
+                      {form.moduleToggles[mod.code] ? t('platform.tenants.create.product.enabled') : t('platform.tenants.create.product.disabled')}
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <ToggleRow label={t('platform.tenants.create.product.sso')} checked={form.ssoEnabled} planAllows={isEntitlementIncluded(planEntitlements.find((e) => e.code === SSO_CODE)?.defaultValue)} onChange={(v) => update('ssoEnabled', v)} enabledLabel={t('platform.tenants.create.product.enabled')} disabledLabel={t('platform.tenants.create.product.disabled')} />
+              <ToggleRow label={t('platform.tenants.create.product.apiAccess')} checked={form.apiAccessEnabled} planAllows={isEntitlementIncluded(planEntitlements.find((e) => e.code === API_ACCESS_CODE)?.defaultValue)} onChange={(v) => update('apiAccessEnabled', v)} enabledLabel={t('platform.tenants.create.product.enabled')} disabledLabel={t('platform.tenants.create.product.disabled')} />
             </div>
           </fieldset>
         )}
@@ -428,36 +517,23 @@ export function CreateTenantWizard() {
           <fieldset className="space-y-4">
             <legend className="mb-4 text-heading-h3 font-bold text-text-primary">{t('platform.tenants.create.admin.title')}</legend>
             <div>
-              <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="primaryAdminName">
-                {t('platform.tenants.create.admin.displayName')}<span className="ml-1 text-semantic-danger">*</span>
-              </label>
-              <input id="primaryAdminName" name="primaryAdminName" type="text" value={form.primaryAdmin.name} onChange={(e) => updateAdmin('name', e.target.value)} className={inputCls} required maxLength={160} />
+              <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="primaryAdminName">{t('platform.tenants.create.admin.name')}<span className="ml-1 text-semantic-danger">*</span></label>
+              <input id="primaryAdminName" value={form.primaryAdmin.name} onChange={(e) => updateAdmin('name', filterPersonNameInput(e.target.value))} className={inputCls} required maxLength={160} aria-invalid={!!fieldError('name')} />
+              {fieldError('name') && <p role="alert" className="mt-1 text-body-sm text-semantic-danger">{fieldError('name')}</p>}
             </div>
             <div>
-              <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="primaryAdminEmail">
-                {t('platform.tenants.create.admin.email')}<span className="ml-1 text-semantic-danger">*</span>
-              </label>
-              <input id="primaryAdminEmail" name="primaryAdminEmail" type="email" value={form.primaryAdmin.email} onChange={(e) => updateAdmin('email', e.target.value)} className={inputCls} required maxLength={255} />
-              <p className="mt-1 text-body-sm text-text-secondary">{t('platform.tenants.create.admin.emailHelp')}</p>
-              {emailCheckPending && (
-                <p className="mt-1 text-caption text-text-secondary">{t('common.loading')}</p>
-              )}
-              {emailAvailable === false && (
-                <p role="alert" className="mt-1 text-caption text-semantic-danger">
-                  {t('platform.tenants.create.admin.emailTaken')}
-                </p>
-              )}
-              {emailAvailable === true && (
-                <p className="mt-1 text-caption text-semantic-success">
-                  {t('platform.tenants.create.admin.emailAvailable')}
-                </p>
-              )}
+              <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="primaryAdminEmail">{t('platform.tenants.create.admin.email')}<span className="ml-1 text-semantic-danger">*</span></label>
+              <input id="primaryAdminEmail" type="email" value={form.primaryAdmin.email} onChange={(e) => updateAdmin('email', e.target.value.replace(/[\x00-\x1F\x7F]/g, ''))} className={inputCls} required maxLength={254} aria-invalid={!!fieldError('email')} />
+              {fieldError('email') && <p role="alert" className="mt-1 text-body-sm text-semantic-danger">{fieldError('email')}</p>}
             </div>
             <div>
-              <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="primaryAdminRole">
-                {t('platform.tenants.create.admin.role')}
-              </label>
-              <input id="primaryAdminRole" name="primaryAdminRole" type="text" value={t('platform.tenants.create.admin.roleValue')} className={inputCls} readOnly />
+              <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="primaryAdminPhone">{t('platform.tenants.create.admin.phone')}</label>
+              <input id="primaryAdminPhone" type="tel" inputMode="tel" value={form.primaryAdmin.phone ?? ''} onChange={(e) => updateAdmin('phone', filterInternationalPhoneInput(e.target.value))} className={inputCls} maxLength={16} aria-invalid={!!fieldError('phone')} />
+              {fieldError('phone') && <p role="alert" className="mt-1 text-body-sm text-semantic-danger">{fieldError('phone')}</p>}
+            </div>
+            <div>
+              <label className="mb-1 block text-label-md font-semibold text-text-primary" htmlFor="primaryAdminRole">{t('platform.tenants.create.admin.role')}<span className="ml-1 text-semantic-danger">*</span></label>
+              <input id="primaryAdminRole" value={t('platform.tenants.create.admin.roleValue')} className={inputCls} readOnly />
             </div>
           </fieldset>
         )}
@@ -465,36 +541,37 @@ export function CreateTenantWizard() {
         {step === 'review' && (
           <div className="space-y-4">
             <h3 className="text-heading-h3 font-bold text-text-primary">{t('platform.tenants.create.review.title')}</h3>
-            <p className="text-body-md text-text-secondary">{t('platform.tenants.create.review.description')}</p>
-            <dl className="space-y-3 rounded-lg bg-surface-canvas p-4">
-              <div className="flex justify-between gap-4"><dt className="text-body-sm text-text-secondary">{t('platform.tenants.create.company.displayName')}</dt><dd className="text-body-sm font-medium">{form.displayName}</dd></div>
-              <div className="flex justify-between gap-4"><dt className="text-body-sm text-text-secondary">{t('platform.tenants.create.company.legalName')}</dt><dd className="text-body-sm font-medium">{form.legalName}</dd></div>
-              <div className="flex justify-between gap-4"><dt className="text-body-sm text-text-secondary">{t('platform.tenants.create.company.country')}</dt><dd className="text-body-sm font-medium">{t.has(`platform.catalogue.countries.${form.countryCode}`) ? t(`platform.catalogue.countries.${form.countryCode}`) : form.countryCode}</dd></div>
-              <div className="flex justify-between gap-4"><dt className="text-body-sm text-text-secondary">{t('platform.tenants.create.company.currency')}</dt><dd className="text-body-sm font-medium ltr">{form.baseCurrency}</dd></div>
-              <div className="flex justify-between gap-4"><dt className="text-body-sm text-text-secondary">{t('platform.tenants.create.company.timeZone')}</dt><dd className="text-body-sm font-medium ltr">{form.defaultTimezone}</dd></div>
-              <div className="flex justify-between gap-4"><dt className="text-body-sm text-text-secondary">{t('platform.tenants.create.company.language')}</dt><dd className="text-body-sm font-medium">{t.has(`platform.catalogue.locales.${form.defaultLocale}`) ? t(`platform.catalogue.locales.${form.defaultLocale}`) : form.defaultLocale}</dd></div>
-              <div className="flex justify-between gap-4"><dt className="text-body-sm text-text-secondary">{t('platform.tenants.create.commercial.plan')}</dt><dd className="text-body-sm font-medium">{selectedPlan?.name ?? '—'}</dd></div>
-              <div className="flex justify-between gap-4"><dt className="text-body-sm text-text-secondary">{t('platform.tenants.create.commercial.billingCycle')}</dt><dd className="text-body-sm font-medium">{t(`platform.billing.${form.billingCycle}`)}</dd></div>
-              <div className="flex justify-between gap-4"><dt className="text-body-sm text-text-secondary">{t('platform.tenants.create.commercial.seatLimit')}</dt><dd className="text-body-sm font-medium tabular-nums">{form.seatLimit}</dd></div>
-              <div className="flex justify-between gap-4"><dt className="text-body-sm text-text-secondary">{t('platform.tenants.create.commercial.storageLimit')}</dt><dd className="text-body-sm font-medium tabular-nums">{form.storageLimitGb ?? '—'}</dd></div>
-              <div className="flex justify-between gap-4"><dt className="text-body-sm text-text-secondary">{t('platform.tenants.create.commercial.subscriptionStart')}</dt><dd className="text-body-sm font-medium">{t(`platform.tenants.create.commercial.${subscriptionStart}`)}</dd></div>
-              {subscriptionStart === 'trial' && (
-                <div className="flex justify-between gap-4"><dt className="text-body-sm text-text-secondary">{t('platform.tenants.create.commercial.trialEndsAt')}</dt><dd className="text-body-sm font-medium">{form.trialEndsAt ?? '—'}</dd></div>
-              )}
-            </dl>
-            <div className="rounded-lg bg-surface-canvas p-4">
-              <h4 className="mb-3 text-label-md font-semibold text-text-primary">{t('platform.tenants.create.product.title')}</h4>
-              <ProductSetupSummary
-                planName={selectedPlan?.name}
-                entitlements={planEntitlements}
-                regionName={selectedRegion?.name}
-              />
+            <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-body-sm text-green-900">{t('platform.tenants.create.review.allRequired')}</div>
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <ReviewCard title={t('platform.tenants.create.company.title')} rows={[
+                [t('platform.tenants.create.company.legalName'), form.legalName],
+                [t('platform.tenants.create.company.displayName'), form.displayName],
+                [t('platform.tenants.create.company.country'), t(`platform.catalogue.countries.${form.countryCode}`)],
+                [t('platform.tenants.create.company.currency'), form.currency],
+                [t('platform.tenants.create.company.timeZone'), form.timeZone],
+                [t('platform.tenants.create.company.language'), t(`platform.catalogue.locales.${form.primaryLocale}`)],
+              ]} />
+              <ReviewCard title={t('platform.tenants.create.commercial.title')} rows={[
+                [t('platform.tenants.create.commercial.plan'), selectedPlan?.name ?? '—'],
+                [t('platform.tenants.create.commercial.billingCycle'), t(`platform.billing.${form.billingCycle}`)],
+                [t('platform.tenants.create.commercial.trialStatus'), form.trialOn ? t('platform.tenants.create.commercial.trialOn') : t('platform.tenants.create.commercial.trialOff')],
+                [t('platform.tenants.create.commercial.seatLimit'), String(form.seatLimit)],
+                [t('platform.tenants.create.commercial.storageLimit'), `${form.storageLimitGb} GB`],
+              ]} />
+              <ReviewCard title={t('platform.tenants.create.product.title')} rows={[
+                [t('platform.tenants.create.company.hostingRegion'), form.hostingRegion],
+                [t('platform.tenants.create.product.supportTier'), supportOptions.find((o) => o.code === form.supportTierKey)?.label ?? '—'],
+                [t('platform.tenants.create.product.enabledModules'), enabledModuleLabels],
+                [t('platform.tenants.create.product.sso'), form.ssoEnabled ? t('platform.tenants.create.product.enabled') : t('platform.tenants.create.product.disabled')],
+                [t('platform.tenants.create.product.apiAccess'), form.apiAccessEnabled ? t('platform.tenants.create.product.enabled') : t('platform.tenants.create.product.disabled')],
+              ]} />
+              <ReviewCard title={t('platform.tenants.create.admin.title')} rows={[
+                [t('platform.tenants.create.admin.name'), form.primaryAdmin.name],
+                [t('platform.tenants.create.admin.email'), form.primaryAdmin.email],
+                [t('platform.tenants.create.admin.phone'), form.primaryAdmin.phone || '—'],
+                [t('platform.tenants.create.admin.role'), t('platform.tenants.create.admin.roleValue')],
+              ]} />
             </div>
-            <dl className="space-y-3 rounded-lg bg-surface-canvas p-4">
-              <div className="flex justify-between gap-4"><dt className="text-body-sm text-text-secondary">{t('platform.tenants.create.admin.displayName')}</dt><dd className="text-body-sm font-medium">{form.primaryAdmin.name}</dd></div>
-              <div className="flex justify-between gap-4"><dt className="text-body-sm text-text-secondary">{t('platform.tenants.create.admin.email')}</dt><dd className="text-body-sm font-medium ltr:text-end">{form.primaryAdmin.email}</dd></div>
-              <div className="flex justify-between gap-4"><dt className="text-body-sm text-text-secondary">{t('platform.tenants.create.admin.role')}</dt><dd className="text-body-sm font-medium">{t('platform.tenants.create.admin.roleValue')}</dd></div>
-            </dl>
             {create.error && (
               <div role="alert" className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-body-sm text-semantic-danger">
                 {create.error instanceof ApiError ? create.error.message : t('errors.generic')}
@@ -503,26 +580,54 @@ export function CreateTenantWizard() {
           </div>
         )}
 
-        <div className="mt-6 flex flex-col gap-3 border-t border-border-default pt-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-6 flex justify-between border-t border-border-default pt-4">
+          {stepIndex > 0 ? (
+            <button type="button" onClick={() => setStep(FORM_STEPS[stepIndex - 1] as FormStep)} className="rounded-md border border-border-default px-4 py-2 text-body-md font-medium">{t('common.previous')}</button>
+          ) : (
+            <span />
+          )}
           <div className="flex gap-2">
-            {stepIndex > 0 ? (
-              <button type="button" onClick={() => setStep(FORM_STEPS[stepIndex - 1] as FormStep)} className="rounded-md border border-border-default px-4 py-2 text-body-md font-medium text-text-primary hover:bg-surface-canvas">{t('common.previous')}</button>
-            ) : (
-              <Link href={ROUTES.PLATFORM.TENANTS} className="rounded-md border border-border-default px-4 py-2 text-body-md font-medium text-text-primary hover:bg-surface-canvas">{t('common.cancel')}</Link>
-            )}
-          </div>
-          <div className="flex flex-col gap-2 sm:flex-row">
             {step === 'review' && (
-              <button type="button" disabled={create.isPending} onClick={() => void submit(false)} className="rounded-md border border-border-default px-4 py-2 text-body-md font-medium text-text-primary hover:bg-surface-canvas disabled:opacity-50">
+              <button type="button" disabled={create.isPending} onClick={() => void requestSubmit(false)} className="rounded-md border border-border-default px-4 py-2 text-body-md font-medium disabled:opacity-50">
                 {t('platform.tenants.create.saveDraft')}
               </button>
             )}
-            <button type="submit" disabled={create.isPending || (step !== 'review' && !canAdvanceFrom(step))} className="rounded-md bg-brand-blue-600 px-6 py-2 text-body-md font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50">
+            <button type="submit" disabled={create.isPending || (step !== 'review' && !canAdvanceFrom(step))} className="rounded-md bg-brand-blue-600 px-6 py-2 text-body-md font-semibold text-white disabled:opacity-50">
               {create.isPending ? t('common.loading') : step === 'review' ? t('platform.tenants.create.submitButton') : t('common.next')}
             </button>
           </div>
         </div>
       </form>
+
+      <CreateTenantMfaDialog open={mfaOpen} pending={create.isPending} error={create.error} onClose={() => { setMfaOpen(false); setPendingSubmit(null); }} onConfirm={(code) => pendingSubmit && void submit(pendingSubmit.sendInvitation, code)} />
+    </div>
+  );
+}
+
+function ReviewCard({ title, rows }: { title: string; rows: string[][] }) {
+  return (
+    <div className="rounded-lg border border-border-default bg-surface-canvas p-4">
+      <h4 className="mb-3 text-label-md font-semibold text-text-primary">{title}</h4>
+      <dl className="space-y-2">
+        {rows.map(([label, value]) => (
+          <div key={label} className="flex justify-between gap-3 text-body-sm">
+            <dt className="text-text-secondary">{label}</dt>
+            <dd className="font-medium text-text-primary ltr:text-end">{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
+function ToggleRow({ label, checked, planAllows, onChange, enabledLabel, disabledLabel }: { label: string; checked: boolean; planAllows: boolean; onChange: (v: boolean) => void; enabledLabel: string; disabledLabel: string }) {
+  return (
+    <div className="flex items-center justify-between rounded-md border border-border-default px-3 py-2">
+      <span className="text-body-sm text-text-primary">{label}</span>
+      <label className="flex items-center gap-2 text-body-sm">
+        <input type="checkbox" checked={checked} disabled={!planAllows} onChange={(e) => onChange(e.target.checked)} />
+        {checked ? enabledLabel : disabledLabel}
+      </label>
     </div>
   );
 }

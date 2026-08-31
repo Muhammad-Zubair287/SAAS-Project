@@ -110,9 +110,9 @@ async function main() {
   // CREATE DRAFT + storage entitlement + activate (plan required)
   {
     const plansRes = await jsonFetch('/platform/plans', { headers: auth });
-    const regionsRes = await jsonFetch('/platform/deployment-regions', { headers: auth });
-    const plans = unwrap<Array<{ id: string }>>(plansRes.body);
-    const regions = unwrap<Array<{ id: string }>>(regionsRes.body);
+    const regionsRes = await jsonFetch('/platform/regions', { headers: auth });
+    const plans = unwrap<Array<{ code: string }>>(plansRes.body);
+    const regions = unwrap<Array<{ hostingRegion: string }>>(regionsRes.body);
     const stamp = Date.now();
     const { res, body } = await jsonFetch('/platform/tenants', {
       method: 'POST',
@@ -121,11 +121,11 @@ async function main() {
         displayName: `Smoke Draft ${stamp}`,
         legalName: `Smoke Draft Legal ${stamp}`,
         countryCode: 'PK',
-        baseCurrency: 'PKR',
-        defaultTimezone: 'Asia/Karachi',
-        defaultLocale: 'en-PK',
-        deploymentRegionId: regions[0]?.id,
-        planId: plans[0]?.id,
+        currency: 'PKR',
+        timeZone: 'Asia/Karachi',
+        primaryLocale: 'en-PK',
+        hostingRegion: regions[0]?.hostingRegion,
+        planKey: plans[0]?.code,
         seatLimit: 25,
         storageLimitGb: 12,
         billingCycle: 'monthly',

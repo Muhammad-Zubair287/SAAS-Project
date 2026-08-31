@@ -67,6 +67,7 @@ export class PlatformCatalogueService {
       cloudRegion: r.cloudRegion,
       countryCode: r.countryCode,
       status: r.status,
+      hostingRegion: `${r.cloudProvider.toLowerCase()}-${r.cloudRegion}`,
     }));
   }
 }

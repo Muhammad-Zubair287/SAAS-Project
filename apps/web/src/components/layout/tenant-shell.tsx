@@ -122,7 +122,7 @@ export function TenantShell({ children, navItems }: TenantShellProps) {
       logo={<TenantLogo forSidebar />}
       sidebarLogo={<TenantLogo forSidebar />}
       sidebarLogoCollapsed={<TenantLogo compact forSidebar />}
-      headerLogo={<TenantLogo />}
+      headerLogo={null}
       headerLeading={<TenantNameBadge />}
       headerCenter={<TenantGlobalSearch />}
       roleLabel={roleLabel}

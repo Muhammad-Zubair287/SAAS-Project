@@ -804,6 +804,9 @@
         "severity": "شدت"
       },
       "totalResults": "{total} نتائج",
+      "summary": {
+        "totalEvents": "کل واقعات"
+      },
       "detail": {
         "title": "واقعہ کی تفصیلات",
         "id": "واقعہ آئی ڈی",

@@ -35,7 +35,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
-      <body className="min-h-screen bg-surface-canvas font-sans antialiased">
+      <body className="h-full min-h-screen bg-surface-canvas font-sans antialiased">
         <Providers locale={locale} messages={messages}>
           {children}
         </Providers>

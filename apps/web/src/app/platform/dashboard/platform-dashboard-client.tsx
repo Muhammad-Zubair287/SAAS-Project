@@ -20,9 +20,13 @@ interface PlatformDashboardClientProps {
   description: string;
 }
 
+function toDateParam(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
 function periodRange(period: PlatformDashboardPeriod): { from?: string; to?: string } {
   const now = new Date();
-  const to = now.toISOString();
+  const to = toDateParam(now);
   if (period === 'custom' || period === 'all') return {};
   const from = new Date(now);
   if (period === 'today') {
@@ -35,7 +39,7 @@ function periodRange(period: PlatformDashboardPeriod): { from?: string; to?: str
     from.setDate(1);
     from.setHours(0, 0, 0, 0);
   }
-  return { from: from.toISOString(), to };
+  return { from: toDateParam(from), to };
 }
 
 function exportOverviewCsv(rows: Array<{ label: string; value: string | number }>) {

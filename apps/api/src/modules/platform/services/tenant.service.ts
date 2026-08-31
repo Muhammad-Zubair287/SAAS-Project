@@ -32,6 +32,7 @@ import { ensureHrConsolePermissionsForTenant } from '../../../database/seed/hr-c
 import { ensureEssPermissionsForTenant } from '../../../database/seed/ess-permissions.seed';
 import { InvitationService } from '../../authentication/services/invitation.service';
 import { MfaService } from '../../authentication/services/mfa.service';
+import { IdempotencyService } from '../../../common/services/idempotency.service';
 
 function slugify(name: string): string {
   return name
@@ -39,6 +40,14 @@ function slugify(name: string): string {
     .trim()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
+}
+
+function primaryAdminDisplayName(admin: CreateTenantDto['primaryAdmin']): string {
+  return admin.name.trim();
+}
+
+function regionKey(cloudProvider: string, cloudRegion: string): string {
+  return `${cloudProvider.toLowerCase()}-${cloudRegion}`;
 }
 
 @Injectable()
@@ -52,6 +61,7 @@ export class TenantService {
     private readonly audit: PlatformAuditService,
     private readonly invitationService: InvitationService,
     private readonly mfaService: MfaService,
+    private readonly idempotency: IdempotencyService,
   ) {}
 
   async validateSlug(slug: string): Promise<{ available: boolean; slug: string }> {
@@ -95,6 +105,30 @@ export class TenantService {
     dto: CreateTenantDto,
     actor: PlatformActorContext,
     correlationId: string,
+    idempotencyKey: string,
+  ): Promise<TenantResponseDto> {
+    const requestHash = this.idempotency.hashRequest(dto);
+    const replay = await this.idempotency.begin<TenantResponseDto>(idempotencyKey, requestHash);
+    if (replay.replay) {
+      return replay.body;
+    }
+
+    try {
+      await this.mfaService.assertPlatformStepUp(actor.actorId, dto.mfaCode);
+
+      const response = await this.createTenant(dto, actor, correlationId);
+      await this.idempotency.complete(idempotencyKey, HttpStatus.CREATED, response, response.id);
+      return response;
+    } catch (error) {
+      await this.idempotency.fail(idempotencyKey);
+      throw error;
+    }
+  }
+
+  private async createTenant(
+    dto: CreateTenantDto,
+    actor: PlatformActorContext,
+    correlationId: string,
   ): Promise<TenantResponseDto> {
     const existingName = await this.tenantRepo.findByDisplayName(dto.displayName);
     if (existingName) {
@@ -105,20 +139,28 @@ export class TenantService {
       });
     }
 
-    // Batch 2: resolve plan and region by UUID, then validate plan-region compatibility.
-    const planRecord = await this.prisma.plan.findUnique({ where: { id: dto.planId } });
-    if (!planRecord) {
+    const planRecord = await this.prisma.plan.findUnique({ where: { code: dto.planKey } });
+    if (!planRecord || planRecord.status !== 'ACTIVE') {
       throw new AppException({
         code: ERROR_CODES.PLAN_NOT_FOUND,
-        message: `Plan "${dto.planId}" does not exist.`,
+        message: `Plan "${dto.planKey}" does not exist.`,
         statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
       });
     }
-    const regionRecord = await this.prisma.deploymentRegion.findUnique({ where: { id: dto.deploymentRegionId } });
+
+    const activeRegions = await this.prisma.deploymentRegion.findMany({
+      where: { status: 'ACTIVE' },
+    });
+    const regionRecord = activeRegions.find(
+      (r) =>
+        r.code === dto.hostingRegion ||
+        r.cloudRegion === dto.hostingRegion ||
+        regionKey(r.cloudProvider, r.cloudRegion) === dto.hostingRegion,
+    );
     if (!regionRecord) {
       throw new AppException({
         code: ERROR_CODES.HOSTING_REGION_NOT_ALLOWED,
-        message: `Deployment region "${dto.deploymentRegionId}" does not exist or is not available.`,
+        message: `Deployment region "${dto.hostingRegion}" does not exist or is not available.`,
         statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
       });
     }
@@ -165,13 +207,13 @@ export class TenantService {
           legalName: dto.legalName,
           slug,
           countryCode: dto.countryCode,
-          baseCurrency: dto.baseCurrency,
-          defaultTimezone: dto.defaultTimezone,
-          defaultLocale: dto.defaultLocale,
-          deploymentRegionId: dto.deploymentRegionId,
-          planId: dto.planId,
+          baseCurrency: dto.currency,
+          defaultTimezone: dto.timeZone,
+          defaultLocale: dto.primaryLocale,
+          deploymentRegionId: regionRecord.id,
+          planId: planRecord.id,
           planKey: planRecord.code,
-          seatLimit: dto.seatLimit ?? null,
+          seatLimit: dto.seatLimit,
           status: TenantStatus.DRAFT,
           createdBy: actor.email,
           updatedBy: actor.email,
@@ -187,7 +229,7 @@ export class TenantService {
           // Spec: TRIAL (not TRIALING). TRIALING retained in enum for compat with existing data.
           status: trialEndsAt ? SubscriptionStatus.TRIAL : SubscriptionStatus.ACTIVE,
           billingCycle: dto.billingCycle ?? 'monthly',
-          seatLimit: dto.seatLimit ?? 0,
+          seatLimit: dto.seatLimit,
           trialEndsAt,                        // compat: not in spec; retained until service updated
           currentPeriodStart: now,            // compat: not in spec; retained until service updated
           currentPeriodEnd: periodEnd,        // compat: not in spec; retained until service updated
@@ -286,7 +328,7 @@ export class TenantService {
         {
           email: dto.primaryAdmin.email,
           tenantId,
-          displayName: dto.primaryAdmin.name,
+          displayName: primaryAdminDisplayName(dto.primaryAdmin),
           roleIds: [adminRole.id],
         },
         actor.actorId,

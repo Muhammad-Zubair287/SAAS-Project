@@ -65,7 +65,7 @@ export class AuthService {
   async login(dto: LoginDto, ctx: RequestContext): Promise<LoginResponse> {
     const emailNormalised = dto.email.toLowerCase().trim();
     // Prefer public slug (tenant login URL) over raw UUID; keep tenantId for API/scripts.
-    const tenantId = await this.resolveLoginTenantId(dto);
+    let tenantId = await this.resolveLoginTenantId(dto);
     const user = await this.authRepo.findUserByEmail(emailNormalised);
 
     // Guard: user not found or no password credential (constant-time path).
@@ -130,6 +130,13 @@ export class AuthService {
         message: 'Account is not yet active.',
         statusCode: HttpStatus.UNAUTHORIZED,
       });
+    }
+
+    if (!tenantId && !user.platformRole) {
+      const tenantIds = await this.rbacRepo.findDistinctActiveTenantIds(user.id);
+      if (tenantIds.length === 1) {
+        tenantId = tenantIds[0]!;
+      }
     }
 
     await this.assertLoginScope(user.id, user.platformRole ?? null, tenantId ?? null);

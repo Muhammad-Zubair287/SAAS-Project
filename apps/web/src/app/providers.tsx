@@ -1,14 +1,20 @@
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import type { AbstractIntlMessages } from 'next-intl';
 import { NextIntlClientProvider } from 'next-intl';
+import dynamic from 'next/dynamic';
 import { type ReactNode, useState } from 'react';
 import { APP_CONSTANTS } from '../constants/app.constants';
 import { ApiError } from '../lib/api/types';
 import { Toaster } from '../components/ui/toaster';
 import { AuthProvider } from '../lib/auth/auth-provider';
+
+const ReactQueryDevtools = dynamic(
+  () =>
+    import('@tanstack/react-query-devtools').then((module) => module.ReactQueryDevtools),
+  { ssr: false },
+);
 
 interface ProvidersProps {
   children: ReactNode;

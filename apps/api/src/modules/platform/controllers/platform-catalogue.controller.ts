@@ -27,6 +27,14 @@ export class PlatformCatalogueController {
     return this.catalogue.listPlans(includeEntitlements === 'true');
   }
 
+  @Get('regions')
+  @RequirePermissions(PLATFORM_PERMISSIONS.TENANT_READ)
+  @ApiOperation({ summary: 'List active hosting regions (API §13)' })
+  @ApiOkResponse({ type: [DeploymentRegionResponseDto] })
+  async listRegionsAlias(): Promise<DeploymentRegionResponseDto[]> {
+    return this.catalogue.listDeploymentRegions();
+  }
+
   @Get('deployment-regions')
   @RequirePermissions(PLATFORM_PERMISSIONS.TENANT_READ)
   @ApiOperation({ summary: 'List active deployment regions' })

@@ -22,11 +22,11 @@ import { RequirePermissions } from '../decorators/require-permissions.decorator'
 import type { CurrentUserContext } from '../interfaces/current-user-context.interface';
 import { InvitationService, type InvitationCreatedResponse } from '../services/invitation.service';
 import { RefreshCookieService } from '../services/refresh-cookie.service';
-import { AuthResponseDto } from '../dto/auth-response.dto';
+import { InvitationAcceptResponseDto } from '../dto/invitation-accept-response.dto';
 import { InvitationCreateDto } from '../dto/invitation-create.dto';
 import { InvitationAcceptDto } from '../dto/invitation-accept.dto';
 import type { RequestContext } from '../services/auth.service';
-import { writeAuthResponse } from '../utils/auth-response.util';
+import { writeInvitationAcceptResponse } from '../utils/invitation-accept-response.util';
 import { TENANT_ADMIN_PERMISSIONS } from '../../../common/constants/permissions.constants';
 import { AppException } from '../../../common/exceptions/app.exception';
 import { ERROR_CODES } from '../../../common/constants/error-codes.constants';
@@ -123,16 +123,16 @@ export class InvitationController {
   }
 
   @ApiOperation({ summary: 'Accept an invitation and set initial password' })
-  @ApiResponse({ status: 200, type: AuthResponseDto })
+  @ApiResponse({ status: 200, type: InvitationAcceptResponseDto })
   @Post('accept')
   @HttpCode(HttpStatus.OK)
   async acceptInvitation(
     @Body() dto: InvitationAcceptDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<AuthResponseDto> {
+  ): Promise<InvitationAcceptResponseDto> {
     const pair = await this.invitationService.acceptInvitation(dto, this.buildContext(req));
-    return writeAuthResponse(res, req, pair, this.refreshCookies);
+    return writeInvitationAcceptResponse(res, req, pair, this.refreshCookies);
   }
 
   private requireTenant(user: CurrentUserContext): string {

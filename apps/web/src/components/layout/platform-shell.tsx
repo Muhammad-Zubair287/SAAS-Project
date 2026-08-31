@@ -15,32 +15,10 @@ import type { ReactNode } from 'react';
 import { useAuth } from '../../lib/auth/auth-provider';
 import { ROUTES } from '../../constants/routes.constants';
 import { platformApi } from '../../modules/platform/api/platform-api';
-import { APP_CONSTANTS } from '../../constants/app.constants';
 
 interface PlatformShellProps {
   children: ReactNode;
   navItems: NavItem[];
-}
-
-function BrandMark({ compact = false }: { compact?: boolean }) {
-  const t = useTranslations();
-  const fullName = APP_CONSTANTS.APP_NAME || t('platform.brand.fullName');
-  return (
-    <Link
-      href={ROUTES.PLATFORM.DASHBOARD}
-      title={fullName}
-      className="flex min-w-0 items-center gap-2"
-    >
-      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-brand-blue-600 text-body-sm font-bold text-white">
-        W
-      </div>
-      {!compact && (
-        <span className="truncate text-title-sm font-bold text-text-primary lg:text-title-md">
-          {fullName}
-        </span>
-      )}
-    </Link>
-  );
 }
 
 function SidebarBrand({ compact = false }: { compact?: boolean }) {
@@ -119,7 +97,7 @@ export function PlatformShell({ children, navItems }: PlatformShellProps) {
       logo={<SidebarBrand />}
       sidebarLogo={<SidebarBrand />}
       sidebarLogoCollapsed={<SidebarBrand compact />}
-      headerLogo={<BrandMark />}
+      headerLogo={null}
       headerLeading={<TenantSwitcher />}
       headerCenter={<GlobalSearch />}
       roleLabel={roleLabel}

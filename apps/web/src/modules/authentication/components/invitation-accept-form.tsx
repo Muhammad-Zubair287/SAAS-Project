@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
@@ -11,7 +11,8 @@ import { AuthShell } from './auth-shell';
 import { PasswordInput } from './password-input';
 import { authApi } from '../api/auth-api';
 import { useAuth } from '../../../lib/auth/auth-provider';
-import { resolvePostLoginPath } from '../../../lib/auth/auth-gate';
+import { resolvePostLoginPath } from '../../../lib/auth/post-login-path';
+import { rememberTenantLoginSlug } from '../../../lib/auth/login-context';
 import { ApiError } from '../../../lib/api/types';
 import { ROUTES } from '../../../constants/routes.constants';
 
@@ -21,23 +22,29 @@ interface FormValues {
   acceptTerms: boolean;
 }
 
-export function InvitationAcceptForm() {
+interface InvitationAcceptFormProps {
+  invitationToken: string;
+}
+
+export function InvitationAcceptForm({ invitationToken }: InvitationAcceptFormProps) {
   const t = useTranslations('auth');
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const tokenRef = useRef(searchParams.get('token') ?? '');
-  const token = tokenRef.current;
+  const [token, setToken] = useState(invitationToken);
   const { completeSession } = useAuth();
   const [serverError, setServerError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (token && typeof window !== 'undefined') {
-      const url = new URL(window.location.href);
-      if (url.searchParams.has('token')) {
-        url.searchParams.delete('token');
-        window.history.replaceState({}, '', `${url.pathname}${url.search}`);
-      }
+    if (invitationToken) {
+      setToken(invitationToken);
     }
+  }, [invitationToken]);
+
+  useEffect(() => {
+    if (!token || typeof window === 'undefined') return;
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has('token')) return;
+    url.searchParams.delete('token');
+    window.history.replaceState({}, '', `${url.pathname}${url.search}`);
   }, [token]);
 
   const {
@@ -60,8 +67,11 @@ export function InvitationAcceptForm() {
         token,
         password: values.password,
       });
-      const user = await completeSession(result.accessToken);
-      router.replace(resolvePostLoginPath(user));
+      if (result.tenantSlug) {
+        rememberTenantLoginSlug(result.tenantSlug);
+      }
+      const sessionUser = await completeSession(result.accessToken);
+      router.replace(resolvePostLoginPath(sessionUser));
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.code === 'INVITATION_EXPIRED') {

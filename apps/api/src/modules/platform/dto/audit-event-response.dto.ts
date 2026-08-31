@@ -47,6 +47,12 @@ export class ListAuditEventsDto extends PaginationDto {
   @MaxLength(80)
   resourceType?: string;
 
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  severity?: string;
+
   @ApiPropertyOptional({ description: 'ISO date YYYY-MM-DD' })
   @IsOptional()
   @IsString()

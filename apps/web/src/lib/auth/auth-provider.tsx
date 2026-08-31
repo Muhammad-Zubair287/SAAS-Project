@@ -30,7 +30,7 @@ interface AuthContextValue {
     | { mfaRequired: false; user: SessionUser }
   >;
   completeSession: (accessToken: string) => Promise<SessionUser>;
-  logout: () => Promise<void>;
+  logout: (options?: { redirect?: boolean }) => Promise<void>;
   hasPermission: (permission: string) => boolean;
   hasAnyPermission: (permissions: string[]) => boolean;
   refreshSession: () => Promise<boolean>;
@@ -155,7 +155,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [completeSession],
   );
 
-  const logout = useCallback(async () => {
+  const logout = useCallback(async (options?: { redirect?: boolean }) => {
+    const shouldRedirect = options?.redirect !== false;
     tokenStore.beginLogout();
     try {
       if (!tokenStore.getAccessToken()) {
@@ -170,7 +171,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       queryClient.clear();
       clearSession();
-      router.replace(ROUTES.AUTH.LOGIN);
+      if (shouldRedirect) {
+        router.replace(ROUTES.AUTH.LOGIN);
+      }
       tokenStore.endLogout();
     }
   }, [clearSession, queryClient, router]);

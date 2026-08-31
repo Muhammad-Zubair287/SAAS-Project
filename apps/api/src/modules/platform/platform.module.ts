@@ -28,6 +28,7 @@ import { PlatformConfigController } from './controllers/platform-config.controll
 import { PlatformCatalogueAdminController } from './controllers/platform-catalogue-admin.controller';
 import { PlatformOpsController } from './controllers/platform-ops.controller';
 import { PlatformIntegrationHealthController } from './controllers/platform-integration-health.controller';
+import { IdempotencyService } from '../../common/services/idempotency.service';
 
 @Module({
   imports: [PrismaModule, AuthenticationModule],
@@ -61,6 +62,7 @@ import { PlatformIntegrationHealthController } from './controllers/platform-inte
     PlatformJobsScheduler,
     PlatformAuthenticationGuard,
     PlatformRoleGuard,
+    IdempotencyService,
   ],
   exports: [TenantService, PlanService, PlatformAuditService, PlatformSettingsService],
 })

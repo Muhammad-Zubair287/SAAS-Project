@@ -85,7 +85,7 @@ export const platformApi = {
 
     listRegions: () =>
       apiClient
-        .get<ApiSuccessResponse<DeploymentRegion[]>>(`${BASE}/deployment-regions`)
+        .get<ApiSuccessResponse<DeploymentRegion[]>>(`${BASE}/regions`)
         .then((r) => r.data),
   },
 

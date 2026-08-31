@@ -19,6 +19,11 @@ import type { InvitationAcceptDto } from '../dto/invitation-accept.dto';
 import type { JwtPayload } from '../interfaces/jwt-payload.interface';
 import type { AuthTokenPair, RequestContext } from './auth.service';
 
+export interface InvitationAcceptTokenPair extends AuthTokenPair {
+  tenantSlug: string;
+  tenantLoginPath: string;
+}
+
 export interface InvitationCreatedResponse {
   id: string;
   email: string;
@@ -237,7 +242,10 @@ export class InvitationService {
     };
   }
 
-  async acceptInvitation(dto: InvitationAcceptDto, ctx: RequestContext): Promise<AuthTokenPair> {
+  async acceptInvitation(
+    dto: InvitationAcceptDto,
+    ctx: RequestContext,
+  ): Promise<InvitationAcceptTokenPair> {
     const tokenHash = hashToken(dto.token);
     const invitation = await this.invitationRepo.findInvitationByTokenHash(tokenHash);
 
@@ -313,6 +321,12 @@ export class InvitationService {
       correlationId: ctx.correlationId,
     });
 
+    const tenantSlug =
+      (await this.prisma.tenant.findUnique({
+        where: { id: invitation.tenantId },
+        select: { slug: true },
+      }))?.slug ?? '';
+
     return {
       accessToken,
       refreshToken,
@@ -320,6 +334,10 @@ export class InvitationService {
       expiresIn,
       sessionId: session.id,
       sessionExpiresAt: session.expiresAt,
+      tenantSlug,
+      tenantLoginPath: tenantSlug
+        ? `/t/${encodeURIComponent(tenantSlug)}/login`
+        : '/login',
     };
   }
 

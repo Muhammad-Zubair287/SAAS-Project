@@ -9,10 +9,12 @@ import { Field } from '../../../components/ui/field';
 import { Input } from '../../../components/ui/input';
 import { Button } from '../../../components/ui/button';
 import { useAuth } from '../../../lib/auth/auth-provider';
-import { resolvePostLoginPath } from '../../../lib/auth/auth-gate';
+import { resolvePostLoginPath } from '../../../lib/auth/post-login-path';
 import {
   clearPreferredTenantSlug,
   rememberTenantLoginSlug,
+  readPreferredTenantSlug,
+  buildTenantLoginPath,
 } from '../../../lib/auth/login-context';
 import { ApiError } from '../../../lib/api/types';
 import { PasswordInput } from './password-input';
@@ -64,6 +66,7 @@ export function SignInForm({ tenantSlug }: SignInFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get('returnTo');
+  const emailFromQuery = searchParams.get('email');
   const reason = searchParams.get('reason');
   const sessionExpired = reason === 'session-expired';
   const maintenance = reason === 'maintenance';
@@ -91,10 +94,15 @@ export function SignInForm({ tenantSlug }: SignInFormProps) {
 
   useEffect(() => {
     const rememberedEmail = readRememberedEmail();
-    if (!rememberedEmail) return;
-    setValue('email', rememberedEmail);
-    setValue('rememberDevice', true);
-  }, [setValue]);
+    if (rememberedEmail) {
+      setValue('email', rememberedEmail);
+      setValue('rememberDevice', true);
+      return;
+    }
+    if (emailFromQuery) {
+      setValue('email', emailFromQuery.trim().toLowerCase());
+    }
+  }, [setValue, emailFromQuery]);
 
   const onSubmit = handleSubmit(async (values) => {
     setServerError(null);
@@ -140,6 +148,12 @@ export function SignInForm({ tenantSlug }: SignInFormProps) {
         } else if (err.code === 'TENANT_MEMBERSHIP_REQUIRED') {
           setServerError(t('errors.membershipRequired'));
         } else if (err.code === 'AUTHENTICATION_REQUIRED' && !tenantSlug) {
+          const preferredSlug = readPreferredTenantSlug();
+          if (preferredSlug) {
+            const email = encodeURIComponent(values.email.trim().toLowerCase());
+            router.replace(`${buildTenantLoginPath(preferredSlug)}?email=${email}`);
+            return;
+          }
           setServerError(t('errors.tenantContextRequired'));
         } else {
           setServerError(t('errors.invalidCredentials'));

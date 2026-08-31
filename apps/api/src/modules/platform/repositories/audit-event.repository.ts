@@ -71,6 +71,7 @@ export class AuditEventRepository extends BaseRepository {
     action?: string;
     resourceType?: string;
     resourceId?: string;
+    severity?: string;
     fromDate?: Date;
     toDate?: Date;
     page: number;
@@ -83,6 +84,7 @@ export class AuditEventRepository extends BaseRepository {
       ...(filters.action ? { action: filters.action } : {}),
       ...(filters.resourceType ? { resourceType: filters.resourceType } : {}),
       ...(filters.resourceId ? { resourceId: filters.resourceId } : {}),
+      ...(filters.severity ? { severity: filters.severity } : {}),
       ...(filters.fromDate || filters.toDate
         ? {
             occurredAt: {

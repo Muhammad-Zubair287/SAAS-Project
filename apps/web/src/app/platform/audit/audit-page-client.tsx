@@ -162,8 +162,9 @@ export function AuditPageClient({ title, description, initialTenantId }: AuditPa
       {/* Summary KPI row */}
       {summary && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {Object.entries(summary).slice(0, 4).map(([key, count]) => (
-            <StatCard key={key} title={key} value={count as number} variant="default" />
+          <StatCard title={t('platform.audit.summary.totalEvents')} value={summary.totalEvents} variant="default" />
+          {summary.bySeverity.slice(0, 3).map(({ severity, count }) => (
+            <StatCard key={severity} title={severity} value={count} variant="default" />
           ))}
         </div>
       )}

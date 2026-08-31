@@ -20,6 +20,7 @@
     "confirmDelete": "Are you sure you want to delete this?",
     "yes": "Yes",
     "no": "No",
+    "select": "Select…",
     "required": "Required",
     "optional": "Optional",
     "actions": "Actions",
@@ -132,7 +133,8 @@
       "title": "Activate your account",
       "subtitle": "Set a password to complete your invitation.",
       "terms": "I accept the terms of use and privacy policy.",
-      "submit": "Activate account"
+      "submit": "Activate account",
+      "preparing": "Preparing a secure invitation session…"
     },
     "sessionExpired": {
       "title": "Session expired",
@@ -646,20 +648,23 @@
         "description": "Save draft provisions the tenant in DRAFT without an invitation. Create and send invitation also provisions DRAFT and sends the primary administrator invitation. Activation is a separate action.",
         "breadcrumb": "New tenant",
         "wizardProgress": "Wizard progress",
+        "stepIndicator": "Step {current} of {total}: {label}",
         "submitButton": "Create and send invitation",
         "saveDraft": "Save draft",
         "steps": {
-          "company": "Company",
-          "commercial": "Commercial",
-          "product": "Product",
-          "admin": "Administrator",
-          "review": "Review"
+          "company": "Company details",
+          "commercial": "Commercial setup",
+          "product": "Product setup",
+          "admin": "Primary administrator",
+          "review": "Review and confirm"
         },
         "selectPlan": "Select a plan…",
         "selectRegion": "Select a region…",
         "review": {
-          "title": "Review and create",
-          "description": "Confirm every value that will be submitted. Save draft keeps the tenant in DRAFT with no invitation. Create and send invitation keeps DRAFT and sends the primary administrator invitation."
+          "title": "Review and confirm",
+          "description": "Confirm every value that will be submitted. Save draft keeps the tenant in DRAFT with no invitation. Create and send invitation keeps DRAFT and sends the primary administrator invitation.",
+          "allRequired": "All required fields are filled.",
+          "optionalMissing": "Missing optional fields"
         },
         "success": {
           "title": "Tenant created",
@@ -674,7 +679,7 @@
         "company": {
           "title": "Company details",
           "displayName": "Display name",
-          "legalName": "Legal name",
+          "legalName": "Legal / business name",
           "country": "Country",
           "currency": "Currency",
           "timeZone": "Time zone",
@@ -683,40 +688,48 @@
         },
         "commercial": {
           "title": "Commercial setup",
-          "plan": "Plan",
+          "plan": "Subscription plan",
           "billingCycle": "Billing cycle",
+          "trialStatus": "Trial status",
+          "trialOn": "On",
+          "trialOff": "Off",
           "seatLimit": "Seat limit",
-          "storageLimit": "Storage limit (GB)",
-          "trialEndsAt": "Trial end date",
-          "trialHelp": "Required for a trial start. Paid tenants do not set a trial expiry.",
-          "subscriptionStart": "Subscription start",
-          "trial": "Trial",
-          "paid": "Paid"
+          "storageLimit": "Storage limit",
+          "trialEndsAt": "Trial expiry date"
         },
         "product": {
           "title": "Product setup",
-          "entitlementNote": "Enabled modules, SSO, API access and support tier are confirmed from the selected plan. M01 does not create independent overrides.",
-          "noEntitlements": "This plan has no entitlement rows in the catalogue.",
           "enabledModules": "Enabled modules",
-          "entitlements": "Entitlements",
-          "source": "Source",
+          "none": "None",
           "sso": "SSO",
           "apiAccess": "API access",
           "supportTier": "Support tier",
           "included": "Included",
           "notIncluded": "Not included",
-          "supportPremium": "Premium",
-          "supportStandard": "Standard"
+          "supportStandard": "Standard",
+          "enabled": "On",
+          "disabled": "Off"
         },
         "admin": {
           "title": "Primary administrator",
-          "displayName": "Full name",
+          "name": "Name",
           "email": "Email address",
-          "emailHelp": "Used as the primary administrator. An invitation is sent only when you choose Create and send invitation.",
-          "emailTaken": "This email is already in use or has a pending invitation.",
-          "emailAvailable": "Email is available.",
+          "phone": "Phone (optional)",
           "role": "Role",
-          "roleValue": "Tenant Admin"
+          "roleValue": "Tenant Administrator"
+        },
+        "validation": {
+          "required": "This field is required.",
+          "unsafe": "This value contains invalid or unsafe characters.",
+          "format": "Enter a valid value for this field.",
+          "maxLength": "This value is too long."
+        },
+        "mfa": {
+          "title": "Confirm with MFA",
+          "description": "Tenant creation is a high-impact action. Enter your authenticator code to continue.",
+          "codeLabel": "MFA code",
+          "codePlaceholder": "6-digit code",
+          "confirm": "Confirm and create"
         }
       }
     },
@@ -804,6 +817,9 @@
         "severity": "Severity"
       },
       "totalResults": "{total} results",
+      "summary": {
+        "totalEvents": "Total events"
+      },
       "detail": {
         "title": "Event Details",
         "id": "Event ID",
@@ -906,6 +922,17 @@
       "locales": {
         "en-PK": "English (Pakistan)",
         "ur-PK": "Urdu (Pakistan)"
+      },
+      "industries": {
+        "technology": "Technology",
+        "manufacturing": "Manufacturing",
+        "retail": "Retail",
+        "healthcare": "Healthcare",
+        "education": "Education",
+        "financial_services": "Financial services",
+        "logistics": "Logistics",
+        "professional_services": "Professional services",
+        "other": "Other"
       }
     },
     "chrome": {

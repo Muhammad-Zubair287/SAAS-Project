@@ -10,7 +10,7 @@ import { Button } from '../../../components/ui/button';
 import { AuthShell } from './auth-shell';
 import { authApi } from '../api/auth-api';
 import { useAuth } from '../../../lib/auth/auth-provider';
-import { resolvePostLoginPath } from '../../../lib/auth/auth-gate';
+import { resolvePostLoginPath } from '../../../lib/auth/post-login-path';
 import { tokenStore } from '../../../lib/auth/token-store';
 import { ApiError } from '../../../lib/api/types';
 import { ROUTES } from '../../../constants/routes.constants';

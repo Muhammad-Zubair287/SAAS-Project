@@ -27,6 +27,8 @@ export class DeploymentRegionResponseDto {
   @ApiProperty() cloudRegion!: string;
   @ApiProperty() countryCode!: string;
   @ApiProperty() status!: string;
+  /** API-TEN-001 hostingRegion key (e.g. aws-ap-south-1). */
+  @ApiProperty() hostingRegion!: string;
 }
 
 export class PlatformUsageSummaryDto {

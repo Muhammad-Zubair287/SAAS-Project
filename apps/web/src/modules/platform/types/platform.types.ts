@@ -155,6 +155,7 @@ export interface DeploymentRegion {
   cloudRegion: string;
   countryCode: string;
   status: string;
+  hostingRegion: string;
 }
 
 export interface AuditEvent {
@@ -177,20 +178,22 @@ export interface CreateTenantPayload {
   displayName: string;
   legalName: string;
   countryCode: string;
-  baseCurrency: string;
-  defaultTimezone: string;
-  defaultLocale: string;
-  deploymentRegionId: string;
-  planId: string;
+  currency: string;
+  timeZone: string;
+  primaryLocale: string;
+  hostingRegion: string;
+  planKey: string;
   seatLimit: number;
-  storageLimitGb?: number;
+  storageLimitGb: number;
   billingCycle: 'monthly' | 'annual';
   trialEndsAt?: string;
   primaryAdmin: {
     name: string;
     email: string;
+    phone?: string;
   };
   sendInvitation?: boolean;
+  mfaCode?: string;
 }
 
 export interface SuspendTenantPayload {

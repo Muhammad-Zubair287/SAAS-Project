@@ -19,6 +19,11 @@ export interface AuthTokenResponse {
   sessionId: string;
 }
 
+export interface InvitationAcceptResponse extends AuthTokenResponse {
+  tenantSlug: string;
+  tenantLoginPath: string;
+}
+
 export interface MfaChallengeResult {
   mfaRequired: true;
   challengeToken: string;

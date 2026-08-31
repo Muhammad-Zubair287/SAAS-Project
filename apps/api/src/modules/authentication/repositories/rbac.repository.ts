@@ -72,6 +72,19 @@ export class RbacRepository {
     return count > 0;
   }
 
+  /** Distinct tenant ids with at least one active role assignment. */
+  async findDistinctActiveTenantIds(userId: string): Promise<string[]> {
+    const rows = await this.prisma.roleAssignment.findMany({
+      where: {
+        userId,
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+      },
+      select: { tenantId: true },
+      distinct: ['tenantId'],
+    });
+    return rows.map((row) => row.tenantId);
+  }
+
   async findRoleAssignment(
     userId: string,
     roleId: string,
