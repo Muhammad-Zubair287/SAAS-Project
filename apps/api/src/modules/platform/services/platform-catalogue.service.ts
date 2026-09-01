@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { PlanRepository } from '../repositories/plan.repository';
 import { PrismaService } from '../../../database/prisma/prisma.service';
 import type {
   DeploymentRegionResponseDto,
@@ -8,15 +7,14 @@ import type {
 
 @Injectable()
 export class PlatformCatalogueService {
-  constructor(
-    private readonly planRepo: PlanRepository,
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async listPlans(includeEntitlements = false): Promise<PlanResponseDto[]> {
+  async listPlans(includeEntitlements = false, includeInactive = false): Promise<PlanResponseDto[]> {
+    const where = includeInactive ? {} : { status: 'ACTIVE' };
+
     if (includeEntitlements) {
       const plans = await this.prisma.plan.findMany({
-        where: { status: 'ACTIVE' },
+        where,
         orderBy: { name: 'asc' },
         include: {
           planEntitlements: {
@@ -42,7 +40,11 @@ export class PlatformCatalogueService {
       }));
     }
 
-    const plans = await this.planRepo.findAllActive();
+    const plans = await this.prisma.plan.findMany({
+      where,
+      orderBy: { name: 'asc' },
+    });
+
     return plans.map((plan) => ({
       id: plan.id,
       code: plan.code,

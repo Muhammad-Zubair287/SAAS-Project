@@ -20,3 +20,18 @@ export function normalizeEmail({ value }: TransformFnParams): unknown {
   if (typeof value !== 'string') return value;
   return stripControlChars(value).trim().toLowerCase();
 }
+
+export function normalizePlanCode({ value }: TransformFnParams): unknown {
+  if (typeof value !== 'string') return value;
+  return stripControlChars(value).trim().toLowerCase();
+}
+
+export function normalizeEntitlementCode({ value }: TransformFnParams): unknown {
+  if (typeof value !== 'string') return value;
+  return stripControlChars(value).trim().toLowerCase();
+}
+
+export function normalizeUppercaseToken({ value }: TransformFnParams): unknown {
+  if (typeof value !== 'string') return value;
+  return stripControlChars(value).trim().toUpperCase();
+}

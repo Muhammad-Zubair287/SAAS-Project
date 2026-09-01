@@ -23,6 +23,8 @@ export const ORGANIZATION_NAME_PATTERN =
   /^[\p{L}\p{N}][\p{L}\p{N}\s&().,'\-/]*[\p{L}\p{N})]?$|^[\p{L}\p{N}]$/u;
 export const INTERNATIONAL_PHONE_PATTERN = /^\+?[0-9]{7,15}$/;
 export const OTP_CODE_PATTERN = /^[0-9]{6,8}$/;
+export const PLAN_CODE_PATTERN = /^[a-z0-9]+(?:[_-][a-z0-9]+)*$/;
+export const ENTITLEMENT_CODE_PATTERN = /^[a-z][a-z0-9_]*$/;
 export const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 export const EMAIL_PATTERN =
   /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/i;
@@ -69,6 +71,29 @@ export function filterOtpInput(raw: string): string {
 
 export function filterDigitsOnly(raw: string, maxLength = 10): string {
   return raw.replace(/\D/g, '').slice(0, maxLength);
+}
+
+/** Plan catalogue code — lowercase alphanumeric, underscore, hyphen. */
+export function filterPlanCodeInput(raw: string): string {
+  return raw
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+    .replace(/[^a-zA-Z0-9_-]/g, '')
+    .toLowerCase()
+    .slice(0, 40);
+}
+
+export function filterSafeDescriptionInput(raw: string, maxLength = 2000): string {
+  return raw
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+    .replace(/[<>`\\]/g, '')
+    .slice(0, maxLength);
+}
+
+export function isValidPlanCode(value: string): boolean {
+  const trimmed = sanitizeTrimmed(value).toLowerCase();
+  if (trimmed.length < 2 || trimmed.length > 40) return false;
+  if (containsInjectionPayload(trimmed)) return false;
+  return PLAN_CODE_PATTERN.test(trimmed);
 }
 
 export function isValidEmail(value: string): boolean {

@@ -16,8 +16,10 @@ export const TENANT_KEYS = {
 };
 
 export const CATALOGUE_KEYS = {
-  plans: (includeEntitlements?: boolean) => ['platform', 'plans', includeEntitlements] as const,
+  plans: (includeEntitlements?: boolean, includeInactive?: boolean) =>
+    ['platform', 'plans', includeEntitlements, includeInactive] as const,
   regions: () => ['platform', 'regions'] as const,
+  entitlements: () => ['platform', 'entitlements'] as const,
 };
 
 export const AUDIT_KEYS = {
@@ -95,11 +97,20 @@ export function useAllSupportGrants(params?: ListSupportGrantsParams) {
   });
 }
 
-export function usePlans(includeEntitlements = false) {
+export function usePlans(includeEntitlements = false, includeInactive = false) {
   return useQuery({
-    queryKey: CATALOGUE_KEYS.plans(includeEntitlements),
-    queryFn: () => platformApi.catalogue.listPlans(includeEntitlements),
+    queryKey: CATALOGUE_KEYS.plans(includeEntitlements, includeInactive),
+    queryFn: () => platformApi.catalogue.listPlans(includeEntitlements, includeInactive),
     staleTime: 300_000,
+  });
+}
+
+export function useEntitlementCatalogue(enabled = true) {
+  return useQuery({
+    queryKey: CATALOGUE_KEYS.entitlements(),
+    queryFn: () => platformApi.plansAdmin.listEntitlements(),
+    staleTime: 300_000,
+    enabled,
   });
 }
 

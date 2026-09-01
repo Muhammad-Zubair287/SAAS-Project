@@ -352,6 +352,21 @@ const ENTITLEMENTS = [
   },
 ] as const;
 
+/** Dev/demo-only catalogue rows — excluded from production reference seed. */
+const DEMO_ONLY_ENTITLEMENT_CODES = new Set([
+  'feature_taskops',
+  'feature_performance',
+  'feature_assets',
+  'feature_benefits',
+  'feature_ai_insights',
+  'feature_compliance_packs',
+  'feature_webhooks',
+  'feature_on_prem_connector',
+]);
+
+const REFERENCE_ENTITLEMENTS = ENTITLEMENTS.filter((row) => !DEMO_ONLY_ENTITLEMENT_CODES.has(row.code));
+const DEMO_ONLY_ENTITLEMENTS = ENTITLEMENTS.filter((row) => DEMO_ONLY_ENTITLEMENT_CODES.has(row.code));
+
 // ---------------------------------------------------------------------------
 // Plan Entitlement values (override default_value per plan)
 // ---------------------------------------------------------------------------
@@ -459,10 +474,10 @@ const PLAN_ENTITLEMENT_VALUES: Record<PlanCode, Partial<Record<EntitlementCode, 
 // Seed runner
 // ---------------------------------------------------------------------------
 
-export async function seedM01Catalogues(): Promise<void> {
-  console.log('Seeding M01 global catalogues…');
+/** Idempotent bootstrap for deployment regions + entitlement catalogue (no commercial plans). */
+export async function seedM01ReferenceCatalogue(): Promise<void> {
+  console.log('Seeding M01 reference catalogue (regions + entitlements)…');
 
-  // 1. Deployment regions
   for (const region of DEPLOYMENT_REGIONS) {
     await prisma.deploymentRegion.upsert({
       where: { code: region.code },
@@ -478,27 +493,8 @@ export async function seedM01Catalogues(): Promise<void> {
   }
   console.log(`  ✓ ${DEPLOYMENT_REGIONS.length} deployment regions`);
 
-  // 2. Plans
-  const planRecords: Record<string, { id: string }> = {};
-  for (const plan of PLANS) {
-    const record = await prisma.plan.upsert({
-      where: { code: plan.code },
-      update: {
-        name: plan.name,
-        description: plan.description,
-        billingModel: plan.billingModel,
-        status: plan.status,
-      },
-      create: plan,
-    });
-    planRecords[plan.code] = record;
-  }
-  console.log(`  ✓ ${PLANS.length} plans`);
-
-  // 3. Entitlements
-  const entitlementRecords: Record<string, { id: string }> = {};
-  for (const ent of ENTITLEMENTS) {
-    const record = await prisma.entitlement.upsert({
+  for (const ent of REFERENCE_ENTITLEMENTS) {
+    await prisma.entitlement.upsert({
       where: { code: ent.code },
       update: {
         label: ent.label,
@@ -518,11 +514,60 @@ export async function seedM01Catalogues(): Promise<void> {
         status: ent.status,
       },
     });
-    entitlementRecords[ent.code] = record;
   }
-  console.log(`  ✓ ${ENTITLEMENTS.length} entitlements`);
+  console.log(`  ✓ ${REFERENCE_ENTITLEMENTS.length} production entitlements`);
+  console.log('M01 reference catalogue seeded successfully.');
+}
 
-  // 4. Plan entitlements
+async function seedM01DemoOnlyEntitlements(): Promise<void> {
+  for (const ent of DEMO_ONLY_ENTITLEMENTS) {
+    await prisma.entitlement.upsert({
+      where: { code: ent.code },
+      update: {
+        label: ent.label,
+        description: ent.description,
+        dataType: ent.dataType,
+        defaultValue: ent.defaultValue,
+        unit: ent.unit ?? undefined,
+        status: ent.status,
+      },
+      create: {
+        code: ent.code,
+        label: ent.label,
+        description: ent.description,
+        dataType: ent.dataType,
+        defaultValue: ent.defaultValue,
+        unit: ent.unit ?? undefined,
+        status: ent.status,
+      },
+    });
+  }
+  console.log(`  ✓ ${DEMO_ONLY_ENTITLEMENTS.length} dev/demo-only entitlements`);
+}
+
+async function seedM01PlansAndEntitlements(): Promise<void> {
+  const planRecords: Record<string, { id: string }> = {};
+  for (const plan of PLANS) {
+    const record = await prisma.plan.upsert({
+      where: { code: plan.code },
+      update: {
+        name: plan.name,
+        description: plan.description,
+        billingModel: plan.billingModel,
+        status: plan.status,
+      },
+      create: plan,
+    });
+    planRecords[plan.code] = record;
+  }
+  console.log(`  ✓ ${PLANS.length} plans`);
+
+  const entitlementRecords: Record<string, { id: string }> = {};
+  for (const ent of ENTITLEMENTS) {
+    const record = await prisma.entitlement.findUnique({ where: { code: ent.code } });
+    if (record) entitlementRecords[ent.code] = record;
+  }
+
   let planEntitlementCount = 0;
   for (const [planCode, overrides] of Object.entries(PLAN_ENTITLEMENT_VALUES) as [PlanCode, Record<string, unknown>][]) {
     const planId = planRecords[planCode]?.id;
@@ -543,7 +588,14 @@ export async function seedM01Catalogues(): Promise<void> {
     }
   }
   console.log(`  ✓ ${planEntitlementCount} plan entitlements`);
+}
 
+/** Full M01 catalogue including optional dev/demo commercial plans. */
+export async function seedM01Catalogues(): Promise<void> {
+  console.log('Seeding M01 global catalogues…');
+  await seedM01ReferenceCatalogue();
+  await seedM01DemoOnlyEntitlements();
+  await seedM01PlansAndEntitlements();
   console.log('M01 global catalogues seeded successfully.');
 }
 

@@ -23,8 +23,12 @@ export class PlatformCatalogueController {
   @ApiOkResponse({ type: [PlanResponseDto] })
   async listPlans(
     @Query('includeEntitlements') includeEntitlements?: string,
+    @Query('includeInactive') includeInactive?: string,
   ): Promise<PlanResponseDto[]> {
-    return this.catalogue.listPlans(includeEntitlements === 'true');
+    return this.catalogue.listPlans(
+      includeEntitlements === 'true',
+      includeInactive === 'true',
+    );
   }
 
   @Get('regions')

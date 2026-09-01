@@ -410,6 +410,7 @@ export interface CreatePlanPayload {
   description?: string;
   billingModel?: string;
   status?: string;
+  entitlements?: Array<{ entitlementId: string; defaultValue: unknown }>;
 }
 
 export interface UpdatePlanPayload {

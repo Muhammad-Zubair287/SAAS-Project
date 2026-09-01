@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -13,15 +14,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import {
-  IsArray,
-  IsOptional,
-  IsString,
-  IsUUID,
-  MaxLength,
-  ValidateNested,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsOptional, IsString, MaxLength } from 'class-validator';
 import { RequirePermissions } from '../../../common/decorators/require-permissions.decorator';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { CorrelationId } from '../../../common/decorators/correlation-id.decorator';
@@ -32,43 +25,12 @@ import { PlatformCatalogueManageService } from '../services/platform-catalogue-m
 import { PlatformUsageDashboardService } from '../services/platform-usage-dashboard.service';
 import type { PlatformActorContext } from '../../../common/interfaces/platform-actor.interface';
 import { PlanResponseDto } from '../dto/plan-response.dto';
-
-class CreatePlanBody {
-  @IsString() @MaxLength(40) code!: string;
-  @IsString() @MaxLength(100) name!: string;
-  @IsOptional() @IsString() description?: string;
-  @IsOptional() @IsString() billingModel?: string;
-  @IsOptional() @IsString() status?: string;
-}
-
-class UpdatePlanBody {
-  @IsOptional() @IsString() @MaxLength(100) name?: string;
-  @IsOptional() @IsString() description?: string;
-  @IsOptional() @IsString() billingModel?: string;
-  @IsOptional() @IsString() status?: string;
-}
-
-class PlanEntitlementItem {
-  @IsUUID() entitlementId!: string;
-  defaultValue!: unknown;
-}
-
-class SetPlanEntitlementsBody {
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => PlanEntitlementItem)
-  items!: PlanEntitlementItem[];
-}
-
-class CreateEntitlementBody {
-  @IsString() @MaxLength(80) code!: string;
-  @IsString() @MaxLength(120) label!: string;
-  @IsOptional() @IsString() description?: string;
-  @IsString() dataType!: string;
-  defaultValue!: unknown;
-  @IsOptional() @IsString() unit?: string;
-  @IsOptional() @IsString() status?: string;
-}
+import {
+  CreateEntitlementDto,
+  CreatePlanDto,
+  SetPlanEntitlementsDto,
+  UpdatePlanDto,
+} from '../dto/plan-catalogue.dto';
 
 class CreateRegionBody {
   @IsString() @MaxLength(40) code!: string;
@@ -102,7 +64,7 @@ export class PlatformCatalogueAdminController {
   @ApiOperation({ summary: 'Create commercial plan' })
   @ApiOkResponse({ type: PlanResponseDto })
   createPlan(
-    @Body() dto: CreatePlanBody,
+    @Body() dto: CreatePlanDto,
     @CurrentUser() actor: PlatformActorContext,
     @CorrelationId() correlationId: string,
   ) {
@@ -113,11 +75,23 @@ export class PlatformCatalogueAdminController {
   @RequirePermissions(PLATFORM_PERMISSIONS.PLAN_MANAGE)
   updatePlan(
     @Param('planId', ParseUUIDPipe) planId: string,
-    @Body() dto: UpdatePlanBody,
+    @Body() dto: UpdatePlanDto,
     @CurrentUser() actor: PlatformActorContext,
     @CorrelationId() correlationId: string,
   ) {
     return this.manage.updatePlan(planId, dto, actor, correlationId);
+  }
+
+  @Delete('plans/:planId')
+  @HttpCode(HttpStatus.OK)
+  @RequirePermissions(PLATFORM_PERMISSIONS.PLAN_MANAGE)
+  @ApiOperation({ summary: 'Delete commercial plan (only when unused)' })
+  deletePlan(
+    @Param('planId', ParseUUIDPipe) planId: string,
+    @CurrentUser() actor: PlatformActorContext,
+    @CorrelationId() correlationId: string,
+  ) {
+    return this.manage.deletePlan(planId, actor, correlationId);
   }
 
   @Put('plans/:planId/entitlements')
@@ -125,7 +99,7 @@ export class PlatformCatalogueAdminController {
   @RequirePermissions(PLATFORM_PERMISSIONS.PLAN_MANAGE)
   setPlanEntitlements(
     @Param('planId', ParseUUIDPipe) planId: string,
-    @Body() dto: SetPlanEntitlementsBody,
+    @Body() dto: SetPlanEntitlementsDto,
     @CurrentUser() actor: PlatformActorContext,
     @CorrelationId() correlationId: string,
   ) {
@@ -141,11 +115,23 @@ export class PlatformCatalogueAdminController {
   @Post('entitlements')
   @RequirePermissions(PLATFORM_PERMISSIONS.ENTITLEMENT_CATALOGUE)
   createEntitlement(
-    @Body() dto: CreateEntitlementBody,
+    @Body() dto: CreateEntitlementDto,
     @CurrentUser() actor: PlatformActorContext,
     @CorrelationId() correlationId: string,
   ) {
     return this.manage.createEntitlement(dto, actor, correlationId);
+  }
+
+  @Delete('entitlements/:entitlementId')
+  @HttpCode(HttpStatus.OK)
+  @RequirePermissions(PLATFORM_PERMISSIONS.ENTITLEMENT_CATALOGUE)
+  @ApiOperation({ summary: 'Delete catalogue entitlement (only when unused)' })
+  deleteEntitlement(
+    @Param('entitlementId', ParseUUIDPipe) entitlementId: string,
+    @CurrentUser() actor: PlatformActorContext,
+    @CorrelationId() correlationId: string,
+  ) {
+    return this.manage.deleteEntitlement(entitlementId, actor, correlationId);
   }
 
   @Post('deployment-regions')

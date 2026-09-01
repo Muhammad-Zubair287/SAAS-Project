@@ -546,6 +546,7 @@
         "suspend": "Suspend",
         "restore": "Restore",
         "changePlan": "Change plan",
+        "close": "Close tenant",
         "supportAccess": "Support access",
         "viewAudit": "View audit"
       },
@@ -632,6 +633,14 @@
       "restore": {
         "title": "Restore tenant",
         "reasonLabel": "Reason for restore"
+      },
+      "close": {
+        "title": "Close tenant",
+        "description": "Permanently end the lifecycle for {name}. Users will lose access and the tenant cannot be reactivated without platform support.",
+        "warning": "Closing a tenant is irreversible through self-service. Tenant data is retained for compliance but the organisation cannot operate on the platform.",
+        "reasonLabel": "Closure reason",
+        "confirmLabel": "Type the tenant name to confirm: {name}",
+        "confirmButton": "Close tenant"
       },
       "changePlan": {
         "reason": "Reason for plan change"
@@ -741,14 +750,57 @@
       "included": "Included",
       "notIncluded": "Not included",
       "empty": "No plans have been configured.",
+      "emptyTitle": "No plans have been configured.",
+      "emptyDescription": "Create a commercial plan before provisioning customer tenants.",
       "total": "{count} plan(s) configured",
       "active": "{count} active",
       "createPlan": "Create Plan",
       "editPlan": "Edit Plan",
       "editNote": "Plan edits affect all tenants on this plan.",
+      "catalogueEmptyTitle": "Entitlement catalogue not installed",
+      "catalogueEmpty": "Canonical entitlement reference data has not been installed. Run the platform reference catalogue seed on this environment before creating plans.",
+      "catalogueLoadError": "Unable to load the entitlement catalogue.",
+      "sections": {
+        "details": "Plan details",
+        "entitlements": "Entitlements"
+      },
+      "groups": {
+        "modules": "Enabled modules",
+        "enterprise": "Enterprise capabilities",
+        "limits": "Limits",
+        "other": "Other entitlements"
+      },
+      "billingModels": {
+        "FLAT_RATE": "Flat rate",
+        "PER_SEAT": "Per seat",
+        "USAGE": "Usage-based"
+      },
+      "statuses": {
+        "ACTIVE": "Active",
+        "INACTIVE": "Inactive"
+      },
+      "validation": {
+        "required": "Plan code and name are required.",
+        "code": "Plan code must be 2–40 lowercase letters, numbers, underscores, or hyphens.",
+        "name": "Plan name must contain only allowed business characters.",
+        "description": "Description contains invalid or unsafe characters."
+      },
+      "delete": {
+        "title": "Delete plan",
+        "description": "Delete \"{name}\"? This cannot be undone. Plans assigned to tenants cannot be deleted.",
+        "confirm": "Delete plan"
+      },
+      "toast": {
+        "created": "Plan created successfully.",
+        "updated": "Plan updated successfully.",
+        "deleted": "Plan deleted successfully."
+      },
       "fields": {
+        "code": "Plan code",
         "name": "Plan name",
-        "description": "Description"
+        "description": "Description",
+        "billingModel": "Billing model",
+        "status": "Status"
       }
     },
     "usage": {

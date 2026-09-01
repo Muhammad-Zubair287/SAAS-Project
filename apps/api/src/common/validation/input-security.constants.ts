@@ -31,6 +31,10 @@ export const INTERNATIONAL_PHONE_PATTERN = /^\+?[0-9]{7,15}$/;
 export const OTP_CODE_PATTERN = /^[0-9]{6,8}$/;
 
 export const PLAN_KEY_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+/** Commercial plan catalogue code — lowercase alphanumeric with underscores/hyphens. */
+export const PLAN_CODE_PATTERN = /^[a-z0-9]+(?:[_-][a-z0-9]+)*$/;
+/** Entitlement catalogue code — snake_case feature/limit identifiers. */
+export const ENTITLEMENT_CODE_PATTERN = /^[a-z][a-z0-9_]*$/;
 export const HOSTING_REGION_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 export const LOCALE_PATTERN = /^[a-z]{2,3}(?:-[A-Za-z0-9]+)*$/;
 export const TIMEZONE_PATTERN = /^[A-Za-z0-9_+\-/]+$/;

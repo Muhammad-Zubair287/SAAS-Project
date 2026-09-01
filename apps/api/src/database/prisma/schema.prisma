@@ -123,6 +123,7 @@ model DeploymentRegion {
 // ─── M01: Commercial Plans ────────────────────────────────────────────────────
 // Plan catalogue. Tenant references via plan code (Batch 2 will use plan_id FK).
 // billing_model values: FLAT_RATE | PER_SEAT | USAGE
+// ERD p.70 documents PER_SEAT | PLATFORM | HYBRID — see docs/architecture/M16_PLAN_ENTITLEMENT_RECONCILIATION.md
 
 model Plan {
   id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -148,6 +149,7 @@ model Plan {
 // ─── M01: Entitlements ────────────────────────────────────────────────────────
 // Entitlement catalogue defining what can be controlled per plan.
 // data_type values: INTEGER | BOOLEAN | STRING | DECIMAL
+// ERD p.70 documents TEXT (not STRING) — see docs/architecture/M16_PLAN_ENTITLEMENT_RECONCILIATION.md
 // default_value is jsonb to accommodate all data_type variants.
 
 model Entitlement {

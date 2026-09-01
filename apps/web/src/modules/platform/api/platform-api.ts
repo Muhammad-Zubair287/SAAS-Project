@@ -76,10 +76,13 @@ const BASE = '/platform';
 
 export const platformApi = {
   catalogue: {
-    listPlans: (includeEntitlements = false) =>
+    listPlans: (includeEntitlements = false, includeInactive = false) =>
       apiClient
         .get<ApiSuccessResponse<Plan[]>>(`${BASE}/plans`, {
-          params: includeEntitlements ? { includeEntitlements: 'true' } : {},
+          params: {
+            ...(includeEntitlements ? { includeEntitlements: 'true' } : {}),
+            ...(includeInactive ? { includeInactive: 'true' } : {}),
+          },
         })
         .then((r) => r.data),
 
@@ -349,6 +352,11 @@ export const platformApi = {
     setEntitlements: (planId: string, items: Array<{ entitlementId: string; defaultValue: unknown }>) =>
       apiClient
         .put<ApiSuccessResponse<Plan>>(`${BASE}/plans/${planId}/entitlements`, { items })
+        .then((r) => r.data),
+
+    delete: (planId: string) =>
+      apiClient
+        .delete<ApiSuccessResponse<{ deleted: true; id: string }>>(`${BASE}/plans/${planId}`)
         .then((r) => r.data),
 
     listEntitlements: () =>

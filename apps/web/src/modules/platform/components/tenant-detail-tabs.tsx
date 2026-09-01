@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { TenantStatusBadge } from './tenant-status-badge';
 import { SuspendTenantDialog } from './suspend-tenant-dialog';
+import { CloseTenantDialog } from './close-tenant-dialog';
 import { SupportGrantDialog } from './support-grant-dialog';
 import { RestoreTenantDialog } from './restore-tenant-dialog';
 import { ChangePlanDialog } from './change-plan-dialog';
@@ -29,6 +30,7 @@ export function TenantDetailTabs({ tenant }: TenantDetailTabsProps) {
   const [showSupport, setShowSupport] = useState(false);
   const [showRestore, setShowRestore] = useState(false);
   const [showChangePlan, setShowChangePlan] = useState(false);
+  const [showClose, setShowClose] = useState(false);
 
   const activate = useActivateTenant(tenant.id);
   const { data: grantsData } = useSupportGrants(tenant.id);
@@ -40,6 +42,12 @@ export function TenantDetailTabs({ tenant }: TenantDetailTabsProps) {
   const canReactivateClosed = tenant.status === 'CLOSED' && user?.platformRole === 'PLATFORM_SUPER_ADMIN';
   const canSuspend = tenant.status === 'ACTIVE' || tenant.status === 'TRIAL' || tenant.status === 'GRACE';
   const canChangePlan = tenant.status === 'ACTIVE' || tenant.status === 'TRIAL' || tenant.status === 'DRAFT' || tenant.status === 'GRACE';
+  const canClose =
+    tenant.status === 'DRAFT' ||
+    tenant.status === 'ACTIVE' ||
+    tenant.status === 'SUSPENDED' ||
+    tenant.status === 'TRIAL' ||
+    tenant.status === 'GRACE';
 
   const TABS: { key: Tab; label: string }[] = [
     { key: 'overview', label: t('platform.tenants.detail.tabs.overview') },
@@ -131,6 +139,15 @@ export function TenantDetailTabs({ tenant }: TenantDetailTabsProps) {
                 {t('platform.tenants.actions.changePlan')}
               </button>
             )}
+            {canClose && (
+              <button
+                type="button"
+                onClick={() => setShowClose(true)}
+                className="rounded-md border border-semantic-danger px-4 py-2 text-body-md font-semibold text-semantic-danger hover:bg-red-50"
+              >
+                {t('platform.tenants.actions.close')}
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setShowSupport(true)}
@@ -195,6 +212,12 @@ export function TenantDetailTabs({ tenant }: TenantDetailTabsProps) {
         currentPlanKey={tenant.planKey}
         open={showChangePlan}
         onClose={() => setShowChangePlan(false)}
+      />
+      <CloseTenantDialog
+        tenantId={tenant.id}
+        tenantName={tenant.displayName}
+        open={showClose}
+        onClose={() => setShowClose(false)}
       />
     </div>
   );

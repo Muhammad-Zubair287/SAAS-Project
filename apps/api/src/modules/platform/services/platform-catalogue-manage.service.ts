@@ -7,6 +7,11 @@ import { AuditEventSeverity } from '../../../common/enums/platform.enum';
 import { PlatformAuditService } from './platform-audit.service';
 import type { PlatformActorContext } from '../../../common/interfaces/platform-actor.interface';
 import type { PlanResponseDto, EntitlementSummaryDto, DeploymentRegionResponseDto } from '../dto/plan-response.dto';
+import {
+  PLAN_BILLING_MODELS,
+  PLAN_STATUSES,
+} from '../constants/plan-catalogue.constants';
+import { validatePlanEntitlementItems } from '../utils/plan-entitlement.validation';
 
 @Injectable()
 export class PlatformCatalogueManageService {
@@ -22,40 +27,71 @@ export class PlatformCatalogueManageService {
       description?: string;
       billingModel?: string;
       status?: string;
+      entitlements?: Array<{ entitlementId: string; defaultValue: unknown }>;
     },
     actor: PlatformActorContext,
     correlationId: string,
   ): Promise<PlanResponseDto> {
-    const existing = await this.prisma.plan.findUnique({ where: { code: dto.code } });
+    const code = dto.code.trim().toLowerCase();
+    const billingModel = this.resolveBillingModel(dto.billingModel);
+    const status = this.resolvePlanStatus(dto.status);
+
+    const existing = await this.prisma.plan.findUnique({ where: { code } });
     if (existing) {
       throw new AppException({
         code: ERROR_CODES.CONFLICT,
-        message: `Plan code "${dto.code}" already exists.`,
+        message: `Plan code "${code}" already exists.`,
         statusCode: HttpStatus.CONFLICT,
       });
     }
 
+    const entitlementItems = dto.entitlements ?? [];
+    const catalogue = await this.loadActiveEntitlementCatalogue();
+    validatePlanEntitlementItems(entitlementItems, catalogue);
+
     const plan = await this.prisma.withTransaction(async (tx) => {
       const created = await tx.plan.create({
         data: {
-          code: dto.code,
-          name: dto.name,
-          description: dto.description,
-          billingModel: dto.billingModel ?? 'PER_SEAT',
-          status: dto.status ?? 'DRAFT',
+          code,
+          name: dto.name.trim(),
+          description: dto.description?.trim() || null,
+          billingModel,
+          status,
         },
       });
+
+      if (entitlementItems.length > 0) {
+        await tx.planEntitlement.createMany({
+          data: entitlementItems.map((item) => ({
+            planId: created.id,
+            entitlementId: item.entitlementId,
+            defaultValue: item.defaultValue as Prisma.InputJsonValue,
+          })),
+        });
+      }
+
       await this.audit.logWithTx(tx, actor, {
         module: 'platform',
         action: 'plan.created',
         resourceType: 'plan',
         resourceId: created.id,
-        after: created,
+        after: {
+          ...created,
+          entitlementCount: entitlementItems.length,
+        },
         correlationId,
         severity: AuditEventSeverity.WARNING,
       });
       return created;
     });
+
+    if (entitlementItems.length > 0) {
+      const refreshed = await this.prisma.plan.findUnique({
+        where: { id: plan.id },
+        include: { planEntitlements: { include: { entitlement: true } } },
+      });
+      return this.toPlanDto(refreshed!, true);
+    }
 
     return this.toPlanDto(plan);
   }
@@ -80,12 +116,19 @@ export class PlatformCatalogueManageService {
       });
     }
 
+    if (dto.billingModel !== undefined) {
+      this.resolveBillingModel(dto.billingModel);
+    }
+    if (dto.status !== undefined) {
+      this.resolvePlanStatus(dto.status);
+    }
+
     const plan = await this.prisma.withTransaction(async (tx) => {
       const updated = await tx.plan.update({
         where: { id: planId },
         data: {
-          name: dto.name,
-          description: dto.description,
+          name: dto.name?.trim(),
+          description: dto.description === undefined ? undefined : dto.description.trim() || null,
           billingModel: dto.billingModel,
           status: dto.status,
         },
@@ -124,6 +167,9 @@ export class PlatformCatalogueManageService {
       });
     }
 
+    const catalogue = await this.loadActiveEntitlementCatalogue();
+    validatePlanEntitlementItems(items, catalogue);
+
     await this.prisma.withTransaction(async (tx) => {
       await tx.planEntitlement.deleteMany({ where: { planId } });
       if (items.length > 0) {
@@ -151,6 +197,104 @@ export class PlatformCatalogueManageService {
       include: { planEntitlements: { include: { entitlement: true } } },
     });
     return this.toPlanDto(refreshed!, true);
+  }
+
+  async deletePlan(
+    planId: string,
+    actor: PlatformActorContext,
+    correlationId: string,
+  ): Promise<{ deleted: true; id: string }> {
+    const existing = await this.prisma.plan.findUnique({ where: { id: planId } });
+    if (!existing) {
+      throw new AppException({
+        code: ERROR_CODES.PLAN_NOT_FOUND,
+        message: 'Plan not found.',
+        statusCode: HttpStatus.NOT_FOUND,
+      });
+    }
+
+    const [tenantCount, subscriptionCount, upgradeCount] = await Promise.all([
+      this.prisma.tenant.count({ where: { planId } }),
+      this.prisma.tenantSubscription.count({ where: { planId } }),
+      this.prisma.tenantUpgradeRequest.count({ where: { requestedPlanId: planId } }),
+    ]);
+
+    if (tenantCount > 0 || subscriptionCount > 0) {
+      throw new AppException({
+        code: ERROR_CODES.PLAN_IN_USE,
+        message:
+          'This plan cannot be deleted because one or more tenants are assigned to it. Set the plan to INACTIVE instead.',
+        statusCode: HttpStatus.CONFLICT,
+      });
+    }
+
+    if (upgradeCount > 0) {
+      throw new AppException({
+        code: ERROR_CODES.PLAN_IN_USE,
+        message: 'This plan cannot be deleted because pending upgrade requests reference it.',
+        statusCode: HttpStatus.CONFLICT,
+      });
+    }
+
+    await this.prisma.withTransaction(async (tx) => {
+      await tx.planEntitlement.deleteMany({ where: { planId } });
+      await tx.plan.delete({ where: { id: planId } });
+      await this.audit.logWithTx(tx, actor, {
+        module: 'platform',
+        action: 'plan.deleted',
+        resourceType: 'plan',
+        resourceId: planId,
+        before: existing,
+        correlationId,
+        severity: AuditEventSeverity.CRITICAL,
+      });
+    });
+
+    return { deleted: true, id: planId };
+  }
+
+  async deleteEntitlement(
+    entitlementId: string,
+    actor: PlatformActorContext,
+    correlationId: string,
+  ): Promise<{ deleted: true; id: string }> {
+    const existing = await this.prisma.entitlement.findUnique({ where: { id: entitlementId } });
+    if (!existing) {
+      throw new AppException({
+        code: ERROR_CODES.NOT_FOUND,
+        message: 'Entitlement not found.',
+        statusCode: HttpStatus.NOT_FOUND,
+      });
+    }
+
+    const [planLinkCount, tenantLinkCount] = await Promise.all([
+      this.prisma.planEntitlement.count({ where: { entitlementId } }),
+      this.prisma.tenantEntitlement.count({ where: { entitlementId } }),
+    ]);
+
+    if (planLinkCount > 0 || tenantLinkCount > 0) {
+      throw new AppException({
+        code: ERROR_CODES.ENTITLEMENT_IN_USE,
+        message:
+          'This entitlement cannot be deleted because it is linked to plans or tenants. Set status to INACTIVE instead.',
+        statusCode: HttpStatus.CONFLICT,
+      });
+    }
+
+    await this.prisma.withTransaction(async (tx) => {
+      await tx.entitlement.delete({ where: { id: entitlementId } });
+      await this.audit.logWithTx(tx, actor, {
+        module: 'platform',
+        action: 'entitlement.deleted',
+        resourceType: 'entitlement',
+        resourceId: entitlementId,
+        before: existing,
+        correlationId,
+        severity: AuditEventSeverity.WARNING,
+      });
+    });
+
+    return { deleted: true, id: entitlementId };
   }
 
   async createEntitlement(
@@ -209,7 +353,10 @@ export class PlatformCatalogueManageService {
   }
 
   async listEntitlements(): Promise<Array<EntitlementSummaryDto & { id: string; status: string }>> {
-    const rows = await this.prisma.entitlement.findMany({ orderBy: { code: 'asc' } });
+    const rows = await this.prisma.entitlement.findMany({
+      where: { status: 'ACTIVE' },
+      orderBy: { code: 'asc' },
+    });
     return rows.map((r) => ({
       id: r.id,
       code: r.code,
@@ -308,6 +455,37 @@ export class PlatformCatalogueManageService {
     });
 
     return this.toRegionDto(row);
+  }
+
+  private resolveBillingModel(value?: string): string {
+    const billingModel = value ?? 'PER_SEAT';
+    if (!PLAN_BILLING_MODELS.includes(billingModel as (typeof PLAN_BILLING_MODELS)[number])) {
+      throw new AppException({
+        code: ERROR_CODES.VALIDATION_FAILED,
+        message: `Invalid billing model "${billingModel}". Allowed: ${PLAN_BILLING_MODELS.join(', ')}.`,
+        statusCode: HttpStatus.BAD_REQUEST,
+      });
+    }
+    return billingModel;
+  }
+
+  private resolvePlanStatus(value?: string): string {
+    const status = value ?? 'ACTIVE';
+    if (!PLAN_STATUSES.includes(status as (typeof PLAN_STATUSES)[number])) {
+      throw new AppException({
+        code: ERROR_CODES.VALIDATION_FAILED,
+        message: `Invalid plan status "${status}". Allowed: ${PLAN_STATUSES.join(', ')}.`,
+        statusCode: HttpStatus.BAD_REQUEST,
+      });
+    }
+    return status;
+  }
+
+  private async loadActiveEntitlementCatalogue() {
+    return this.prisma.entitlement.findMany({
+      where: { status: 'ACTIVE' },
+      select: { id: true, code: true, dataType: true },
+    });
   }
 
   private toPlanDto(

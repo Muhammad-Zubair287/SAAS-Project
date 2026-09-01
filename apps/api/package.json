@@ -16,7 +16,8 @@
     "db:migrate": "prisma migrate deploy",
     "db:migrate:dev": "prisma migrate dev",
     "db:studio": "prisma studio",
-    "db:seed:platform-super-admin": "npx ts-node --transpile-only scripts/seed-platform-super-admin.ts"
+    "db:seed:platform-super-admin": "npx ts-node --transpile-only scripts/seed-platform-super-admin.ts",
+    "db:seed:reference-catalogue": "npx ts-node --transpile-only scripts/seed-reference-catalogue.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.0",
